@@ -1,12 +1,9 @@
 import { useState } from 'react';
-import { Dropdown } from '../ui/dropdown/Dropdown';
+import { Dropdown, MenuProps } from 'antd';
+import { DownOutlined } from '@ant-design/icons';
 
 const ToggleLanguage = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const [selectedLang, setSelectedLang] = useState('O‘zbekcha');
-
-  const toggleDropdown = () => setIsOpen(!isOpen);
-  const closeDropdown = () => setIsOpen(false);
 
   const languages = [
     { code: 'uz', name: 'O‘zbekcha' },
@@ -16,58 +13,40 @@ const ToggleLanguage = () => {
 
   const handleSelect = (lang: string) => {
     setSelectedLang(lang);
-    closeDropdown();
   };
 
-  return (
-    <div className="relative inline-block text-left">
-      {/* Toggle button */}
-      <button
-        onClick={toggleDropdown}
-        className="flex items-center text-gray-700 dropdown-toggle dark:text-gray-300 font-medium text-theme-sm"
+  const items: MenuProps['items'] = languages.map(lang => ({
+    key: lang.code,
+    label: (
+      <div
+        onClick={() => handleSelect(lang.name)}
+        className={`rounded-md px-3 py-[10px] text-sm font-medium cursor-pointer select-none transition-colors duration-150
+        ${
+          selectedLang === lang.name
+            ? 'bg-gray-100 text-gray-900 dark:bg-white/10 dark:text-white'
+            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 hover:dark:bg-white/10'
+        }`}
       >
-        <span className="block mr-1">{selectedLang}</span>
-        <svg
-          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
-            isOpen ? 'rotate-180' : ''
-          }`}
-          width="18"
-          height="20"
-          viewBox="0 0 18 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M4.3125 8.65625L9 13.3437L13.6875 8.65625"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
+        {lang.name}
+      </div>
+    ),
+  }));
 
-      {/* Dropdown menu */}
-      <Dropdown
-        isOpen={isOpen}
-        onClose={closeDropdown}
-        className="absolute right-0 mt-[12px] flex w-[180px] flex-col rounded-2xl border border-gray-200 bg-white p-2 shadow-theme-lg dark:border-gray-700 dark:bg-gray-800"
+  return (
+    <Dropdown
+      menu={{ items }}
+      trigger={['click']}
+      placement="bottomRight"
+      overlayClassName="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg"
+    >
+      <button
+        className="flex items-center gap-1 font-medium text-gray-700 dark:text-gray-200 text-sm outline-none"
+        onClick={e => e.preventDefault()}
       >
-        {languages.map(lang => (
-          <button
-            key={lang.code}
-            onClick={() => handleSelect(lang.name)}
-            className={`px-3 py-2 text-left text-theme-sm rounded-lg font-medium transition-colors ${
-              selectedLang === lang.name
-                ? 'bg-gray-100 text-gray-800 dark:bg-white/10'
-                : 'hover:bg-gray-100 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300'
-            }`}
-          >
-            {lang.name}
-          </button>
-        ))}
-      </Dropdown>
-    </div>
+        <span>{selectedLang}</span>
+        <DownOutlined className="text-gray-500 dark:text-gray-400 text-[12px]" />
+      </button>
+    </Dropdown>
   );
 };
 
