@@ -20,7 +20,7 @@ export default function App() {
   return (
     <>
       <Router>
-        <Toaster position="bottom-right" />
+        <Toaster position="top-right" duration={2000} richColors   />
         <ScrollToTop />
         <Routes>
           <Route path="*" element={<Navigate to={'/login'} replace />} />

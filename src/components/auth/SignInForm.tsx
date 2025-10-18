@@ -29,7 +29,7 @@ export default function SignInForm() {
           if (data?.data) {
             localStorage.setItem('access_token', data.data);
             localStorage.setItem('token_created_at', Date.now().toString());
-            toast.success('Muvaffaqiyatli kirildi!');
+            toast.success('Siz tizimga muvaffaqqiyatli  kirdingiz');
             navigate('/admin', { replace: true });
           } else {
             toast.error('Login yoki parol xato!');
