@@ -3,18 +3,9 @@ import { Link, useLocation } from 'react-router';
 import { GraduationCap, Layers, User, Users } from 'lucide-react';
 
 import {
-  BoxCubeIcon,
-  BoxIcon,
-  CalenderIcon,
   ChevronDownIcon,
   GridIcon,
   HorizontaLDots,
-  ListIcon,
-  PageIcon,
-  PieChartIcon,
-  PlugInIcon,
-  TableIcon,
-  UserCircleIcon,
 } from '../icons';
 import { useSidebar } from '../context/SidebarContext';
 
@@ -38,8 +29,7 @@ const navItems: NavItem[] = [
     name: 'Faculties',
     icon: <GraduationCap />,
     subItems: [
-      { name: 'Add Faculties', path: '/add-faculties', pro: false },
-      { name: 'View All Faculties', path: '/view-faculties', pro: false },
+      { name: 'Add Faculties', path: '/faculties', pro: false },
     ],
   },
   {

@@ -4,7 +4,6 @@ import AppHeader from "./AppHeader";
 import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
 import { useAutoLogout } from "../hooks/useAutoLogout";
-import { useTokenExpiry } from "../hooks/useTokenExpiry";
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
@@ -31,7 +30,6 @@ const LayoutContent: React.FC = () => {
 
 const AppLayout: React.FC = () => {
   useAutoLogout(5)
-  // useTokenExpiry(1)
   return (
     <SidebarProvider>
       <LayoutContent />

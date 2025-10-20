@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useLogin } from '../../hooks/useLogin';
 import { EyeCloseIcon, EyeIcon } from '../../icons';
-import { signInSchema } from '../../schemas/auth.schema';
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
