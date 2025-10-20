@@ -1,7 +1,6 @@
-import { Button, Popconfirm, Space, Image } from 'antd';
+import { Button, Popconfirm, Space, Image, Tag } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import CustomTable from '../../components/ui/table/CustomTable';
-
 
 interface Faculty {
   id: number;
@@ -33,68 +32,102 @@ export const FacultyTable = ({
       title: '№',
       dataIndex: 'id',
       key: 'id',
-      width: 80,
-      render: (_: any, __: any, index: number) => index + 1,
-    },
-    {
-      title: 'Fakultet nomi',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: "Bo'limlar soni",
-      dataIndex: 'departmentCount',
-      key: 'departmentCount',
-      width: 150,
+      width: 60,
+      responsive: ['md'] as any,
+      render: (_: any, __: any, index: number) => (
+        <span className="font-medium">{index + 1}</span>
+      ),
     },
     {
       title: 'Rasm',
       dataIndex: 'imgUrl',
       key: 'imgUrl',
-      width: 100,
-      render: (imgUrl: string) =>
-        imgUrl && imgUrl !== 'string' ? (
-          <Image
-            src={imgUrl}
-            alt="Faculty"
-            className="object-cover rounded"
-            width={48}
-            height={48}
-            preview={{ mask: "Ko'rish" }}
-          />
-        ) : (
-          <span className="text-gray-400">Rasm yo'q</span>
-        ),
+      width: 80,
+      render: (imgUrl: string, record: Faculty) => (
+        <div className="flex items-center gap-2">
+          {imgUrl && imgUrl !== 'string' ? (
+            <Image
+              src={imgUrl}
+              alt={record.name}
+              className="object-cover rounded"
+              width={48}
+              height={48}
+              preview={{ mask: "Ko'rish" }}
+            />
+          ) : (
+            <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
+              <span className="text-gray-400 text-xs">Yo'q</span>
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: 'Fakultet',
+      dataIndex: 'name',
+      key: 'name',
+      render: (name: string, record: Faculty) => (
+        <div className="flex flex-col gap-1">
+          <span className="font-medium text-gray-900">{name}</span>
+          <span className="text-xs text-gray-500 lg:hidden">
+            Bo'limlar: {record.departmentCount}
+          </span>
+        </div>
+      ),
+    },
+    {
+      title: "Bo'limlar",
+      dataIndex: 'departmentCount',
+      key: 'departmentCount',
+      width: 120,
+      responsive: ['lg'] as any,
+      render: (count: number) => (
+        <Tag color={count > 0 ? 'blue' : 'default'}>
+          {count} ta bo'lim
+        </Tag>
+      ),
     },
     {
       title: 'Amallar',
       key: 'actions',
-      width: 200,
+      width: 180,
+      fixed: 'right' as any,
       render: (_: any, record: Faculty) => (
-        <Space size="small">
+        <Space size="small" className="flex flex-wrap">
           <Button
             type="primary"
             icon={<EditOutlined />}
             onClick={() => onEdit(record)}
             size="small"
+            className="w-full sm:w-auto"
           >
-            Tahrirlash
+            <span className="hidden sm:inline">Tahrirlash</span>
           </Button>
           <Popconfirm
-            title="Fakultetni o'chirish"
-            description="Haqiqatan ham bu fakultetni o'chirmoqchimisiz?"
+            title={
+              <span className="text-sm sm:text-base">
+                Fakultetni o'chirish
+              </span>
+            }
+            description={
+              <span className="text-xs sm:text-sm">
+                Haqiqatan ham bu fakultetni o'chirmoqchimisiz?
+              </span>
+            }
             onConfirm={() => onDelete(record.id)}
             okText="Ha"
             cancelText="Yo'q"
             okButtonProps={{ danger: true }}
+            placement="topRight"
           >
             <Button
               danger
               icon={<DeleteOutlined />}
               size="small"
               loading={deletingId === record.id && isDeleting}
+              className="w-full sm:w-auto"
             >
-              O'chirish
+              <span className="hidden sm:inline">O'chirish</span>
             </Button>
           </Popconfirm>
         </Space>
@@ -102,5 +135,14 @@ export const FacultyTable = ({
     },
   ];
 
-  return <CustomTable columns={columns} data={faculties} loading={isLoading} />;
+  return (
+    <div className="bg-white rounded-lg shadow overflow-hidden">
+      <CustomTable 
+        columns={columns} 
+        data={faculties} 
+        loading={isLoading}
+        scroll={{ x: 800 }}
+      />
+    </div>
+  );
 };

@@ -23,23 +23,35 @@ export const PageHeader = ({
   onButtonClick,
 }: PageHeaderProps) => {
   return (
-    <div className="flex justify-between items-center bg-white rounded-lg shadow p-6">
-      <div className="flex items-center gap-3 w-1/2">
-        <label className="text-gray-700 font-medium whitespace-nowrap">
-          {countLabel}: {count}
-        </label>
-      </div>
-      <div className="flex items-center gap-3 w-1/2">
-        <Input
-          placeholder={searchPlaceholder}
-          type="text"
-          className="w-full"
-          value={searchValue}
-          onChange={e => onSearchChange(e.target.value)}
-        />
-        <Button type="primary" icon={buttonIcon} onClick={onButtonClick}>
-          {buttonText}
-        </Button>
+    <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+        {/* Count section */}
+        <div className="flex items-center">
+          <label className="text-gray-700 font-medium text-sm sm:text-base whitespace-nowrap">
+            {countLabel}: <span className="text-primary">{count}</span>
+          </label>
+        </div>
+
+        {/* Search and Button section */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:w-auto w-full">
+          <Input
+            placeholder={searchPlaceholder}
+            type="text"
+            className="w-full sm:w-64 lg:w-80"
+            value={searchValue}
+            onChange={e => onSearchChange(e.target.value)}
+            allowClear
+          />
+          <Button
+            type="primary"
+            icon={buttonIcon}
+            onClick={onButtonClick}
+            className="w-full sm:w-auto whitespace-nowrap"
+          >
+            <span className="hidden sm:inline">{buttonText}</span>
+            <span className="sm:hidden">Qo'shish</span>
+          </Button>
+        </div>
       </div>
     </div>
   );
