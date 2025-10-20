@@ -70,21 +70,19 @@ export const FacultyTable = ({
         <div className="flex flex-col gap-1">
           <span className="font-medium text-gray-900">{name}</span>
           <span className="text-xs text-gray-500 lg:hidden">
-            Bo'limlar: {record.departmentCount}
+            Kafedralar: {record.departmentCount}
           </span>
         </div>
       ),
     },
     {
-      title: "Bo'limlar",
+      title: 'Kafedralar',
       dataIndex: 'departmentCount',
       key: 'departmentCount',
       width: 120,
       responsive: ['lg'] as any,
       render: (count: number) => (
-        <Tag color={count > 0 ? 'blue' : 'default'}>
-          {count} ta bo'lim
-        </Tag>
+        <Tag color={count > 0 ? 'blue' : 'default'}>{count} ta kafedra</Tag>
       ),
     },
     {
@@ -105,9 +103,7 @@ export const FacultyTable = ({
           </Button>
           <Popconfirm
             title={
-              <span className="text-sm sm:text-base">
-                Fakultetni o'chirish
-              </span>
+              <span className="text-sm sm:text-base">Fakultetni o'chirish</span>
             }
             description={
               <span className="text-xs sm:text-sm">
@@ -137,12 +133,7 @@ export const FacultyTable = ({
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
-      <CustomTable 
-        columns={columns} 
-        data={faculties} 
-        loading={isLoading}
-        scroll={{ x: 800 }}
-      />
+      <CustomTable columns={columns} data={faculties} loading={isLoading} />
     </div>
   );
 };

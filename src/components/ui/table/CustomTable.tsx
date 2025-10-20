@@ -27,7 +27,6 @@ const CustomTable = <T extends object>({
       pagination={pagination}
       rowKey={rowKey}
       className="shadow-sm rounded-lg"
-      scroll={scroll}
     />
   );
 };
