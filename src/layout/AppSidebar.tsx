@@ -36,8 +36,7 @@ const navItems: NavItem[] = [
     name: 'Departments',
     icon: <Layers />,
     subItems: [
-      { name: 'Add Departments', path: '/add-departments', pro: false },
-      { name: 'View Departments', path: '/view-departments', pro: false },
+      { name: 'Departments', path: '/departments', pro: false },
     ],
   },
   {

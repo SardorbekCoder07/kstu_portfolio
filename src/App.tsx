@@ -7,13 +7,12 @@ import AppLayout from './layout/AppLayout';
 import { ScrollToTop } from './components/common/ScrollToTop';
 import Home from './pages/Dashboard/Home';
 import { Toaster } from 'sonner';
-import AddDepartments from './pages/Departments/AddDepartments';
-import ViewDepartments from './pages/Departments/ViewDepartments';
 import AddTeachers from './pages/Teachers/AddTeachers';
 import ViewTeachers from './pages/Teachers/ViewTeachers';
 import ProtectedRoute from './routes/ProtectedRoute';
 import PublicRoute from './routes/PublicRoute';
 import Faculties from './pages/Faculties/Faculties';
+import Departments from './pages/Departments/Departments';
 
 export default function App() {
   return (
@@ -38,9 +37,7 @@ export default function App() {
 
             {/* Forms */}
             <Route path="/faculties" element={<Faculties />} />
-
-            <Route path="/add-departments" element={<AddDepartments />} />
-            <Route path="/view-departments" element={<ViewDepartments />} />
+            <Route path="/departments" element={<Departments />} />
             <Route path="/add-teachers" element={<AddTeachers />} />
             <Route path="/view-teachers" element={<ViewTeachers />} />
             {/* Charts */}
