@@ -17,6 +17,7 @@ interface FacultyTableProps {
   onDelete: (id: number) => void;
   deletingId: number | null;
   isDeleting: boolean;
+  isKafedra?: boolean;
 }
 
 export const FacultyTable = ({
@@ -26,6 +27,7 @@ export const FacultyTable = ({
   onDelete,
   deletingId,
   isDeleting,
+  isKafedra,
 }: FacultyTableProps) => {
   const columns = [
     {
@@ -63,7 +65,7 @@ export const FacultyTable = ({
       ),
     },
     {
-      title: 'Fakultet',
+      title: isKafedra ? 'Kafedra' : 'Fakultet',
       dataIndex: 'name',
       key: 'name',
       render: (name: string, record: Faculty) => (
@@ -73,16 +75,6 @@ export const FacultyTable = ({
             Kafedralar: {record.departmentCount}
           </span>
         </div>
-      ),
-    },
-    {
-      title: 'Kafedralar',
-      dataIndex: 'departmentCount',
-      key: 'departmentCount',
-      width: 120,
-      responsive: ['lg'] as any,
-      render: (count: number) => (
-        <Tag color={count > 0 ? 'blue' : 'default'}>{count} ta kafedra</Tag>
       ),
     },
     {

@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { message } from 'antd';
 import { toast } from 'sonner';
 import {
@@ -6,16 +6,33 @@ import {
   uploadFacultyImage,
   updateFaculty,
   deleteFaculty,
+  getFaculties,
+  GetFacultiesParams,
 } from '../api/facultiesApi';
 
-export const useFacultyOperations = (onSuccess?: () => void) => {
+export const useFacultyOperations = (
+  params?: GetFacultiesParams,
+  onSuccess?: () => void
+) => {
   const queryClient = useQueryClient();
 
+  // ✅ GET - Fakultetlarni olish (pagination bilan)
+  const {
+    data: facultiesData,
+    isLoading: isFacultiesLoading,
+    error: facultiesError,
+    refetch,
+  } = useQuery({
+    queryKey: ['faculties', params],
+    queryFn: () => getFaculties(params),
+  });
+
+  // ✅ Rasm yuklash
   const uploadImageMutation = useMutation({
     mutationFn: uploadFacultyImage,
     onSuccess: data => {
       message.success('Rasm muvaffaqiyatli yuklandi!');
-      return data.imgUrl || data.url || data;
+      return data;
     },
     onError: (error: any) => {
       message.error(
@@ -25,6 +42,7 @@ export const useFacultyOperations = (onSuccess?: () => void) => {
     },
   });
 
+  // ✅ CREATE - Fakultet qo'shish
   const createFacultyMutation = useMutation({
     mutationFn: createFaculty,
     onSuccess: () => {
@@ -40,6 +58,7 @@ export const useFacultyOperations = (onSuccess?: () => void) => {
     },
   });
 
+  // ✅ UPDATE - Fakultetni yangilash
   const updateFacultyMutation = useMutation({
     mutationFn: updateFaculty,
     onSuccess: () => {
@@ -55,6 +74,7 @@ export const useFacultyOperations = (onSuccess?: () => void) => {
     },
   });
 
+  // ✅ DELETE - Fakultetni o'chirish
   const deleteFacultyMutation = useMutation({
     mutationFn: deleteFaculty,
     onSuccess: () => {
@@ -70,6 +90,17 @@ export const useFacultyOperations = (onSuccess?: () => void) => {
   });
 
   return {
+    // Data (pagination bilan)
+    faculties: facultiesData?.body || [],
+    total: facultiesData?.totalElements || 0,
+    page: facultiesData?.page || 0,
+    size: facultiesData?.size || 10,
+    totalPages: facultiesData?.totalPage || 1,
+    isFacultiesLoading,
+    facultiesError,
+    refetch,
+
+    // Mutations
     uploadImageMutation,
     createFacultyMutation,
     updateFacultyMutation,

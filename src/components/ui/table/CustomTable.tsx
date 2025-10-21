@@ -24,7 +24,6 @@ const CustomTable = <T extends object>({
       dataSource={data}
       loading={loading}
       bordered={bordered}
-      pagination={pagination}
       rowKey={rowKey}
       className="shadow-sm rounded-lg"
     />

@@ -1,11 +1,9 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { useModalStore } from '../../stores/useModalStore';
 import { PageHeader } from '../../components/ui/PageHeader';
-import { useState } from 'react';
-import { message } from 'antd';
+import { useState, useEffect } from 'react';
+import { message, Pagination } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
-import { useQuery } from '@tanstack/react-query';
-import { getFaculties } from '../../api/facultiesApi';
 import { FacultyTable } from './FacultyTable';
 import { FacultyModal } from './FacultyModal';
 import { useFacultyOperations } from '../../hooks/useFacultyOperation';
@@ -24,30 +22,54 @@ const Faculties = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadedImageId, setUploadedImageId] = useState<string | null>(null);
   const [facultyName, setFacultyName] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
   const [editingFaculty, setEditingFaculty] = useState<Faculty | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const { data: faculties = [], isLoading } = useQuery({
-    queryKey: ['faculties'],
-    queryFn: getFaculties,
-  });
+  // ✅ Qidiruv state
+  const [searchValue, setSearchValue] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  const resetForm = () => {
+  // ✅ Pagination state
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+
+  // ✅ Debounce qidiruv
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchValue);
+      setCurrentPage(0);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchValue]);
+
+  // ✅ Fakultet operatsiyalari
+  const {
+    faculties,
+    total,
+    isFacultiesLoading,
+    facultiesError,
+    uploadImageMutation,
+    createFacultyMutation,
+    updateFacultyMutation,
+    deleteFacultyMutation,
+  } = useFacultyOperations(
+    {
+      page: currentPage,
+      size: pageSize,
+      name: debouncedSearch || undefined,
+    },
+    resetForm
+  );
+
+  function resetForm() {
     setFacultyName('');
     setFileList([]);
     setSelectedFile(null);
     setUploadedImageId(null);
     setEditingFaculty(null);
     closeModal();
-  };
-
-  const {
-    uploadImageMutation,
-    createFacultyMutation,
-    updateFacultyMutation,
-    deleteFacultyMutation,
-  } = useFacultyOperations(resetForm);
+  }
 
   const draggerProps = {
     name: 'facultyImage',
@@ -65,7 +87,6 @@ const Faculties = () => {
         message.error("Rasm hajmi 5MB dan kichik bo'lishi kerak!");
         return false;
       }
-      // Faqat state ga saqlaymiz, API ga yubormaymiz
       setFileList([file as any]);
       setSelectedFile(file);
       return false;
@@ -86,7 +107,6 @@ const Faculties = () => {
     try {
       let imageUrl = uploadedImageId || editingFaculty?.imgUrl || '';
 
-      // Agar yangi fayl tanlangan bo'lsa, avval uni yuklash
       if (selectedFile) {
         await new Promise<void>((resolve, reject) => {
           uploadImageMutation.mutate(selectedFile, {
@@ -135,6 +155,16 @@ const Faculties = () => {
     setEditingFaculty(faculty);
     setFacultyName(faculty.name);
     setUploadedImageId(faculty.imgUrl);
+    if (faculty.imgUrl) {
+      setFileList([
+        {
+          uid: '-1',
+          name: 'image.png',
+          status: 'done',
+          url: faculty.imgUrl,
+        } as UploadFile,
+      ]);
+    }
     openModal();
   };
 
@@ -145,6 +175,17 @@ const Faculties = () => {
     });
   };
 
+  // ✅ Pagination o'zgarishi
+  const handlePageChange = (page: number, pageSize: number) => {
+    setCurrentPage(page - 1);
+    setPageSize(pageSize);
+  };
+
+  // ✅ Qidiruv o'zgarishi
+  const handleSearchChange = (value: string) => {
+    setSearchValue(value);
+  };
+
   const isSaving =
     createFacultyMutation.isPending ||
     updateFacultyMutation.isPending ||
@@ -153,25 +194,55 @@ const Faculties = () => {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        count={faculties.length}
+        count={total}
         countLabel="Fakultetlar soni"
         searchPlaceholder="Fakultetni qidirish..."
-        searchValue={searchTerm}
-        onSearchChange={setSearchTerm}
+        searchValue={searchValue}
+        onSearchChange={handleSearchChange}
         buttonText="Fakultet qo'shish"
         buttonIcon={<PlusOutlined />}
-        onButtonClick={openModal}
+        onButtonClick={() => {
+          resetForm();
+          openModal();
+        }}
       />
 
+      {/* ✅ Error display */}
+      {facultiesError && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
+          <strong>Xatolik:</strong>{' '}
+          {(facultiesError as any)?.response?.data?.message ||
+            "Ma'lumotlarni yuklashda xatolik"}
+        </div>
+      )}
+
+      {/* ✅ Fakultetlar jadvali */}
       <FacultyTable
         faculties={faculties}
-        isLoading={isLoading}
+        isLoading={isFacultiesLoading}
         onEdit={handleEdit}
         onDelete={handleDelete}
         deletingId={deletingId}
         isDeleting={deleteFacultyMutation.isPending}
       />
 
+      {/* ✅ Pagination */}
+      {total > 0 && (
+        <div className="flex justify-end mt-4">
+          <Pagination
+            current={currentPage + 1}
+            pageSize={pageSize}
+            total={total}
+            onChange={handlePageChange}
+            onShowSizeChange={handlePageChange}
+            showSizeChanger
+            showTotal={total => `Jami: ${total} ta fakultet`}
+            pageSizeOptions={['5', '10', '20', '50']}
+          />
+        </div>
+      )}
+
+      {/* Modal */}
       <FacultyModal
         isOpen={isOpen}
         onCancel={resetForm}

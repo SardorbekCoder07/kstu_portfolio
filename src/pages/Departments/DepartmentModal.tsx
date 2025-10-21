@@ -44,6 +44,7 @@ export const DepartmentModal = ({
   onSave,
   isSaving,
 }: DepartmentModalProps) => {
+  
   return (
     <Modal
       title={
