@@ -13,12 +13,13 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import PublicRoute from './routes/PublicRoute';
 import Faculties from './pages/Faculties/Faculties';
 import Departments from './pages/Departments/Departments';
+import TeacherDetail from './pages/Teachers/TeacherDetail';
 
 export default function App() {
   return (
     <>
       <Router>
-        <Toaster position="top-right" duration={2000} richColors   />
+        <Toaster position="top-right" duration={2000} richColors />
         <ScrollToTop />
         <Routes>
           <Route path="*" element={<Navigate to={'/login'} replace />} />
@@ -32,15 +33,11 @@ export default function App() {
             }
           >
             <Route index path="/admin" element={<Home />} />
-
-            {/* Others Page */}
-
-            {/* Forms */}
             <Route path="/faculties" element={<Faculties />} />
             <Route path="/departments" element={<Departments />} />
             <Route path="/add-teachers" element={<AddTeachers />} />
             <Route path="/view-teachers" element={<ViewTeachers />} />
-            {/* Charts */}
+            <Route path="/teachers/:id" element={<TeacherDetail />} />
             <Route path="/line-chart" element={<LineChart />} />
             <Route path="/bar-chart" element={<BarChart />} />
           </Route>
