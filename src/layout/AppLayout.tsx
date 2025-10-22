@@ -29,7 +29,7 @@ const LayoutContent: React.FC = () => {
 };
 
 const AppLayout: React.FC = () => {
-  useAutoLogout(5)
+  useAutoLogout(30)
   return (
     <SidebarProvider>
       <LayoutContent />
