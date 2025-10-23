@@ -4,7 +4,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import { useDrawerStore } from '../../stores/useDrawerStore';
 import { TeacherSidebar } from './TeacherSidebar';
 import { useState } from 'react';
-import { message, Card, Button, Row, Col, Avatar } from 'antd';
+import { message, Card, Button, Row, Col, Avatar, Empty } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
@@ -105,7 +105,7 @@ const AddTeachers = () => {
       />
 
       {/* ✅ Teacher Cards */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-transparent  p-6">
         <Row gutter={[16, 16]}>
           {teachers.map(teacher => (
             <Col xs={24} sm={12} md={8} lg={6} key={teacher.id}>
@@ -146,9 +146,9 @@ const AddTeachers = () => {
         </Row>
 
         {teachers.length === 0 && (
-          <p className="text-gray-500 text-center py-8">
-            O'qituvchilar topilmadi
-          </p>
+          <div className="col-span-full">
+            <Empty description={'Teacher topilmadi'} />
+          </div>
         )}
       </div>
     </div>

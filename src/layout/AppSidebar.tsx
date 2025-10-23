@@ -1,12 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router';
-import { GraduationCap, Layers, User, Users } from 'lucide-react';
+import { GraduationCap, Grid, Layers, User, Users } from 'lucide-react';
 
-import {
-  ChevronDownIcon,
-  GridIcon,
-  HorizontaLDots,
-} from '../icons';
+import { ChevronDownIcon, GridIcon, HorizontaLDots } from '../icons';
 import { useSidebar } from '../context/SidebarContext';
 
 type NavItem = {
@@ -28,16 +24,12 @@ const navItems: NavItem[] = [
   {
     name: 'Faculties',
     icon: <GraduationCap />,
-    subItems: [
-      { name: 'Add Faculties', path: '/faculties', pro: false },
-    ],
+    subItems: [{ name: 'Add Faculties', path: '/faculties', pro: false }],
   },
   {
     name: 'Departments',
     icon: <Layers />,
-    subItems: [
-      { name: 'Departments', path: '/departments', pro: false },
-    ],
+    subItems: [{ name: 'Departments', path: '/departments', pro: false }],
   },
   {
     name: 'Teachers',
@@ -46,6 +38,11 @@ const navItems: NavItem[] = [
       { name: 'Add Teachers', path: '/add-teachers', pro: false },
       { name: 'View Teachers', path: '/view-teachers', pro: false },
     ],
+  },
+  {
+    name: 'Category',
+    icon: <Grid />,
+    subItems: [{ name: 'Add Catgory', path: '/categroy', pro: false }],
   },
 ];
 

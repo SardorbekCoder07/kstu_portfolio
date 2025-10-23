@@ -224,6 +224,7 @@ const Faculties = () => {
         onDelete={handleDelete}
         deletingId={deletingId}
         isDeleting={deleteFacultyMutation.isPending}
+        emptyText="Fakultet topilmadi"
       />
 
       {/* ✅ Pagination */}

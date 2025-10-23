@@ -8,12 +8,12 @@ import { ScrollToTop } from './components/common/ScrollToTop';
 import Home from './pages/Dashboard/Home';
 import { Toaster } from 'sonner';
 import AddTeachers from './pages/Teachers/AddTeachers';
-import ViewTeachers from './pages/Teachers/ViewTeachers';
 import ProtectedRoute from './routes/ProtectedRoute';
 import PublicRoute from './routes/PublicRoute';
 import Faculties from './pages/Faculties/Faculties';
 import Departments from './pages/Departments/Departments';
 import TeacherDetail from './pages/Teachers/TeacherDetail';
+import Category from './pages/Category/Category';
 
 export default function App() {
   return (
@@ -36,7 +36,7 @@ export default function App() {
             <Route path="/faculties" element={<Faculties />} />
             <Route path="/departments" element={<Departments />} />
             <Route path="/add-teachers" element={<AddTeachers />} />
-            <Route path="/view-teachers" element={<ViewTeachers />} />
+            <Route path="/categroy" element={<Category />} />
             <Route path="/teachers/:id" element={<TeacherDetail />} />
             <Route path="/line-chart" element={<LineChart />} />
             <Route path="/bar-chart" element={<BarChart />} />

@@ -1,4 +1,4 @@
-import { Button, Popconfirm, Space, Image, Tag } from 'antd';
+import { Button, Popconfirm, Space, Image, Tag, Empty } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import CustomTable from '../../components/ui/table/CustomTable';
 
@@ -18,6 +18,7 @@ interface FacultyTableProps {
   deletingId: number | null;
   isDeleting: boolean;
   isKafedra?: boolean;
+  emptyText: string;
 }
 
 export const FacultyTable = ({
@@ -28,6 +29,7 @@ export const FacultyTable = ({
   deletingId,
   isDeleting,
   isKafedra,
+  emptyText,
 }: FacultyTableProps) => {
   const columns = [
     {
@@ -124,8 +126,14 @@ export const FacultyTable = ({
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <CustomTable columns={columns} data={faculties} loading={isLoading} />
+    <div className="bg-transparent  overflow-hidden">
+      {faculties.length > 0 ? (
+        <CustomTable columns={columns} data={faculties} loading={isLoading} />
+      ) : (
+        <div className="col-span-full">
+          <Empty description={emptyText} />
+        </div>
+      )}
     </div>
   );
 };

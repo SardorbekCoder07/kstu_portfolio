@@ -5,7 +5,11 @@ import { useState, useEffect } from 'react';
 import { DepartmentModal } from './DepartmentModal';
 import { useModalStore } from '../../stores/useModalStore';
 import { useQuery } from '@tanstack/react-query';
-import { getAllFaculties, getFaculties, uploadFacultyImage } from '../../api/facultiesApi';
+import {
+  getAllFaculties,
+  getFaculties,
+  uploadFacultyImage,
+} from '../../api/facultiesApi';
 import { message, Pagination } from 'antd';
 import { useMutation } from '@tanstack/react-query';
 import { useDepartmentOperations } from '../../hooks/useDepartmentOperation';
@@ -225,6 +229,7 @@ const Departments = () => {
         deletingId={deletingId}
         isDeleting={deleteDepartmentMutation.isPending}
         isKafedra={true}
+        emptyText="Kafedra topilmadi"
       />
 
       {/* ✅ Pagination */}

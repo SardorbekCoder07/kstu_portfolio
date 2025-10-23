@@ -1,4 +1,3 @@
-// pages/teachers/TeacherDetail.tsx
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Card,
@@ -7,81 +6,242 @@ import {
   Tabs,
   Input,
   Select,
-  DatePicker,
   Row,
   Col,
   Tag,
   Space,
+  Upload,
+  message,
 } from 'antd';
 import {
   ArrowLeftOutlined,
   UserOutlined,
   EditOutlined,
   SaveOutlined,
+  UploadOutlined,
+  CameraOutlined,
 } from '@ant-design/icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const { TextArea } = Input;
 const { Option } = Select;
 
 const TeacherDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [teacher, setTeacher] = useState(null);
 
-  // ✅ Demo teacher data
-  const [teacher, setTeacher] = useState({
-    id: id,
-    firstName: 'Aziz',
-    lastName: 'Karimov',
-    email: 'aziz.karimov@example.com',
-    phone: '+998 90 123 45 67',
-    faculty: 'Kompyuter fanlari',
-    department: 'Dasturiy injiniring',
-    position: 'Dotsent',
-    degree: 'Texnika fanlari nomzodi',
-    image: undefined,
-    courses: ['Web dasturlash', "Ma'lumotlar bazasi"],
-    experience: '10 yil',
-    birthDate: '1985-05-15',
-    address: 'Toshkent, Chilonzor tumani',
-    passport: 'AA1234567',
-    nationality: "O'zbekiston",
-    maritalStatus: 'Turmush qurgan',
-    education: 'Oliy',
-    graduatedFrom: 'TATU',
-    graduationYear: '2007',
-    specialization: 'Dasturiy injiniring',
-    workStartDate: '2010-09-01',
-    contractNumber: 'CT-2023-001',
-    salary: '5000000',
-    bankAccount: '12345678901234567890',
-    publications: '15',
-    projects: '8',
-    awards: "Eng yaxshi o'qituvchi 2022",
-  });
+  // Fetch teacher data
+  useEffect(() => {
+    fetchTeacherData();
+  }, [id]);
 
-  const handleBack = () => {
-    navigate('/teachers');
+  const fetchTeacherData = async () => {
+    setLoading(true);
+    try {
+      // API call will be here
+      // const response = await fetch(`/api/teachers/${id}`);
+      // const data = await response.json();
+      // setTeacher(data);
+
+      // Temporary demo data
+      setTeacher({
+        id,
+        firstName: 'Aziz',
+        lastName: 'Karimov',
+        email: 'aziz.karimov@example.com',
+        phone: '+998 90 123 45 67',
+        faculty: 'Kompyuter fanlari',
+        department: 'Dasturiy injiniring',
+        position: 'Dotsent',
+        degree: 'Texnika fanlari nomzodi',
+        image: null,
+        courses: ['Web dasturlash', "Ma'lumotlar bazasi"],
+        experience: '10 yil',
+        birthDate: '1985-05-15',
+        address: 'Toshkent, Chilonzor tumani',
+        passport: 'AA1234567',
+        nationality: "O'zbekiston",
+        maritalStatus: 'Turmush qurgan',
+        education: 'Oliy',
+        graduatedFrom: 'TATU',
+        graduationYear: '2007',
+        specialization: 'Dasturiy injiniring',
+        workStartDate: '2010-09-01',
+        contractNumber: 'CT-2023-001',
+        salary: '5000000',
+        bankAccount: '12345678901234567890',
+        publications: '15',
+        projects: '8',
+        awards: "Eng yaxshi o'qituvchi 2022",
+        documents: [],
+      });
+    } catch (error) {
+      message.error("Ma'lumotlarni yuklashda xatolik");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleEdit = () => {
-    setEditMode(!editMode);
+  const handleBack = () => navigate('/teachers');
+
+  const handleEdit = () => setEditMode(!editMode);
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      // API call will be here
+      // await fetch(`/api/teachers/${id}`, {
+      //   method: 'PUT',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(teacher),
+      // });
+
+      message.success("Ma'lumotlar muvaffaqiyatli saqlandi");
+      setEditMode(false);
+    } catch (error) {
+      message.error('Saqlashda xatolik yuz berdi');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSave = () => {
-    setEditMode(false);
-    console.log('Saving teacher data:', teacher);
+  const handleInputChange = (field, value) => {
+    setTeacher(prev => ({ ...prev, [field]: value }));
   };
 
-  // ✅ Main Tabs Items
+  const handleImageUpload = info => {
+    const { status, response } = info.file;
+    if (status === 'uploading') {
+      setLoading(true);
+      return;
+    }
+    if (status === 'done') {
+      // Get this url from response in real world.
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        setTeacher(prev => ({ ...prev, image: reader.result }));
+        setLoading(false);
+        message.success('Rasm muvaffaqiyatli yuklandi');
+      });
+      reader.readAsDataURL(info.file.originFileObj);
+    } else if (status === 'error') {
+      setLoading(false);
+      message.error('Rasmni yuklashda xatolik');
+    }
+  };
+
+  const handleFileUpload = info => {
+    const { status, response } = info.file;
+    if (status === 'done') {
+      message.success(`${info.file.name} fayl muvaffaqiyatli yuklandi`);
+      // API response will contain file URL
+      // setTeacher(prev => ({
+      //   ...prev,
+      //   documents: [...prev.documents, response.fileUrl]
+      // }));
+    } else if (status === 'error') {
+      message.error(`${info.file.name} faylni yuklashda xatolik`);
+    }
+  };
+
+  const imageUploadProps = {
+    name: 'image',
+    action: '/api/upload/image', // Your image upload API endpoint
+    accept: 'image/*',
+    showUploadList: false,
+    onChange: handleImageUpload,
+    beforeUpload: file => {
+      const isImage = file.type.startsWith('image/');
+      if (!isImage) {
+        message.error('Faqat rasm fayllarini yuklash mumkin!');
+      }
+      const isLt5M = file.size / 1024 / 1024 < 5;
+      if (!isLt5M) {
+        message.error("Rasm hajmi 5MB dan kichik bo'lishi kerak!");
+      }
+      return isImage && isLt5M;
+    },
+  };
+
+  const uploadProps = {
+    name: 'file',
+    action: '/api/upload', // Your upload API endpoint
+    accept: '.pdf,.doc,.docx,.txt,.xls,.xlsx',
+    onChange: handleFileUpload,
+    beforeUpload: file => {
+      const isValidType = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain',
+      ].includes(file.type);
+
+      if (!isValidType) {
+        message.error(
+          'Faqat PDF, DOC, DOCX, XLS, XLSX, TXT formatdagi fayllar qabul qilinadi!'
+        );
+      }
+
+      const isLt10M = file.size / 1024 / 1024 < 10;
+      if (!isLt10M) {
+        message.error("Fayl hajmi 10MB dan kichik bo'lishi kerak!");
+      }
+
+      return isValidType && isLt10M;
+    },
+  };
+
+  const renderField = (label, field, type = 'text', options = {}) => (
+    <Col xs={24} md={12}>
+      <label className="block mb-2 font-semibold">{label}</label>
+      {type === 'select' ? (
+        <Select
+          value={teacher?.[field]}
+          onChange={value => handleInputChange(field, value)}
+          disabled={!editMode}
+          size="large"
+          className="w-full"
+        >
+          {options.items?.map(item => (
+            <Option key={item.value} value={item.value}>
+              {item.label}
+            </Option>
+          ))}
+        </Select>
+      ) : type === 'textarea' ? (
+        <TextArea
+          value={teacher?.[field]}
+          onChange={e => handleInputChange(field, e.target.value)}
+          disabled={!editMode}
+          rows={options.rows || 3}
+          size="large"
+          placeholder={options.placeholder}
+        />
+      ) : (
+        <Input
+          value={teacher?.[field]}
+          onChange={e => handleInputChange(field, e.target.value)}
+          disabled={!editMode}
+          size="large"
+          type={type}
+          suffix={options.suffix}
+          placeholder={options.placeholder}
+        />
+      )}
+    </Col>
+  );
+
   const mainTabItems = [
     {
       key: '1',
       label: "Shaxsiy ma'lumotlar",
       children: (
         <Tabs
-          defaultActiveKey="1"
           tabPosition="left"
           items={[
             {
@@ -89,76 +249,12 @@ const TeacherDetail = () => {
               label: 'Asosiy',
               children: (
                 <Row gutter={[16, 16]}>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">Ism</label>
-                    <Input
-                      value={teacher.firstName}
-                      onChange={e =>
-                        setTeacher({ ...teacher, firstName: e.target.value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">Familiya</label>
-                    <Input
-                      value={teacher.lastName}
-                      onChange={e =>
-                        setTeacher({ ...teacher, lastName: e.target.value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">Email</label>
-                    <Input
-                      value={teacher.email}
-                      onChange={e =>
-                        setTeacher({ ...teacher, email: e.target.value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                      type="email"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">Telefon</label>
-                    <Input
-                      value={teacher.phone}
-                      onChange={e =>
-                        setTeacher({ ...teacher, phone: e.target.value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Tug'ilgan sana
-                    </label>
-                    <Input
-                      value={teacher.birthDate}
-                      onChange={e =>
-                        setTeacher({ ...teacher, birthDate: e.target.value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                      type="date"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">Millati</label>
-                    <Input
-                      value={teacher.nationality}
-                      onChange={e =>
-                        setTeacher({ ...teacher, nationality: e.target.value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                    />
-                  </Col>
+                  {renderField('Ism', 'firstName')}
+                  {renderField('Familiya', 'lastName')}
+                  {renderField('Email', 'email', 'email')}
+                  {renderField('Telefon', 'phone')}
+                  {renderField("Tug'ilgan sana", 'birthDate', 'date')}
+                  {renderField('Millati', 'nationality')}
                 </Row>
               ),
             },
@@ -167,40 +263,16 @@ const TeacherDetail = () => {
               label: 'Passport',
               children: (
                 <Row gutter={[16, 16]}>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Passport seriya raqami
-                    </label>
-                    <Input
-                      value={teacher.passport}
-                      onChange={e =>
-                        setTeacher({ ...teacher, passport: e.target.value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Fuqaroligi
-                    </label>
-                    <Input
-                      value={teacher.nationality}
-                      onChange={e =>
-                        setTeacher({ ...teacher, nationality: e.target.value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                    />
-                  </Col>
+                  {renderField('Passport seriya raqami', 'passport')}
+                  {renderField('Fuqaroligi', 'nationality')}
                   <Col xs={24}>
                     <label className="block mb-2 font-semibold">
                       Yashash manzili
                     </label>
                     <TextArea
-                      value={teacher.address}
+                      value={teacher?.address}
                       onChange={e =>
-                        setTeacher({ ...teacher, address: e.target.value })
+                        handleInputChange('address', e.target.value)
                       }
                       disabled={!editMode}
                       rows={3}
@@ -215,34 +287,46 @@ const TeacherDetail = () => {
               label: 'Oilaviy ahvol',
               children: (
                 <Row gutter={[16, 16]}>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Oilaviy holati
-                    </label>
-                    <Select
-                      value={teacher.maritalStatus}
-                      onChange={value =>
-                        setTeacher({ ...teacher, maritalStatus: value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                      className="w-full"
-                    >
-                      <Option value="Turmush qurmagan">Turmush qurmagan</Option>
-                      <Option value="Turmush qurgan">Turmush qurgan</Option>
-                      <Option value="Ajrashgan">Ajrashgan</Option>
-                    </Select>
-                  </Col>
+                  {renderField('Oilaviy holati', 'maritalStatus', 'select', {
+                    items: [
+                      { value: 'Turmush qurmagan', label: 'Turmush qurmagan' },
+                      { value: 'Turmush qurgan', label: 'Turmush qurgan' },
+                      { value: 'Ajrashgan', label: 'Ajrashgan' },
+                    ],
+                  })}
+                </Row>
+              ),
+            },
+            {
+              key: '4',
+              label: 'Hujjatlar',
+              children: (
+                <Row gutter={[16, 16]}>
                   <Col xs={24}>
                     <label className="block mb-2 font-semibold">
-                      Qo'shimcha ma'lumot
+                      Hujjatlar yuklash
                     </label>
-                    <TextArea
-                      placeholder="Oila a'zolari haqida ma'lumot"
-                      disabled={!editMode}
-                      rows={4}
-                      size="large"
-                    />
+                    <Upload {...uploadProps} disabled={!editMode}>
+                      <Button
+                        icon={<UploadOutlined />}
+                        disabled={!editMode}
+                        size="large"
+                      >
+                        Fayl yuklash (PDF, DOC, DOCX, XLS, XLSX)
+                      </Button>
+                    </Upload>
+                    {teacher?.documents?.length > 0 && (
+                      <div className="mt-4">
+                        <p className="font-semibold mb-2">Yuklangan fayllar:</p>
+                        <Space direction="vertical">
+                          {teacher.documents.map((doc, idx) => (
+                            <Tag key={idx} color="blue">
+                              {doc}
+                            </Tag>
+                          ))}
+                        </Space>
+                      </div>
+                    )}
                   </Col>
                 </Row>
               ),
@@ -256,7 +340,6 @@ const TeacherDetail = () => {
       label: "Ta'lim",
       children: (
         <Tabs
-          defaultActiveKey="1"
           tabPosition="left"
           items={[
             {
@@ -264,72 +347,16 @@ const TeacherDetail = () => {
               label: "Oliy ta'lim",
               children: (
                 <Row gutter={[16, 16]}>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Ta'lim darajasi
-                    </label>
-                    <Select
-                      value={teacher.education}
-                      onChange={value =>
-                        setTeacher({ ...teacher, education: value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                      className="w-full"
-                    >
-                      <Option value="Oliy">Oliy</Option>
-                      <Option value="Magistr">Magistr</Option>
-                      <Option value="Doktorantura">Doktorantura</Option>
-                    </Select>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Tamomlagan muassasa
-                    </label>
-                    <Input
-                      value={teacher.graduatedFrom}
-                      onChange={e =>
-                        setTeacher({
-                          ...teacher,
-                          graduatedFrom: e.target.value,
-                        })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Bitirgan yili
-                    </label>
-                    <Input
-                      value={teacher.graduationYear}
-                      onChange={e =>
-                        setTeacher({
-                          ...teacher,
-                          graduationYear: e.target.value,
-                        })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Mutaxassislik
-                    </label>
-                    <Input
-                      value={teacher.specialization}
-                      onChange={e =>
-                        setTeacher({
-                          ...teacher,
-                          specialization: e.target.value,
-                        })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                    />
-                  </Col>
+                  {renderField("Ta'lim darajasi", 'education', 'select', {
+                    items: [
+                      { value: 'Oliy', label: 'Oliy' },
+                      { value: 'Magistr', label: 'Magistr' },
+                      { value: 'Doktorantura', label: 'Doktorantura' },
+                    ],
+                  })}
+                  {renderField('Tamomlagan muassasa', 'graduatedFrom')}
+                  {renderField('Bitirgan yili', 'graduationYear')}
+                  {renderField('Mutaxassislik', 'specialization')}
                 </Row>
               ),
             },
@@ -338,76 +365,14 @@ const TeacherDetail = () => {
               label: 'Ilmiy daraja',
               children: (
                 <Row gutter={[16, 16]}>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Ilmiy daraja
-                    </label>
-                    <Select
-                      value={teacher.degree}
-                      disabled={!editMode}
-                      size="large"
-                      className="w-full"
-                    >
-                      <Option value="Yo'q">Yo'q</Option>
-                      <Option value="Fan nomzodi">Fan nomzodi</Option>
-                      <Option value="Fan doktori">Fan doktori</Option>
-                      <Option value="PhD">PhD</Option>
-                    </Select>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Ilmiy unvon
-                    </label>
-                    <Select
-                      disabled={!editMode}
-                      size="large"
-                      className="w-full"
-                      placeholder="Tanlang"
-                    >
-                      <Option value="Yo'q">Yo'q</Option>
-                      <Option value="Dotsent">Dotsent</Option>
-                      <Option value="Professor">Professor</Option>
-                    </Select>
-                  </Col>
-                  <Col xs={24}>
-                    <label className="block mb-2 font-semibold">
-                      Dissertatsiya mavzusi
-                    </label>
-                    <TextArea
-                      placeholder="Dissertatsiya mavzusi"
-                      disabled={!editMode}
-                      rows={3}
-                      size="large"
-                    />
-                  </Col>
-                </Row>
-              ),
-            },
-            {
-              key: '3',
-              label: "Qo'shimcha",
-              children: (
-                <Row gutter={[16, 16]}>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Sertifikatlar
-                    </label>
-                    <TextArea
-                      placeholder="Sertifikatlar ro'yxati"
-                      disabled={!editMode}
-                      rows={3}
-                      size="large"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">Kurslar</label>
-                    <TextArea
-                      placeholder="O'tgan kurslar"
-                      disabled={!editMode}
-                      rows={3}
-                      size="large"
-                    />
-                  </Col>
+                  {renderField('Ilmiy daraja', 'degree', 'select', {
+                    items: [
+                      { value: "Yo'q", label: "Yo'q" },
+                      { value: 'Fan nomzodi', label: 'Fan nomzodi' },
+                      { value: 'Fan doktori', label: 'Fan doktori' },
+                      { value: 'PhD', label: 'PhD' },
+                    ],
+                  })}
                 </Row>
               ),
             },
@@ -420,7 +385,6 @@ const TeacherDetail = () => {
       label: 'Ish faoliyati',
       children: (
         <Tabs
-          defaultActiveKey="1"
           tabPosition="left"
           items={[
             {
@@ -428,91 +392,19 @@ const TeacherDetail = () => {
               label: 'Asosiy',
               children: (
                 <Row gutter={[16, 16]}>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">Fakultet</label>
-                    <Input
-                      value={teacher.faculty}
-                      onChange={e =>
-                        setTeacher({ ...teacher, faculty: e.target.value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">Kafedra</label>
-                    <Input
-                      value={teacher.department}
-                      onChange={e =>
-                        setTeacher({ ...teacher, department: e.target.value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">Lavozim</label>
-                    <Select
-                      value={teacher.position}
-                      onChange={value =>
-                        setTeacher({ ...teacher, position: value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                      className="w-full"
-                    >
-                      <Option value="O'qituvchi">O'qituvchi</Option>
-                      <Option value="Katta o'qituvchi">Katta o'qituvchi</Option>
-                      <Option value="Dotsent">Dotsent</Option>
-                      <Option value="Professor">Professor</Option>
-                    </Select>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Ishga kirgan sana
-                    </label>
-                    <Input
-                      value={teacher.workStartDate}
-                      onChange={e =>
-                        setTeacher({
-                          ...teacher,
-                          workStartDate: e.target.value,
-                        })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                      type="date"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Ish tajribasi
-                    </label>
-                    <Input
-                      value={teacher.experience}
-                      onChange={e =>
-                        setTeacher({ ...teacher, experience: e.target.value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Shartnoma raqami
-                    </label>
-                    <Input
-                      value={teacher.contractNumber}
-                      onChange={e =>
-                        setTeacher({
-                          ...teacher,
-                          contractNumber: e.target.value,
-                        })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                    />
-                  </Col>
+                  {renderField('Fakultet', 'faculty')}
+                  {renderField('Kafedra', 'department')}
+                  {renderField('Lavozim', 'position', 'select', {
+                    items: [
+                      { value: "O'qituvchi", label: "O'qituvchi" },
+                      { value: "Katta o'qituvchi", label: "Katta o'qituvchi" },
+                      { value: 'Dotsent', label: 'Dotsent' },
+                      { value: 'Professor', label: 'Professor' },
+                    ],
+                  })}
+                  {renderField('Ishga kirgan sana', 'workStartDate', 'date')}
+                  {renderField('Ish tajribasi', 'experience')}
+                  {renderField('Shartnoma raqami', 'contractNumber')}
                 </Row>
               ),
             },
@@ -521,44 +413,10 @@ const TeacherDetail = () => {
               label: 'Moliyaviy',
               children: (
                 <Row gutter={[16, 16]}>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Oylik maosh
-                    </label>
-                    <Input
-                      value={teacher.salary}
-                      onChange={e =>
-                        setTeacher({ ...teacher, salary: e.target.value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                      suffix="so'm"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Bank hisob raqami
-                    </label>
-                    <Input
-                      value={teacher.bankAccount}
-                      onChange={e =>
-                        setTeacher({ ...teacher, bankAccount: e.target.value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                    />
-                  </Col>
-                  <Col xs={24}>
-                    <label className="block mb-2 font-semibold">
-                      Qo'shimcha to'lovlar
-                    </label>
-                    <TextArea
-                      placeholder="Ustamalar, bonuslar"
-                      disabled={!editMode}
-                      rows={3}
-                      size="large"
-                    />
-                  </Col>
+                  {renderField('Oylik maosh', 'salary', 'text', {
+                    suffix: "so'm",
+                  })}
+                  {renderField('Bank hisob raqami', 'bankAccount')}
                 </Row>
               ),
             },
@@ -572,39 +430,12 @@ const TeacherDetail = () => {
                       O'qitiladigan fanlar
                     </label>
                     <Space wrap className="mb-4">
-                      {teacher.courses.map((course, index) => (
+                      {teacher?.courses?.map((course, index) => (
                         <Tag color="blue" key={index}>
                           {course}
                         </Tag>
                       ))}
                     </Space>
-                    <TextArea
-                      placeholder="Yangi fan qo'shish"
-                      disabled={!editMode}
-                      rows={2}
-                      size="large"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Haftalik soat
-                    </label>
-                    <Input
-                      placeholder="Masalan: 18"
-                      disabled={!editMode}
-                      size="large"
-                      suffix="soat"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Guruhlar soni
-                    </label>
-                    <Input
-                      placeholder="Masalan: 4"
-                      disabled={!editMode}
-                      size="large"
-                    />
                   </Col>
                 </Row>
               ),
@@ -618,7 +449,6 @@ const TeacherDetail = () => {
       label: 'Ilmiy faoliyat',
       children: (
         <Tabs
-          defaultActiveKey="1"
           tabPosition="left"
           items={[
             {
@@ -626,42 +456,13 @@ const TeacherDetail = () => {
               label: 'Nashrlar',
               children: (
                 <Row gutter={[16, 16]}>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Maqolalar soni
-                    </label>
-                    <Input
-                      value={teacher.publications}
-                      onChange={e =>
-                        setTeacher({ ...teacher, publications: e.target.value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                      type="number"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Xalqaro nashrlar
-                    </label>
-                    <Input
-                      placeholder="Soni"
-                      disabled={!editMode}
-                      size="large"
-                      type="number"
-                    />
-                  </Col>
-                  <Col xs={24}>
-                    <label className="block mb-2 font-semibold">
-                      Asosiy maqolalar
-                    </label>
-                    <TextArea
-                      placeholder="Muhim nashrlar ro'yxati"
-                      disabled={!editMode}
-                      rows={4}
-                      size="large"
-                    />
-                  </Col>
+                  {renderField('Maqolalar soni', 'publications', 'number')}
+                  {renderField(
+                    'Asosiy maqolalar',
+                    'publicationDetails',
+                    'textarea',
+                    { rows: 4 }
+                  )}
                 </Row>
               ),
             },
@@ -670,42 +471,13 @@ const TeacherDetail = () => {
               label: 'Loyihalar',
               children: (
                 <Row gutter={[16, 16]}>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Loyihalar soni
-                    </label>
-                    <Input
-                      value={teacher.projects}
-                      onChange={e =>
-                        setTeacher({ ...teacher, projects: e.target.value })
-                      }
-                      disabled={!editMode}
-                      size="large"
-                      type="number"
-                    />
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <label className="block mb-2 font-semibold">
-                      Faol loyihalar
-                    </label>
-                    <Input
-                      placeholder="Hozirda davom etayotgan"
-                      disabled={!editMode}
-                      size="large"
-                      type="number"
-                    />
-                  </Col>
-                  <Col xs={24}>
-                    <label className="block mb-2 font-semibold">
-                      Loyihalar tavsifi
-                    </label>
-                    <TextArea
-                      placeholder="Asosiy loyihalar haqida"
-                      disabled={!editMode}
-                      rows={4}
-                      size="large"
-                    />
-                  </Col>
+                  {renderField('Loyihalar soni', 'projects', 'number')}
+                  {renderField(
+                    'Loyihalar tavsifi',
+                    'projectDetails',
+                    'textarea',
+                    { rows: 4 }
+                  )}
                 </Row>
               ),
             },
@@ -719,23 +491,12 @@ const TeacherDetail = () => {
                       Mukofotlar va unvonlar
                     </label>
                     <TextArea
-                      value={teacher.awards}
+                      value={teacher?.awards}
                       onChange={e =>
-                        setTeacher({ ...teacher, awards: e.target.value })
+                        handleInputChange('awards', e.target.value)
                       }
                       disabled={!editMode}
                       rows={5}
-                      size="large"
-                    />
-                  </Col>
-                  <Col xs={24}>
-                    <label className="block mb-2 font-semibold">
-                      Xalqaro tanlov va mukofotlar
-                    </label>
-                    <TextArea
-                      placeholder="Xalqaro darajadagi yutuqlar"
-                      disabled={!editMode}
-                      rows={4}
                       size="large"
                     />
                   </Col>
@@ -748,75 +509,111 @@ const TeacherDetail = () => {
     },
   ];
 
+  if (loading || !teacher) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Yuklanmoqda...
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-6 p-6">
-      {/* ✅ Modern Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-xl p-8 text-white">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          {/* Left side */}
-          <div className="flex items-center gap-6">
-            <Avatar
-              size={120}
-              src={teacher.image}
-              icon={!teacher.image && <UserOutlined />}
-              className="border-4 border-white shadow-lg"
-            />
-            <div>
-              <h1 className="text-3xl font-bold mb-2">
-                {teacher.firstName} {teacher.lastName}
-              </h1>
-              <div className="flex flex-wrap gap-2 mb-3">
-                <Tag color="gold" className="text-base px-3 py-1">
-                  {teacher.position}
-                </Tag>
-                <Tag color="green" className="text-base px-3 py-1">
-                  {teacher.degree}
-                </Tag>
+    <div className="flex flex-col gap-6 p-2 sm:p-4 md:p-6">
+      <div className="relative bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl sm:rounded-2xl shadow-xl overflow-hidden">
+        {/* Content */}
+        <div className="relative z-10 p-4 sm:p-6 md:p-8 text-white">
+          <div className="flex flex-col items-center gap-4 sm:gap-6 md:flex-row md:items-center md:justify-between">
+            {/* Left Side - Profile Info */}
+            <div className="flex flex-col items-center gap-4 sm:gap-6 md:flex-row md:items-center w-full md:w-auto">
+              {/* Profile Image with Upload */}
+              <div className="relative group flex-shrink-0">
+                {teacher.image ? (
+                  <img
+                    src={teacher.image}
+                    alt={`${teacher.firstName} ${teacher.lastName}`}
+                    className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 object-cover border-2 sm:border-4 border-white shadow-lg rounded-full"
+                  />
+                ) : (
+                  <Avatar
+                    size={{ xs: 96, sm: 112, md: 128 }}
+                    icon={<UserOutlined />}
+                    className="border-2 sm:border-4 border-white shadow-lg"
+                  />
+                )}
+
+                {editMode && (
+                  <Upload {...imageUploadProps}>
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                      <CameraOutlined className="text-white text-xl sm:text-2xl" />
+                    </div>
+                  </Upload>
+                )}
               </div>
-              <div className="text-blue-100">
-                <p>📧 {teacher.email}</p>
-                <p>📱 {teacher.phone}</p>
+
+              {/* Teacher Info */}
+              <div className="text-center md:text-left w-full md:w-auto">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 break-words">
+                  {teacher.firstName} {teacher.lastName}
+                </h1>
+                <div className="flex flex-wrap gap-2 mb-3 justify-center md:justify-start">
+                  <Tag
+                    color="gold"
+                    className="text-xs sm:text-sm md:text-base px-2 sm:px-3 py-1"
+                  >
+                    {teacher.position}
+                  </Tag>
+                  <Tag
+                    color="green"
+                    className="text-xs sm:text-sm md:text-base px-2 sm:px-3 py-1"
+                  >
+                    {teacher.degree}
+                  </Tag>
+                </div>
+                <div className="text-blue-100 text-sm sm:text-base space-y-1">
+                  <p className="break-all">📧 {teacher.email}</p>
+                  <p>📱 {teacher.phone}</p>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Right side buttons */}
-          <div className="flex gap-3">
-            <Button
-              icon={<ArrowLeftOutlined />}
-              onClick={handleBack}
-              size="large"
-              className="bg-white/20 hover:bg-white/30 border-white text-white"
-            >
-              Orqaga
-            </Button>
-            {editMode ? (
+            {/* Right Side - Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full md:w-auto">
               <Button
-                type="primary"
-                icon={<SaveOutlined />}
-                onClick={handleSave}
+                icon={<ArrowLeftOutlined />}
+                onClick={handleBack}
                 size="large"
-                className="bg-green-500 hover:bg-green-600 border-none"
+                className="bg-white/20 hover:bg-white/30 border-white text-white w-full sm:w-auto"
               >
-                Saqlash
+                <span className="hidden sm:inline">Orqaga</span>
               </Button>
-            ) : (
-              <Button
-                type="primary"
-                icon={<EditOutlined />}
-                onClick={handleEdit}
-                size="large"
-                className="bg-white text-blue-600 hover:bg-blue-50 border-none"
-              >
-                Tahrirlash
-              </Button>
-            )}
+              {editMode ? (
+                <Button
+                  type="primary"
+                  icon={<SaveOutlined />}
+                  onClick={handleSave}
+                  size="large"
+                  loading={loading}
+                  className="bg-green-500 hover:bg-green-600 border-none w-full sm:w-auto"
+                >
+                  Saqlash
+                </Button>
+              ) : (
+                <Button
+                  type="primary"
+                  icon={<EditOutlined />}
+                  onClick={handleEdit}
+                  size="large"
+                  className="bg-white text-blue-600 hover:bg-blue-50 border-none w-full sm:w-auto"
+                >
+                  Tahrirlash
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ✅ Main Content Card */}
-      <Card className="shadow-lg rounded-2xl">
+      <Card className="shadow-lg rounded-xl sm:rounded-2xl">
         <Tabs
           defaultActiveKey="1"
           items={mainTabItems}

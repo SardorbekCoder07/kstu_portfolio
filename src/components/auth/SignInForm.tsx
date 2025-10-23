@@ -27,7 +27,8 @@ export default function SignInForm() {
         onSuccess: data => {
           if (data?.data) {
             localStorage.setItem('access_token', data.data);
-            localStorage.setItem('token_created_at', Date.now().toString());
+            const expiryTime = new Date(Date.now() + 30 * 60 * 1000);
+            localStorage.setItem('token_expiry', expiryTime.toISOString());
             toast.success('Siz tizimga muvaffaqqiyatli  kirdingiz');
             navigate('/admin', { replace: true });
           } else {
