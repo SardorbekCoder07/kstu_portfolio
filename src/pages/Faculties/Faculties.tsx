@@ -48,6 +48,7 @@ const Faculties = () => {
     faculties,
     total,
     isFacultiesLoading,
+    isFacultiesFetching, // ✅ Bu qo'shildi
     facultiesError,
     uploadImageMutation,
     createFacultyMutation,
@@ -219,7 +220,7 @@ const Faculties = () => {
       {/* ✅ Fakultetlar jadvali */}
       <FacultyTable
         faculties={faculties}
-        isLoading={isFacultiesLoading}
+        isLoading={isFacultiesLoading || isFacultiesFetching} // ✅ Bu o'zgardi
         onEdit={handleEdit}
         onDelete={handleDelete}
         deletingId={deletingId}

@@ -125,12 +125,10 @@ const TeacherDetail = () => {
       reader.addEventListener('load', () => {
         setTeacher(prev => ({ ...prev, image: reader.result }));
         setLoading(false);
-        toast.success('Rasm muvaffaqiyatli yuklandi');
       });
       reader.readAsDataURL(info.file.originFileObj);
     } else if (status === 'error') {
       setLoading(false);
-      toast.error('Rasmni yuklashda xatolik');
     }
   };
 

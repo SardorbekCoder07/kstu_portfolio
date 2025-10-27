@@ -12,6 +12,7 @@ import {
 import { useMutation } from '@tanstack/react-query';
 import { useDepartmentOperations } from '../../hooks/useDepartmentOperation';
 import { toast } from 'sonner';
+import { Pagination } from 'antd';
 
 const Departments = () => {
   const { isOpen, openModal, closeModal } = useModalStore();

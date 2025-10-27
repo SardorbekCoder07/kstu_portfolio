@@ -19,24 +19,23 @@ export const useFacultyOperations = (
   const {
     data: facultiesData,
     isLoading: isFacultiesLoading,
+    isFetching: isFacultiesFetching,
     error: facultiesError,
     refetch,
   } = useQuery({
     queryKey: ['faculties', params],
     queryFn: () => getFaculties(params),
+    // ✅ Global sozlamalar ishlatiladi (main.tsx dan)
   });
 
   // ✅ Rasm yuklash
   const uploadImageMutation = useMutation({
     mutationFn: uploadFacultyImage,
     onSuccess: data => {
-      toast.success('Rasm muvaffaqiyatli yuklandi!');
       return data;
     },
     onError: (error: any) => {
-      toast.error(
-        error?.response?.data?.message || 'Rasm yuklashda xatolik!'
-      );
+      toast.error(error?.response?.data?.message || 'Rasm yuklashda xatolik!');
       throw error;
     },
   });
@@ -96,6 +95,7 @@ export const useFacultyOperations = (
     size: facultiesData?.size || 10,
     totalPages: facultiesData?.totalPage || 1,
     isFacultiesLoading,
+    isFacultiesFetching, // ✅ Qo'shildi
     facultiesError,
     refetch,
 
