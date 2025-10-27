@@ -7,12 +7,11 @@ import { useModalStore } from '../../stores/useModalStore';
 import { useQuery } from '@tanstack/react-query';
 import {
   getAllFaculties,
-  getFaculties,
   uploadFacultyImage,
-} from '../../api/facultiesApi';
-import { message, Pagination } from 'antd';
+} from '../../api/pagesApi/facultiesApi';
 import { useMutation } from '@tanstack/react-query';
 import { useDepartmentOperations } from '../../hooks/useDepartmentOperation';
+import { toast } from 'sonner';
 
 const Departments = () => {
   const { isOpen, openModal, closeModal } = useModalStore();
@@ -103,12 +102,12 @@ const Departments = () => {
   // ✅ Saqlash funksiyasi
   const handleSave = async () => {
     if (!departmentName.trim()) {
-      message.error('Kafedra nomini kiriting!');
+      toast.error('Kafedra nomini kiriting!');
       return;
     }
 
     if (!selectedFacultyId) {
-      message.error('Fakultetni tanlang!');
+      toast.error('Fakultetni tanlang!');
       return;
     }
 
@@ -124,7 +123,7 @@ const Departments = () => {
               resolve();
             },
             onError: error => {
-              message.error('Rasmni yuklashda xatolik!');
+              toast.error('Rasmni yuklashda xatolik!');
               reject(error);
             },
           });
@@ -144,7 +143,7 @@ const Departments = () => {
           selectedFacultyId !== editingDepartment.collegeId;
 
         if (!hasChanges) {
-          message.info("Hech qanday o'zgarish kiritilmadi!");
+          toast.info("Hech qanday o'zgarish kiritilmadi!");
           resetForm();
           closeModal();
           return;

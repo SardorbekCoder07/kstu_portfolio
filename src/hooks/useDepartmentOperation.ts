@@ -5,7 +5,7 @@ import {
   updateDepartment,
   deleteDepartment,
   GetDepartmentsParams,
-} from '../api/departmentsApi';
+} from '../api/pagesApi/departmentsApi';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useDepartmentOperations = (

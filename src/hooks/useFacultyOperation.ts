@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { message } from 'antd';
 import { toast } from 'sonner';
 import {
   createFaculty,
@@ -8,7 +7,7 @@ import {
   deleteFaculty,
   getFaculties,
   GetFacultiesParams,
-} from '../api/facultiesApi';
+} from '../api/pagesApi/facultiesApi';
 
 export const useFacultyOperations = (
   params?: GetFacultiesParams,
@@ -31,11 +30,11 @@ export const useFacultyOperations = (
   const uploadImageMutation = useMutation({
     mutationFn: uploadFacultyImage,
     onSuccess: data => {
-      message.success('Rasm muvaffaqiyatli yuklandi!');
+      toast.success('Rasm muvaffaqiyatli yuklandi!');
       return data;
     },
     onError: (error: any) => {
-      message.error(
+      toast.error(
         error?.response?.data?.message || 'Rasm yuklashda xatolik!'
       );
       throw error;

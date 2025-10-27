@@ -1,12 +1,10 @@
-import axiosClient from './axiosClient';
-import { API_ENDPOINTS } from './endpoints';
-
-// ✅ Backend uchun to'g'ri Types
+import axiosClient from '../axiosClient';
+import { API_ENDPOINTS } from '../endpoints';
 export interface Department {
   id: number;
   name: string;
   imgUrl: string;
-  collegeId: number; // ✅ facultyId emas, collegeId
+  collegeId: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -14,13 +12,13 @@ export interface Department {
 export interface DepartmentCreateData {
   name: string;
   imgUrl: string;
-  collegeId: number; // ✅ To'g'ri field nomi
+  collegeId: number;
 }
 
 export interface DepartmentUpdateData {
   name?: string;
   imgUrl?: string;
-  collegeId?: number; // ✅ To'g'ri field nomi
+  collegeId?: number;
 }
 
 export interface GetDepartmentsParams {
@@ -30,7 +28,6 @@ export interface GetDepartmentsParams {
   collegeId?: number;
 }
 
-// Backend response struktura
 export interface DepartmentsResponse {
   success: boolean;
   message: string;
@@ -43,7 +40,6 @@ export interface DepartmentsResponse {
   };
 }
 
-// ✅ GET - Kafedralarni olish
 export const getDepartments = async (
   params?: GetDepartmentsParams
 ): Promise<DepartmentsResponse['data']> => {
@@ -52,7 +48,6 @@ export const getDepartments = async (
     size: params?.size ?? 10,
   };
 
-  // ✅ name parametri (agar bo'lsa qo'shish)
   if (params?.name && params.name.trim()) {
     queryParams.name = params.name.trim();
   }
@@ -61,12 +56,12 @@ export const getDepartments = async (
     queryParams.collegeId = params.collegeId;
   }
 
-  console.log('📤 GET Request URL:', '/department/page');
-  console.log('📤 GET Request params:', queryParams);
+  // console.log('📤 GET Request URL:', '/department/page');
+  // console.log('📤 GET Request params:', queryParams);
 
   try {
     const response = await axiosClient.get<DepartmentsResponse>(
-      '/department/page',
+      `${API_ENDPOINTS.DEPARTMENT}/page`,
       { params: queryParams }
     );
 
@@ -78,16 +73,18 @@ export const getDepartments = async (
   }
 };
 
-// ✅ CREATE - Kafedra qo'shish
 export const createDepartment = async (
   data: DepartmentCreateData
 ): Promise<Department> => {
-  console.log('📤 POST Request URL:', '/department');
-  console.log('📤 POST Request body:', data);
+  // console.log('📤 POST Request URL:', '/department');
+  // console.log('📤 POST Request body:', data);
 
   try {
-    const response = await axiosClient.post('/department', data);
-    console.log('📥 POST Response:', response.data);
+    const response = await axiosClient.post(
+      `${API_ENDPOINTS.DEPARTMENT}`,
+      data
+    );
+    // console.log('📥 POST Response:', response.data);
     return response.data.data || response.data;
   } catch (error: any) {
     console.error('❌ POST Error:', error.response?.data || error.message);
@@ -96,17 +93,19 @@ export const createDepartment = async (
   }
 };
 
-// ✅ UPDATE - Kafedrani yangilash
 export const updateDepartment = async (
   id: number,
   data: DepartmentUpdateData
 ): Promise<Department> => {
-  console.log('📤 PUT Request URL:', `/department/${id}`);
-  console.log('📤 PUT Request body:', data);
+  // console.log('📤 PUT Request URL:', `${API_ENDPOINTS.DEPARTMENT}/{id}`);
+  // console.log('📤 PUT Request body:', data);
 
   try {
-    const response = await axiosClient.put(`/department/${id}`, data);
-    console.log('📥 PUT Response:', response.data);
+    const response = await axiosClient.put(
+      `${API_ENDPOINTS.DEPARTMENT}/${id}`,
+      data
+    );
+    // console.log('📥 PUT Response:', response.data);
     return response.data.data || response.data;
   } catch (error: any) {
     console.error('❌ PUT Error:', error.response?.data || error.message);
@@ -114,12 +113,13 @@ export const updateDepartment = async (
   }
 };
 
-// ✅ DELETE - Kafedrani o'chirish
 export const deleteDepartment = async (id: number): Promise<void> => {
-  console.log('📤 DELETE Request URL:', `/department/${id}`);
+  // console.log('📤 DELETE Request URL:', `/department/${id}`);
 
   try {
-    const response = await axiosClient.delete(`/department/${id}`);
+    const response = await axiosClient.delete(
+      `${API_ENDPOINTS.DEPARTMENT}/${id}`
+    );
     console.log('📥 DELETE Response:', response.data);
     return response.data;
   } catch (error: any) {

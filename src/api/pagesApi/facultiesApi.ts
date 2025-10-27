@@ -1,5 +1,6 @@
-import axiosClient from './axiosClient';
-import { API_ENDPOINTS } from './endpoints';
+import axiosClient from "../axiosClient";
+import { API_ENDPOINTS } from "../endpoints";
+
 
 // ✅ Types
 export interface Faculty {
@@ -52,7 +53,6 @@ export const uploadFacultyImage = async (file: File): Promise<string> => {
     },
   });
 
-  // Backend qaytargan rasm URL ni olish
   return (
     response.data.data ||
     response.data.imgUrl ||

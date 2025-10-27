@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { message, Card, Button, Row, Col, Avatar, Empty } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface TeacherFormValues {
   firstName: string;
@@ -66,7 +67,7 @@ const AddTeachers = () => {
     try {
       console.log('Form values:', values);
       await new Promise(resolve => setTimeout(resolve, 1000));
-      message.success("Ustoz muvaffaqiyatli qo'shildi!");
+      toast.success("Ustoz muvaffaqiyatli qo'shildi!");
     } catch (error) {
       message.error('Xatolik yuz berdi!');
       console.error('Error:', error);

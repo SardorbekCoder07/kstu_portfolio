@@ -22,6 +22,7 @@ import {
   CameraOutlined,
 } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -99,10 +100,10 @@ const TeacherDetail = () => {
       //   body: JSON.stringify(teacher),
       // });
 
-      message.success("Ma'lumotlar muvaffaqiyatli saqlandi");
+      toast.success("Ma'lumotlar muvaffaqiyatli saqlandi");
       setEditMode(false);
     } catch (error) {
-      message.error('Saqlashda xatolik yuz berdi');
+      toast.error('Saqlashda xatolik yuz berdi');
     } finally {
       setLoading(false);
     }
@@ -124,26 +125,26 @@ const TeacherDetail = () => {
       reader.addEventListener('load', () => {
         setTeacher(prev => ({ ...prev, image: reader.result }));
         setLoading(false);
-        message.success('Rasm muvaffaqiyatli yuklandi');
+        toast.success('Rasm muvaffaqiyatli yuklandi');
       });
       reader.readAsDataURL(info.file.originFileObj);
     } else if (status === 'error') {
       setLoading(false);
-      message.error('Rasmni yuklashda xatolik');
+      toast.error('Rasmni yuklashda xatolik');
     }
   };
 
   const handleFileUpload = info => {
     const { status, response } = info.file;
     if (status === 'done') {
-      message.success(`${info.file.name} fayl muvaffaqiyatli yuklandi`);
+      toast.success(`${info.file.name} fayl muvaffaqiyatli yuklandi`);
       // API response will contain file URL
       // setTeacher(prev => ({
       //   ...prev,
       //   documents: [...prev.documents, response.fileUrl]
       // }));
     } else if (status === 'error') {
-      message.error(`${info.file.name} faylni yuklashda xatolik`);
+      toast.error(`${info.file.name} faylni yuklashda xatolik`);
     }
   };
 
