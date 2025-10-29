@@ -32,7 +32,6 @@ export const useAutoLogout = ({
   };
 
   const startTokenExpiryTimer = () => {
-    // Token saqlanganda uning expiry vaqtini ham saqlaymiz
     const tokenExpiry = localStorage.getItem('token_expiry');
 
     if (tokenExpiry) {
@@ -45,7 +44,6 @@ export const useAutoLogout = ({
           logout();
         }, timeUntilExpiry);
       } else {
-        // Token allaqachon eskirgan bo'lsa
         logout();
       }
     } else {

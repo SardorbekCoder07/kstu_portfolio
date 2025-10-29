@@ -1,49 +1,72 @@
 // components/teacher/TeacherSidebar.tsx
-import { Drawer, Form, Input, Select, Button, Upload, message } from 'antd';
+import {
+  Drawer,
+  Form,
+  Input,
+  Select,
+  Button,
+  Upload,
+  message,
+  Radio,
+  InputNumber,
+} from 'antd';
 import { useDrawerStore } from '../../stores/useDrawerStore';
-import { SearchOutlined, InboxOutlined } from '@ant-design/icons';
+import { InboxOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
+import type { UseMutationResult } from '@tanstack/react-query';
 
-const { Option } = Select;
 const { Dragger } = Upload;
+const { TextArea } = Input;
 
 interface TeacherFormValues {
-  firstName: string;
-  lastName: string;
+  fullName: string;
+  phoneNumber: string;
+  biography: string;
+  imgUrl: string;
+  input: string;
+  lavozmId: number;
   email: string;
-  phone: string;
-  faculty: string;
-  department: string;
-  position: string;
-  degree: string;
-  image?: File;
+  age: number;
+  gender: boolean;
+  password: string;
+  departmentId: number;
+}
+
+interface Department {
+  id: number;
+  name: string;
+}
+
+interface Position {
+  id: number;
+  name: string;
 }
 
 interface TeacherSidebarProps {
-  onSubmit?: (values: TeacherFormValues) => void;
-  loading?: boolean;
   initialValues?: Partial<TeacherFormValues>;
   editMode?: boolean;
+  departmentList?: Department[];
+  positionList?: Position[];
+  createMutation: UseMutationResult<any, any, any, any>;
+  uploadImageMutation: UseMutationResult<any, any, File, any>;
 }
 
 export const TeacherSidebar = ({
-  onSubmit,
-  loading = false,
   initialValues,
   editMode = false,
+  departmentList = [],
+  positionList = [],
+  createMutation,
+  uploadImageMutation,
 }: TeacherSidebarProps) => {
   const { isOpen, closeDrawer } = useDrawerStore();
   const [form] = Form.useForm();
-
-  // ✅ Rasm uchun state
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleClose = () => {
     form.resetFields();
     setFileList([]);
-    setSelectedFile(null);
     closeDrawer();
   };
 
@@ -51,32 +74,39 @@ export const TeacherSidebar = ({
     try {
       const values = await form.validateFields();
 
-      // ✅ Barcha ma'lumotlarni birlashtirish
+      let uploadedImageUrl = '';
+
+      // Agar rasm tanlangan bo'lsa, avval uni yuklash
+      if (fileList.length > 0 && fileList[0].originFileObj) {
+        const imageData = await uploadImageMutation.mutateAsync(
+          fileList[0].originFileObj
+        );
+        uploadedImageUrl = imageData || '';
+      }
+
+      // O'qituvchi ma'lumotlarini tayyorlash
       const formData: TeacherFormValues = {
-        ...values,
-        image: selectedFile || undefined,
+        fullName: values.fullName,
+        phoneNumber: values.phoneNumber,
+        biography: values.biography || '',
+        imgUrl: uploadedImageUrl,
+        input: values.input || '',
+        lavozmId: Number(values.lavozmId),
+        email: values.email,
+        age: Number(values.age),
+        gender: values.gender === 'male',
+        password: values.password,
+        departmentId: Number(values.departmentId),
       };
 
-      // ✅ Console ga chiqarish
-      console.log('📝 Form Values:', formData);
-      console.log('🖼️ Image File:', selectedFile);
-      console.log('👤 First Name:', formData.firstName);
-      console.log('👤 Last Name:', formData.lastName);
-      console.log('📧 Email:', formData.email);
-      console.log('📱 Phone:', formData.phone);
-      console.log('🏛️ Faculty:', formData.faculty);
-      console.log('📚 Department:', formData.department);
-      console.log('💼 Position:', formData.position);
-      console.log('🎓 Degree:', formData.degree);
-
-      onSubmit?.(formData);
+      // O'qituvchi qo'shish
+      await createMutation.mutateAsync(formData);
       handleClose();
     } catch (error) {
-      console.error('❌ Validation failed:', error);
+      console.error('Validation or submission failed:', error);
     }
   };
 
-  // ✅ Rasm yuklash konfiguratsiyasi
   const draggerProps: UploadProps = {
     name: 'teacherImage',
     multiple: false,
@@ -94,44 +124,22 @@ export const TeacherSidebar = ({
         return false;
       }
 
-      setFileList([file as any]);
-      setSelectedFile(file);
-      return false; // Avtomatik yuklashni to'xtatish
+      setFileList([
+        {
+          uid: '-1',
+          name: file.name,
+          status: 'done',
+          originFileObj: file,
+        } as UploadFile,
+      ]);
+      return false;
     },
     onRemove: () => {
       setFileList([]);
-      setSelectedFile(null);
     },
   };
 
-  // Mock data
-  const faculties = [
-    { id: 1, name: 'Axborot texnologiyalari fakulteti' },
-    { id: 2, name: 'Iqtisodiyot fakulteti' },
-    { id: 3, name: 'Filologiya fakulteti' },
-  ];
-
-  const departments = [
-    { id: 1, name: 'Dasturiy injiniring' },
-    { id: 2, name: 'Axborot xavfsizligi' },
-    { id: 3, name: "Sun'iy intellekt" },
-  ];
-
-  const positions = [
-    { value: 'professor', label: 'Professor' },
-    { value: 'dotsent', label: 'Dotsent' },
-    { value: 'katta_oqituvchi', label: "Katta o'qituvchi" },
-    { value: 'oqituvchi', label: "O'qituvchi" },
-    { value: 'assistent', label: 'Assistent' },
-  ];
-
-  const degrees = [
-    { value: 'fan_doktori', label: 'Fan doktori' },
-    { value: 'fan_nomzodi', label: 'Fan nomzodi' },
-    { value: 'phd', label: 'PhD' },
-    { value: 'dsc', label: 'DSc' },
-    { value: 'magistr', label: 'Magistr' },
-  ];
+  const isLoading = createMutation.isPending || uploadImageMutation.isPending;
 
   return (
     <Drawer
@@ -142,13 +150,13 @@ export const TeacherSidebar = ({
       width={480}
       footer={
         <div className="flex justify-end gap-2">
-          <Button onClick={handleClose} size="large">
+          <Button onClick={handleClose} size="large" disabled={isLoading}>
             Bekor qilish
           </Button>
           <Button
             type="primary"
             onClick={handleSubmit}
-            loading={loading}
+            loading={isLoading}
             size="large"
           >
             {editMode ? 'Saqlash' : "Qo'shish"}
@@ -163,19 +171,11 @@ export const TeacherSidebar = ({
         autoComplete="off"
       >
         <Form.Item
-          label="Ism"
-          name="firstName"
-          rules={[{ required: true, message: 'Iltimos, ism kiriting!' }]}
+          label="To'liq ism"
+          name="fullName"
+          rules={[{ required: true, message: "Iltimos, to'liq ism kiriting!" }]}
         >
-          <Input placeholder="Ismni kiriting" size="large" />
-        </Form.Item>
-
-        <Form.Item
-          label="Familiya"
-          name="lastName"
-          rules={[{ required: true, message: 'Iltimos, familiya kiriting!' }]}
-        >
-          <Input placeholder="Familiyani kiriting" size="large" />
+          <Input placeholder="Ism va familiyani kiriting" size="large" />
         </Form.Item>
 
         <Form.Item
@@ -191,7 +191,7 @@ export const TeacherSidebar = ({
 
         <Form.Item
           label="Telefon raqami"
-          name="phone"
+          name="phoneNumber"
           rules={[
             { required: true, message: 'Iltimos, telefon raqami kiriting!' },
           ]}
@@ -200,40 +200,78 @@ export const TeacherSidebar = ({
         </Form.Item>
 
         <Form.Item
-          label="Fakultet"
-          name="faculty"
-          rules={[{ required: true, message: 'Iltimos, fakultet tanlang!' }]}
+          label="Yosh"
+          name="age"
+          rules={[
+            { required: true, message: 'Iltimos, yoshni kiriting!' },
+            {
+              validator: (_, value) => {
+                if (!value) {
+                  return Promise.resolve();
+                }
+                const age = Number(value);
+                if (isNaN(age)) {
+                  return Promise.reject('Faqat raqam kiriting!');
+                }
+                if (age < 18) {
+                  return Promise.reject("Yosh kamida 18 bo'lishi kerak!");
+                }
+                if (age > 100) {
+                  return Promise.reject('Yosh 100 dan oshmasligi kerak!');
+                }
+                return Promise.resolve();
+              },
+            },
+          ]}
         >
-          <Select
-            placeholder="Fakultetni tanlang"
+          <InputNumber
+            placeholder="Yoshni kiriting"
             size="large"
-            showSearch
-            optionFilterProp="children"
-            filterOption={(input, option) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-            }
-            options={faculties.map(faculty => ({
-              value: faculty.id,
-              label: faculty.name,
-            }))}
+            min={18}
+            max={100}
+            style={{ width: '100%' }}
           />
         </Form.Item>
 
         <Form.Item
+          label="Jins"
+          name="gender"
+          rules={[{ required: true, message: 'Iltimos, jinsni tanlang!' }]}
+        >
+          <Radio.Group>
+            <Radio value="male">Erkak</Radio>
+            <Radio value="female">Ayol</Radio>
+          </Radio.Group>
+        </Form.Item>
+
+        <Form.Item
+          label="Parol"
+          name="password"
+          rules={[
+            { required: true, message: 'Iltimos, parol kiriting!' },
+            {
+              min: 6,
+              message: "Parol kamida 6 ta belgidan iborat bo'lishi kerak!",
+            },
+          ]}
+        >
+          <Input.Password placeholder="Parolni kiriting" size="large" />
+        </Form.Item>
+
+        <Form.Item
           label="Kafedra"
-          name="department"
+          name="departmentId"
           rules={[{ required: true, message: 'Iltimos, kafedra tanlang!' }]}
         >
           <Select
             placeholder="Kafedrani tanlang"
             size="large"
             showSearch
-            suffixIcon={<SearchOutlined />}
-            optionFilterProp="children"
+            optionFilterProp="label"
             filterOption={(input, option) =>
               (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
             }
-            options={departments.map(dept => ({
+            options={departmentList.map(dept => ({
               value: dept.id,
               label: dept.name,
             }))}
@@ -242,51 +280,37 @@ export const TeacherSidebar = ({
 
         <Form.Item
           label="Lavozim"
-          name="position"
+          name="lavozmId"
           rules={[{ required: true, message: 'Iltimos, lavozim tanlang!' }]}
         >
           <Select
             placeholder="Lavozimni tanlang"
             size="large"
             showSearch
-            optionFilterProp="children"
+            optionFilterProp="label"
             filterOption={(input, option) =>
               (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
             }
-          >
-            {positions.map(position => (
-              <Option key={position.value} value={position.value}>
-                {position.label}
-              </Option>
-            ))}
-          </Select>
+            options={positionList.map(position => ({
+              value: position.id,
+              label: position.name,
+            }))}
+          />
         </Form.Item>
 
-        <Form.Item
-          label="Ilmiy daraja"
-          name="degree"
-          rules={[
-            { required: true, message: 'Iltimos, ilmiy daraja tanlang!' },
-          ]}
-        >
-          <Select
-            placeholder="Ilmiy darajani tanlang"
-            size="large"
-            showSearch
-            optionFilterProp="children"
-            filterOption={(input, option) =>
-              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-            }
-          >
-            {degrees.map(degree => (
-              <Option key={degree.value} value={degree.value}>
-                {degree.label}
-              </Option>
-            ))}
-          </Select>
+        <Form.Item label="Biografiya" name="biography">
+          <TextArea
+            placeholder="Qisqacha biografiya kiriting"
+            rows={4}
+            maxLength={500}
+            showCount
+          />
         </Form.Item>
 
-        {/* ✅ Rasm yuklash */}
+        <Form.Item label="Qo'shimcha ma'lumot" name="input">
+          <Input placeholder="Qo'shimcha ma'lumot" size="large" />
+        </Form.Item>
+
         <Form.Item label="Rasm">
           <Dragger {...draggerProps}>
             <p className="ant-upload-drag-icon">

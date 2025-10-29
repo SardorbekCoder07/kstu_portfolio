@@ -1,4 +1,4 @@
-import { Button, Popconfirm, Space, Image, Tag, Empty } from 'antd';
+import { Button, Popconfirm, Space, Image, Empty } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import CustomTable from '../../components/ui/table/CustomTable';
 
@@ -126,8 +126,9 @@ export const FacultyTable = ({
   ];
 
   return (
-    <div className="bg-transparent  overflow-hidden">
-      {faculties.length > 0 ? (
+    <div className="bg-transparent overflow-hidden">
+      {/* ✅ Loading holatida ham CustomTable ko'rsatiladi */}
+      {isLoading || faculties.length > 0 ? (
         <CustomTable columns={columns} data={faculties} loading={isLoading} />
       ) : (
         <div className="col-span-full">

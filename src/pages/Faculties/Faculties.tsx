@@ -48,7 +48,6 @@ const Faculties = () => {
     faculties,
     total,
     isFacultiesLoading,
-    isFacultiesFetching, // ✅ Bu qo'shildi
     facultiesError,
     uploadImageMutation,
     createFacultyMutation,
@@ -192,6 +191,13 @@ const Faculties = () => {
     updateFacultyMutation.isPending ||
     uploadImageMutation.isPending;
 
+  // 🔍 Debug: Loading holati
+  console.log('🔍 Loading states:', {
+    isFacultiesLoading,
+    faculties: faculties.length,
+    total,
+  });
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
@@ -220,7 +226,7 @@ const Faculties = () => {
       {/* ✅ Fakultetlar jadvali */}
       <FacultyTable
         faculties={faculties}
-        isLoading={isFacultiesLoading || isFacultiesFetching} // ✅ Bu o'zgardi
+        isLoading={isFacultiesLoading}
         onEdit={handleEdit}
         onDelete={handleDelete}
         deletingId={deletingId}

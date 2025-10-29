@@ -21,7 +21,7 @@ export const useDepartmentOperations = (
     error: departmentsError,
     refetch,
   } = useQuery({
-    queryKey: ['departments', params], // ✅ params o'zgarganda avtomatik yangilanadi
+    queryKey: ['departments', params],
     queryFn: () => getDepartments(params),
   });
 

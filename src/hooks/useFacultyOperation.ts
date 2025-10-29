@@ -25,7 +25,6 @@ export const useFacultyOperations = (
   } = useQuery({
     queryKey: ['faculties', params],
     queryFn: () => getFaculties(params),
-    // ✅ Global sozlamalar ishlatiladi (main.tsx dan)
   });
 
   // ✅ Rasm yuklash
@@ -95,7 +94,7 @@ export const useFacultyOperations = (
     size: facultiesData?.size || 10,
     totalPages: facultiesData?.totalPage || 1,
     isFacultiesLoading,
-    isFacultiesFetching, // ✅ Qo'shildi
+    isFacultiesFetching,
     facultiesError,
     refetch,
 

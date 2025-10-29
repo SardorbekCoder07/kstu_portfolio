@@ -4,4 +4,6 @@ export const API_ENDPOINTS = {
   FACULTIES: '/college',
   DEPARTMENT: '/department',
   POSITION: '/lavozim',
+  AUTHSAVEUSER: '/auth/saveUser',
+  USERS: 'user/',
 };
