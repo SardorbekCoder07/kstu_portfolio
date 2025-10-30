@@ -153,7 +153,7 @@ const AddTeachers = () => {
         </Space>
       </div>
 
-      <div className="bg-transparent p-6">
+      <div className="bg-transparent">
         {isTeachersLoading ? (
           <div className="flex justify-center items-center py-20">
             <Spin size="large" />
