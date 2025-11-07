@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router';
-import { GraduationCap, Grid, Layers, User, Users } from 'lucide-react';
+import { GraduationCap, Grid, Layers,Users } from 'lucide-react';
 
 import { ChevronDownIcon, GridIcon, HorizontaLDots } from '../icons';
 import { useSidebar } from '../context/SidebarContext';

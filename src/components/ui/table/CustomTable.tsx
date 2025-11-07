@@ -16,7 +16,6 @@ const CustomTable = <T extends object>({
   loading = false,
   rowKey = 'id',
   bordered = true,
-  pagination = true,
 }: CustomTableProps<T>) => {
   return (
     <Table

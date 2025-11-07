@@ -49,7 +49,7 @@ export const usePositionOperations = () => {
     onError: (error: any) => {
       toast.error(
         error.response?.data?.message ||
-          'Lavozimni tahrirlashda xatolik yuz berdi'
+        'Lavozimni tahrirlashda xatolik yuz berdi'
       );
       console.error('Update position error:', error);
     },
@@ -64,7 +64,7 @@ export const usePositionOperations = () => {
     onError: (error: any) => {
       toast.error(
         error.response?.data?.message ||
-          "Lavozimni o'chirishda xatolik yuz berdi"
+        "Lavozimni o'chirishda xatolik yuz berdi"
       );
       console.error('Delete position error:', error);
     },
@@ -73,7 +73,7 @@ export const usePositionOperations = () => {
   const addPosition = async (data: PositionCreateData) => {
     try {
       let addPosition = await addPositionMutation.mutateAsync(data);
-      if (addPosition.success) {
+      if (addPosition) {
         toast.success("Lavozim muvaffaqqiyatli qo'shildi");
         return true;
       } else {

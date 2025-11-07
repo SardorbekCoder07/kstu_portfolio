@@ -41,11 +41,9 @@ const AddTeachers = () => {
   const {
     teachers,
     total,
-    totalPages,
     isTeachersLoading,
     createTeacherMutation,
     uploadImageMutation,
-    refetch,
   } = useTeacherOperations(
     {
       page: currentPage - 1, // Backend 0 dan boshlanadi
@@ -57,7 +55,7 @@ const AddTeachers = () => {
     closeDrawer
   );
 
-  const { departments, refetch: refetchDepartments } =
+  const { departments } =
     useDepartmentOperations();
   const { positions } = usePositionOperations();
 

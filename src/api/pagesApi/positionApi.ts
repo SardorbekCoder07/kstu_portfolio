@@ -1,4 +1,3 @@
-import { toast } from 'sonner';
 import axiosClient from '../axiosClient';
 import { API_ENDPOINTS } from '../endpoints';
 

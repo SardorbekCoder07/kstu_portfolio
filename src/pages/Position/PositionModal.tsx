@@ -1,5 +1,5 @@
 // src/pages/Position/PositionModal.tsx
-import { Modal, Form, Input, Spin } from 'antd';
+import { Modal, Form, Input } from 'antd';
 import { useEffect } from 'react';
 import { useModalStore } from '../../stores/useModalStore';
 import { Position } from '../../api/pagesApi/positionApi';

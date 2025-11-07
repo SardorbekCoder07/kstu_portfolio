@@ -12,7 +12,7 @@ import { Position } from '../../api/pagesApi/positionApi';
 const PositionPage = () => {
   const [searchValue, setSearchValue] = useState('');
   const [editingPosition, setEditingPosition] = useState<Position | null>(null);
-  const { openModal, closeModal } = useModalStore();
+  const { openModal } = useModalStore();
 
   const {
     positions,

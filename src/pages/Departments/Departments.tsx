@@ -45,7 +45,7 @@ const Departments = () => {
   }, [searchValue]);
 
   // ✅ Fakultetlarni olish
-  const { data: faculties = [], isLoading: isFacultiesLoading } = useQuery({
+  const { data: faculties = [] } = useQuery({
     queryKey: ['all-faculties'], // ✅ boshqa key
     queryFn: getAllFaculties, // ✅ getAllFaculties ishlatish
   });
@@ -54,8 +54,6 @@ const Departments = () => {
   const {
     departments,
     total,
-    page,
-    totalPages,
     isDepartmentsLoading,
     departmentsError,
     createDepartmentMutation,

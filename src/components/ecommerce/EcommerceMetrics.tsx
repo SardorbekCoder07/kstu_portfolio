@@ -1,11 +1,4 @@
-import { GraduationCap, Layers } from 'lucide-react';
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  BoxIconLine,
-  GroupIcon,
-} from '../../icons';
-import Badge from '../ui/badge/Badge';
+import { GraduationCap, GroupIcon, Layers } from 'lucide-react';
 
 export default function EcommerceMetrics() {
   return (

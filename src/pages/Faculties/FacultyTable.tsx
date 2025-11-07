@@ -11,7 +11,7 @@ interface Faculty {
 }
 
 interface FacultyTableProps {
-  faculties: Faculty[];
+  faculties: any;
   isLoading: boolean;
   onEdit: (faculty: Faculty) => void;
   onDelete: (id: number) => void;
