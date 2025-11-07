@@ -56,8 +56,6 @@ export const getDepartments = async (
     queryParams.collegeId = params.collegeId;
   }
 
-  // console.log('📤 GET Request URL:', '/department/page');
-  // console.log('📤 GET Request params:', queryParams);
 
   try {
     const response = await axiosClient.get<DepartmentsResponse>(
@@ -76,15 +74,11 @@ export const getDepartments = async (
 export const createDepartment = async (
   data: DepartmentCreateData
 ): Promise<Department> => {
-  // console.log('📤 POST Request URL:', '/department');
-  // console.log('📤 POST Request body:', data);
-
   try {
     const response = await axiosClient.post(
       `${API_ENDPOINTS.DEPARTMENT}`,
       data
     );
-    // console.log('📥 POST Response:', response.data);
     return response.data.data || response.data;
   } catch (error: any) {
     console.error('❌ POST Error:', error.response?.data || error.message);
