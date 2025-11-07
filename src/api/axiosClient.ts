@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosClient = axios.create({
-  baseURL: 'https://qdtu.uz',
+  baseURL: 'https://qdtu.uz/api',
   headers: {
     'Content-Type': 'application/json',
   },
