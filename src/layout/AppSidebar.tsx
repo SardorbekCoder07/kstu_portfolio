@@ -36,7 +36,6 @@ const navItems: NavItem[] = [
     icon: <Users />,
     subItems: [
       { name: 'Add Teachers', path: '/add-teachers', pro: false },
-      { name: 'View Teachers', path: '/view-teachers', pro: false },
     ],
   },
   {

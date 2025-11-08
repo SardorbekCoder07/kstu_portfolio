@@ -1,6 +1,6 @@
 // pages/teachers/AddTeachers.tsx
 import { PageHeader } from '../../components/ui/PageHeader';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, RightOutlined } from '@ant-design/icons';
 import { useDrawerStore } from '../../stores/useDrawerStore';
 import { TeacherSidebar } from './TeacherSidebar';
 import { useState, useEffect } from 'react';
@@ -193,13 +193,9 @@ const AddTeachers = () => {
                           {teacher.departmentName}
                         </div>
                       </div>
-                      <Button
-                        type="primary"
-                        block
-                        onClick={() => handleViewDetails(teacher.id)}
-                      >
-                        Batafsil
-                      </Button>
+                      <div className="" onClick={() => handleViewDetails(teacher.id)}>Batafsil
+                        <RightOutlined/>
+                      </div>
                     </div>
                   </Card>
                 </Col>
