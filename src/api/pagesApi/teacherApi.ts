@@ -62,6 +62,44 @@ export interface TeachersResponse {
   };
 }
 
+// Teacher Id bo'yicha olish
+
+export interface Pagination<T = any> {
+  page: number;
+  size: number;
+  totalPage: number;
+  totalElements: number;
+  body: T[];
+}
+
+export interface Teacher {
+  id: number;
+  fullName: string;
+  phone: string;
+  email: string;
+  biography?: string | null;
+  inputt?: string | null;
+  imageUrl?: string | null;
+  role?: string | null;
+  fileUrl?: string | null;
+  profession?: string | null;
+  lavozimName?: string | null;
+  departmentNamee?: string | null;
+  qualification: Pagination<any>;
+  research: Pagination<any>;
+  award: Pagination<any>;
+  consultation: Pagination<any>;
+  nazorat: Pagination<any>;
+  publication: Pagination<any>;
+}
+
+export interface TeacherResponse {
+  success: boolean;
+  message: string;
+  data: Teacher;
+}
+// Teacher Id bo'yicha olish
+
 // ✅ Rasm yuklash
 export const uploadTeacherImage = async (file: File): Promise<string> => {
   const formData = new FormData();

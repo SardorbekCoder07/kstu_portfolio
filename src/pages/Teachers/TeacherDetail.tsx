@@ -1,7 +1,7 @@
 const TeacherDetail = () => {
   return (
     <div>
-      Teacher Detail
+      
     </div>
   )
 }

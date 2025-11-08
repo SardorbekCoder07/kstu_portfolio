@@ -164,9 +164,10 @@ const AddTeachers = () => {
                   <Card
                     hoverable
                     className="overflow-hidden"
+                    onClick={() => handleViewDetails(teacher.id)}
                     styles={{ body: { padding: '16px' } }}
                     cover={
-                      <div className="relative w-full h-48 overflow-hidden bg-gradient-to-br from-blue-100 to-blue-50">
+                      <div className="relative w-full h-72 overflow-hidden bg-gradient-to-br from-blue-100 to-blue-50">
                         {teacher.imgUrl ? (
                           <img
                             src={teacher.imgUrl}
@@ -193,9 +194,9 @@ const AddTeachers = () => {
                           {teacher.departmentName}
                         </div>
                       </div>
-                      <div className="flex items-center justify-between" onClick={() => handleViewDetails(teacher.id)}>
+                      <div className="flex items-center justify-between border-t border-gray-300 pt-2">
                         <p className='!m-0'>Batafsil</p>
-                        <RightOutlined/>
+                        <RightOutlined />
                       </div>
                     </div>
                   </Card>
