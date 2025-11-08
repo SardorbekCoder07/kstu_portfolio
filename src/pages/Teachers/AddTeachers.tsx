@@ -193,7 +193,8 @@ const AddTeachers = () => {
                           {teacher.departmentName}
                         </div>
                       </div>
-                      <div className="" onClick={() => handleViewDetails(teacher.id)}>Batafsil
+                      <div className="flex items-center justify-between" onClick={() => handleViewDetails(teacher.id)}>
+                        <p className='!m-0'>Batafsil</p>
                         <RightOutlined/>
                       </div>
                     </div>
