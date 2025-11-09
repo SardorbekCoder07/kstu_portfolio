@@ -55,11 +55,11 @@ const AddTeachers = () => {
     },
     closeDrawer
   );
-
+ 
   const { departments } =
     useDepartmentOperations();
   const { positions } = usePositionOperations();
-
+ 
   // Filterlar o'zgarganda sahifani resetlash
   useEffect(() => {
     setCurrentPage(1);

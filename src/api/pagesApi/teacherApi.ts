@@ -148,8 +148,7 @@ export const getTeachers = async (
     throw error;
   }
 };
- 
-// ✅ CREATE - O'qituvchi qo'shish
+// ✅ CREATE - O'qituvchi qo'shish 
 export const createTeacher = async (
   data: TeacherCreateData
 ): Promise<Teacher> => {

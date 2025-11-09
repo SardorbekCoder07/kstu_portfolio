@@ -375,7 +375,7 @@ export const TeacherSidebar = ({
         </Form.Item>
 
         <Form.Item label="Mutaxasisligi" name="profession">
-          <Input placeholder="Mutaxasisligi" size="large" />
+          <Input placeholder="Mutaxasisligi" size="large" /> 
         </Form.Item>
 
         <Form.Item label="PDF">
