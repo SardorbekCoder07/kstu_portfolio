@@ -44,6 +44,7 @@ const AddTeachers = () => {
     isTeachersLoading,
     createTeacherMutation,
     uploadImageMutation,
+    uploadPDFMutation,
   } = useTeacherOperations(
     {
       page: currentPage - 1, // Backend 0 dan boshlanadi
@@ -52,13 +53,11 @@ const AddTeachers = () => {
       lavozim: selectedLavozim,
       college: selectedCollege,
     },
-    closeDrawer
+    closeDrawer 
   );
-
   const { departments } =
     useDepartmentOperations();
   const { positions } = usePositionOperations();
-
   // Filterlar o'zgarganda sahifani resetlash
   useEffect(() => {
     setCurrentPage(1);
@@ -120,6 +119,7 @@ const AddTeachers = () => {
       <TeacherSidebar
         createMutation={createTeacherMutation}
         uploadImageMutation={uploadImageMutation}
+        uploadPDFMutation={uploadPDFMutation}
         departmentList={departments}
         positionList={positions}
       />
