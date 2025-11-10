@@ -1,14 +1,9 @@
-import type React from "react"
-
-import { FileText, Users, Award, MessageSquare, Microscope } from "lucide-react"
 import StatCard from "./stat-card"
-
 interface StatItem {
   id: string
   title: string
   count: number
   description: string
-  icon: React.ReactNode
   details?: Array<{
     label: string
     value: number
@@ -23,14 +18,12 @@ export default function StatisticsCards() {
       title: "Research",
       count: 5,
       description: "Active Projects",
-      icon: <Microscope className="w-6 h-6" />,
     },
     {
       id: "publications",
       title: "Publications",
       count: 298,
       description: "Total Publications",
-      icon: <FileText className="w-6 h-6" />,
       details: [
         { label: "Articles", value: 180, color: "from-purple-500 to-blue-500" },
         { label: "Proceedings", value: 102, color: "from-cyan-500 to-blue-400" },
@@ -42,7 +35,6 @@ export default function StatisticsCards() {
       title: "Supervision",
       count: 21,
       description: "Students Supervised",
-      icon: <Users className="w-6 h-6" />,
       details: [
         { label: "PhD Students", value: 4, color: "from-blue-600 to-blue-400" },
         { label: "Master Students", value: 17, color: "from-cyan-500 to-blue-400" },
@@ -53,14 +45,12 @@ export default function StatisticsCards() {
       title: "Consultation",
       count: 2,
       description: "Professional Engagements",
-      icon: <MessageSquare className="w-6 h-6" />,
     },
     {
       id: "awards",
       title: "Awards & Recognitions",
       count: 54,
       description: "Total Awards",
-      icon: <Award className="w-6 h-6" />,
       details: [
         { label: "Training & Internship", value: 41, color: "from-blue-600 to-blue-400" },
         { label: "Editorial Board", value: 4, color: "from-purple-600 to-purple-400" },

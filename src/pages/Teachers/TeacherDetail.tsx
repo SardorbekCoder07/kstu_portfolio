@@ -1,18 +1,90 @@
-"use client"
+"use client";
 
-import { Card, Tabs, Tag, Rate, Button, Descriptions } from "antd"
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import {
+  Card,
+  Tabs,
+  Tag,
+  Rate,
+  Button,
+  Descriptions,
+  Spin,
+  message,
+} from "antd";
 import {
   MailOutlined,
   EnvironmentOutlined,
   ClockCircleOutlined,
   BookOutlined,
   TeamOutlined,
-} from "@ant-design/icons"
-import StatisticsCards from "../../components/teacher/StatisticsCards"
+} from "@ant-design/icons";
+import StatisticsCards from "../../components/teacher/StatisticsCards";
+import axiosClient from "../../api/axiosClient";
 
-const { TabPane } = Tabs
+const { TabPane } = Tabs;
+
+// ✅ API dan keladigan ma’lumotlar uchun interface
+interface Teacher {
+  id: number;
+  fullName: string;
+  phone: string;
+  email: string;
+  biography: string;
+  input: string;
+  imageUrl: string;
+  role: string;
+  fileUrl: string | null;
+  profession: string | null;
+  lavozimName: string;
+  departmentName: string;
+  qualification: { body: any[] };
+  research: { body: any[] };
+  award: { body: any[] };
+  consultation: { body: any[] };
+  nazorat: { body: any[] };
+  publication: { body: any[] };
+}
 
 const TeacherDetail = () => {
+  const { id } = useParams(); // ✅ URL dan id ni olish
+  const [teacher, setTeacher] = useState<Teacher | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTeacher = async () => {
+      try {
+        // id URL dan olinadi, masalan: /teachers/10
+        const res = await axiosClient.get(`/user/${id}`);
+        if (res.data?.success) {
+          setTeacher(res.data.data);
+        } else {
+          message.error("Ma'lumotni olishda xatolik yuz berdi");
+        }
+      } catch (err) {
+        message.error("Server bilan bog‘lanishda xatolik");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchTeacher();
+    }
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-[400px]">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (!teacher) {
+    return <p className="text-center text-red-500 mt-10">Ma’lumot topilmadi.</p>;
+  }
+
   return (
     <>
       <div
@@ -34,25 +106,26 @@ const TeacherDetail = () => {
           cover={
             <img
               alt="teacher"
-              src="https://i.ibb.co/4ww2q7nY/asror.jpg"
+              src={teacher.imageUrl || "https://via.placeholder.com/300x300"}
               className="w-full h-[300px] object-cover rounded-xl"
             />
           }
         >
-          <h2 className="text-[20px] font-semibold">Alisher Rahimov</h2>
-          <p className="text-gray-500 mb-2">Mathematics</p>
+          <h2 className="text-[20px] font-semibold">{teacher.fullName}</h2>
+          <p className="text-gray-500 mb-2">{teacher.lavozimName || "—"}</p>
           <Rate disabled defaultValue={5} />
           <p className="text-gray-500 mt-1">(127 baho)</p>
 
           <div className="text-left mt-4 leading-relaxed space-y-1">
             <p>
-              <ClockCircleOutlined /> <b>Tajriba:</b> 10+ years
+              <ClockCircleOutlined /> <b>Kafedra:</b>{" "}
+              {teacher.departmentName || "Ma’lumot yo‘q"}
             </p>
             <p>
-              <BookOutlined /> <b>Malakasi:</b> Master's Degree in Mathematics
+              <BookOutlined /> <b>Biografiya:</b> {teacher.biography || "—"}
             </p>
             <p>
-              <TeamOutlined /> <b>O‘quvchilar:</b> 1,250+
+              <TeamOutlined /> <b>Roli:</b> {teacher.role || "—"}
             </p>
           </div>
 
@@ -68,10 +141,7 @@ const TeacherDetail = () => {
               <Tabs defaultActiveKey="1" size="small">
                 <TabPane tab="Umumiy" key="1">
                   <h3 className="font-semibold mb-2">O‘qituvchi haqida</h3>
-                  <p className="text-gray-500 mb-5">
-                    Experienced math teacher with 10+ years of teaching history.
-                    Specialized in algebra, geometry, and calculus.
-                  </p>
+                  <p className="text-gray-500 mb-5">{teacher.input}</p>
 
                   <Descriptions
                     bordered
@@ -79,70 +149,78 @@ const TeacherDetail = () => {
                     size="small"
                     styles={{ label: { fontWeight: 500 } }}
                   >
-                    <Descriptions.Item label="Tillar">
-                      O‘zbek, Rus, Ingliz
+                    <Descriptions.Item label="Telefon">
+                      {teacher.phone || "—"}
                     </Descriptions.Item>
-                    <Descriptions.Item label="Soat narxi">
-                      50,000 so‘m
+                    <Descriptions.Item label="Email">
+                      {teacher.email || "—"}
                     </Descriptions.Item>
-                    <Descriptions.Item label="Vaqti">
-                      Har kuni 9:00–18:00
+                    <Descriptions.Item label="Lavozimi">
+                      {teacher.lavozimName || "—"}
                     </Descriptions.Item>
-                    <Descriptions.Item label="Dars shakli">
-                      Online / Offline
+                    <Descriptions.Item label="Kafedra">
+                      {teacher.departmentName || "—"}
                     </Descriptions.Item>
                   </Descriptions>
 
                   <div className="mt-6">
                     <h4 className="font-semibold mb-2">Bog‘lanish uchun</h4>
                     <p>
-                      <MailOutlined /> alisher.rahimov@example.com
+                      <MailOutlined /> {teacher.email || "Email mavjud emas"}
                     </p>
                     <p>
-                      <EnvironmentOutlined /> Tashkent, O‘zbekiston
+                      <EnvironmentOutlined /> {teacher.biography || "Joylashuv yo‘q"}
                     </p>
                   </div>
                 </TabPane>
 
                 <TabPane tab="Ko‘nikmalari" key="2">
                   <div className="flex flex-wrap gap-2">
-                    <Tag color="blue">Algebra</Tag>
-                    <Tag color="green">Geometry</Tag>
-                    <Tag color="purple">Calculus</Tag>
-                    <Tag color="orange">Trigonometry</Tag>
+                    <Tag color="blue">{teacher.lavozimName || "Dotsent"}</Tag>
+                    <Tag color="green">{teacher.role || "ROLE_TEACHER"}</Tag>
+                    <Tag color="purple">Universitet o‘qituvchisi</Tag>
                   </div>
                 </TabPane>
 
                 <TabPane tab="Yutuqlari" key="3">
-                  <p>2020 — "Yilning eng yaxshi o‘qituvchisi" mukofoti</p>
-                  <p>2018 — Talabalar olimpiadasi murabbiyi sifatida 1-o‘rin</p>
+                  {teacher.award?.body?.length > 0 ? (
+                    teacher.award.body.map((item: any, i: number) => (
+                      <p key={i}>{item.title}</p>
+                    ))
+                  ) : (
+                    <p>Hozircha yutuqlar mavjud emas.</p>
+                  )}
                 </TabPane>
               </Tabs>
             </TabPane>
 
-            <TabPane tab="Kurslar" key="2">
-              <p>Matematika asoslari (Boshlang‘ich)</p>
-              <p>Algebra va tenglamalar</p>
-              <p>Geometriya amaliyotlari</p>
+            <TabPane tab="Tadqiqotlar" key="2">
+              {teacher.research?.body?.length > 0 ? (
+                teacher.research.body.map((item: any, i: number) => (
+                  <p key={i}>{item.title}</p>
+                ))
+              ) : (
+                <p>Hozircha tadqiqotlar mavjud emas.</p>
+              )}
             </TabPane>
 
-            <TabPane tab="Tajriba" key="3">
-              <p>Oliy ta’limda 10 yildan ortiq dars berish tajribasi.</p>
-              <p>Online kurslar platformalarida 1,000+ o‘quvchi.</p>
-            </TabPane>
-
-            <TabPane tab="Sharhlar" key="4">
-              <p>⭐️⭐️⭐️⭐️⭐️ — Ajoyib o‘qituvchi! Juda tushunarli tushuntiradi.</p>
-              <p>⭐️⭐️⭐️⭐️ — Juda foydali darslar va yaxshi muomala.</p>
+            <TabPane tab="Nashrlar" key="3">
+              {teacher.publication?.body?.length > 0 ? (
+                teacher.publication.body.map((pub: any, i: number) => (
+                  <p key={i}>{pub.title}</p>
+                ))
+              ) : (
+                <p>Hozircha nashrlar mavjud emas.</p>
+              )}
             </TabPane>
           </Tabs>
         </Card>
       </div>
 
-      {/* Statistikalar qismi */}
+      {/* Statistikalar */}
       <StatisticsCards />
     </>
-  )
-}
+  );
+};
 
-export default TeacherDetail
+export default TeacherDetail;

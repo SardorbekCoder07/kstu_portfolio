@@ -1,5 +1,3 @@
-import type { ReactNode } from "react"
-
 interface DetailItem {
   label: string
   value: number
@@ -12,7 +10,6 @@ interface StatCardProps {
     title: string
     count: number
     description: string
-    icon: ReactNode
     details?: DetailItem[]
   }
 }
@@ -23,12 +20,11 @@ export default function StatCard({ stat }: StatCardProps) {
       {/* Header */}  
       <div className="bg-[#1677ff] px-4 py-3 flex items-center justify-between">
         <h3 className="text-white font-semibold text-sm md:text-base">{stat.title}</h3>
-        <div className="text-white/90">{stat.icon}</div>
       </div>
 
       {/* Content */}
       <div className="p-4 md:p-6">
-        {/* Main Count */}
+        Main Count
         <div className="mb-4">
           <div className="text-3xl md:text-4xl font-bold text-slate-900 mb-1">{stat.count}</div>
           <p className="text-xs md:text-sm text-slate-600">{stat.description}</p>
