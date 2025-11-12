@@ -1,4 +1,8 @@
+import { useQuery } from "@tanstack/react-query"
+import { useParams } from "react-router-dom"
 import StatCard from "./stat-card"
+import axiosClient from "../../api/axiosClient"
+
 interface StatItem {
   id: string
   title: string
@@ -11,59 +15,84 @@ interface StatItem {
   }>
 }
 
-export default function StatisticsCards() {
-  const stats: StatItem[] = [
+// Ma'lumotni olish funksiyasi
+const fetchStatistics = async (teacherId: string): Promise<StatItem[]> => {
+  const res = await axiosClient.get(`/user/statistics/${teacherId}`)
+  const data = res.data.data
+
+  return [
     {
       id: "research",
       title: "Research",
-      count: 5,
+      count: data.tadqiqotlar,
       description: "Active Projects",
     },
     {
       id: "publications",
       title: "Publications",
-      count: 298,
+      count: data.nashrlar,
       description: "Total Publications",
       details: [
-        { label: "Articles", value: 180, color: "from-purple-500 to-blue-500" },
-        { label: "Proceedings", value: 102, color: "from-cyan-500 to-blue-400" },
-        { label: "Others", value: 16, color: "from-green-500 to-cyan-500" },
+        { label: "Articles", value: data.maqolalar, color: "from-purple-500 to-blue-500" },
+        { label: "Books", value: data.kitoblar, color: "from-cyan-500 to-blue-400" },
+        { label: "Others", value: data.boshqalar, color: "from-green-500 to-cyan-500" },
       ],
     },
     {
       id: "supervision",
       title: "Supervision",
-      count: 21,
+      count: data.ishYuritishlar,
       description: "Students Supervised",
       details: [
-        { label: "PhD Students", value: 4, color: "from-blue-600 to-blue-400" },
-        { label: "Master Students", value: 17, color: "from-cyan-500 to-blue-400" },
+        { label: "Consultations", value: data.maslahatlar, color: "from-blue-600 to-blue-400" },
+        { label: "Control", value: data.nazorat, color: "from-cyan-500 to-blue-400" },
       ],
     },
     {
-      id: "consultation",
-      title: "Consultation",
-      count: 2,
+      id: "training",
+      title: "Training & Involvement",
+      count: data.treninglar,
       description: "Professional Engagements",
+      details: [
+        { label: "Editorial Membership", value: data.tahririyatAzolik, color: "from-purple-600 to-purple-400" },
+        { label: "Special Council", value: data.maxsusKengash, color: "from-indigo-600 to-indigo-400" },
+      ],
     },
     {
       id: "awards",
       title: "Awards & Recognitions",
-      count: 54,
+      count: data.mukofotlar,
       description: "Total Awards",
       details: [
-        { label: "Training & Internship", value: 41, color: "from-blue-600 to-blue-400" },
-        { label: "Editorial Board", value: 4, color: "from-purple-600 to-purple-400" },
-        { label: "Special Council", value: 4, color: "from-indigo-600 to-indigo-400" },
-        { label: "Patent DGI", value: 3, color: "from-slate-700 to-slate-500" },
-        { label: "State Award", value: 2, color: "from-red-500 to-red-400" },
+        { label: "Patent DGI", value: data.patentlar, color: "from-slate-700 to-slate-500" },
+        { label: "State Awards", value: data.davlatMukofotlari, color: "from-red-500 to-red-400" },
       ],
     },
   ]
+}
+
+export default function StatisticsCards() {
+  const { id } = useParams<{ id: string }>() // URL’dan teacherId ni olish
+
+  const {
+    data: stats,
+    isLoading,
+    isError,
+    error,
+  } = useQuery<StatItem[], Error>({
+    queryKey: ["statistics", id],
+    queryFn: () => fetchStatistics(id!), // <-- teacherId yuborilyapti
+    enabled: !!id, // id bo‘lmasa query ishlamaydi
+    staleTime: 1000 * 60 * 5,
+    retry: 2,
+  })
+
+  if (isLoading) return <p className="text-center">Yuklanmoqda...</p>
+  if (isError) return <p className="text-center text-red-500">Xatolik: {error.message}</p>
 
   return (
     <div className="max-w-[1200px] mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-      {stats.map((stat) => (
+      {stats?.map((stat) => (
         <StatCard key={stat.id} stat={stat} />
       ))}
     </div>
