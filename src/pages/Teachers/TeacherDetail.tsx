@@ -1,6 +1,3 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
   Card,
@@ -21,59 +18,37 @@ import {
 } from "@ant-design/icons";
 import StatisticsCards from "../../components/teacher/StatisticsCards";
 import axiosClient from "../../api/axiosClient";
+import { Teacher } from "../../api/pagesApi/teacherApi";
+import { useQuery } from "@tanstack/react-query";
 
 const { TabPane } = Tabs;
 
-// ✅ API dan keladigan ma’lumotlar uchun interface
-interface Teacher {
-  id: number;
-  fullName: string;
-  phone: string;
-  email: string;
-  biography: string;
-  input: string;
-  imageUrl: string;
-  role: string;
-  fileUrl: string | null;
-  profession: string | null;
-  lavozimName: string;
-  departmentName: string;
-  qualification: { body: any[] };
-  research: { body: any[] };
-  award: { body: any[] };
-  consultation: { body: any[] };
-  nazorat: { body: any[] };
-  publication: { body: any[] };
-}
+// 🔹 Fetch funksiyasi
+const fetchTeacher = async (id: string): Promise<Teacher> => {
+  const res = await axiosClient.get(`/user/${id}`);
+  if (!res.data?.success) throw new Error("Ma’lumotni olishda xatolik yuz berdi");
+  return res.data.data;
+};
 
 const TeacherDetail = () => {
-  const { id } = useParams(); // ✅ URL dan id ni olish
-  const [teacher, setTeacher] = useState<Teacher | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { id } = useParams<{ id: string }>();
 
-  useEffect(() => {
-    const fetchTeacher = async () => {
-      try {
-        // id URL dan olinadi, masalan: /teachers/10
-        const res = await axiosClient.get(`/user/${id}`);
-        if (res.data?.success) {
-          setTeacher(res.data.data);
-        } else {
-          message.error("Ma'lumotni olishda xatolik yuz berdi");
-        }
-      } catch (err) {
-        message.error("Server bilan bog‘lanishda xatolik");
-      } finally {
-        setLoading(false);
-      }
-    };
+  // ✅ TanStack Query yordamida cache qilish
+  const {
+    data: teacher,
+    isLoading,
+    isError,
+    error,
+  } = useQuery<Teacher, Error>({
+    queryKey: ["teacher", id],
+    queryFn: () => fetchTeacher(id!),
+    enabled: !!id, // id mavjud bo‘lsa so‘rov yuboriladi
+    staleTime: 1000 * 60 * 5, // 5 daqiqa cacheda saqlanadi
+    retry: 2, // xatolikda 2 marta qayta urinadi
+  });
 
-    if (id) {
-      fetchTeacher();
-    }
-  }, [id]);
-
-  if (loading) {
+  // 🌀 Yuklanish holati
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-[400px]">
         <Spin size="large" />
@@ -81,10 +56,22 @@ const TeacherDetail = () => {
     );
   }
 
+  // ❌ Xatolik holati
+  if (isError) {
+    message.error(error.message);
+    return (
+      <p className="text-center text-red-500 mt-10">
+        Ma’lumotni yuklashda xatolik: {error.message}
+      </p>
+    );
+  }
+
+  // ⚠️ Ma’lumot topilmasa
   if (!teacher) {
     return <p className="text-center text-red-500 mt-10">Ma’lumot topilmadi.</p>;
   }
 
+  // ✅ Asosiy UI
   return (
     <>
       <div
@@ -106,14 +93,13 @@ const TeacherDetail = () => {
           cover={
             <img
               alt="teacher"
-              src={teacher.imageUrl || "https://via.placeholder.com/300x300"}
+              src={teacher.imageUrl || "../../../public/image.png"}
               className="w-full h-[300px] object-cover rounded-xl"
             />
           }
         >
           <h2 className="text-[20px] font-semibold">{teacher.fullName}</h2>
           <p className="text-gray-500 mb-2">{teacher.lavozimName || "—"}</p>
-          <Rate disabled defaultValue={5} />
           <p className="text-gray-500 mt-1">(127 baho)</p>
 
           <div className="text-left mt-4 leading-relaxed space-y-1">
@@ -123,9 +109,6 @@ const TeacherDetail = () => {
             </p>
             <p>
               <BookOutlined /> <b>Biografiya:</b> {teacher.biography || "—"}
-            </p>
-            <p>
-              <TeamOutlined /> <b>Roli:</b> {teacher.role || "—"}
             </p>
           </div>
 
@@ -204,7 +187,17 @@ const TeacherDetail = () => {
               )}
             </TabPane>
 
-            <TabPane tab="Nashrlar" key="3">
+            <TabPane tab="Nazorat" key="3">
+              {teacher.research?.body?.length > 0 ? (
+                teacher.research.body.map((item: any, i: number) => (
+                  <p key={i}>{item.title}</p>
+                ))
+              ) : (
+                <p>Hozircha tadqiqotlar mavjud emas.</p>
+              )}
+            </TabPane>
+
+            <TabPane tab="Nashrlar" key="4">
               {teacher.publication?.body?.length > 0 ? (
                 teacher.publication.body.map((pub: any, i: number) => (
                   <p key={i}>{pub.title}</p>

@@ -1,8 +1,6 @@
-// api/pagesApi/teachersApi.ts
 import axiosClient from '../axiosClient';
 import { API_ENDPOINTS } from '../endpoints';
 
-// ✅ Types (API dan kelayotgan ma'lumotlarga mos)
 export interface Teacher {
   id: number;
   name: string;
@@ -53,7 +51,6 @@ export interface GetTeachersParams {
   college?: string;
 }
 
-// ✅ Backend response struktura
 export interface TeachersResponse {
   success: boolean;
   message: string;
@@ -66,7 +63,51 @@ export interface TeachersResponse {
   };
 }
 
-// Teacher Id bo'yicha olish
+export interface TeacherStatisticsData {
+  tadqiqotlar: number;
+  nashrlar: number;
+  maqolalar: number;
+  kitoblar: number;
+  ishYuritishlar: number;
+  boshqalar: number;
+  nazorat: number;
+  maslahatlar: number;
+  mukofotlar: number;
+  treninglar: number;
+  tahririyatAzolik: number;
+  maxsusKengash: number;
+  patentlar: number;
+  davlatMukofotlari: number;
+}
+
+export interface TeacherStatistics {
+  success: boolean;
+  message: string;
+  data: TeacherStatisticsData;
+}
+
+
+export interface Teacher {
+  id: number;
+  fullName: string;
+  phone: string;
+  email: string;
+  biography: string;
+  input: string;
+  imageUrl: string;
+  role: string;
+  fileUrl: string | null;
+  profession: string | null;
+  lavozimName: string;
+  departmentName: string;
+  qualification: { body: any[] };
+  research: { body: any[] };
+  award: { body: any[] };
+  consultation: { body: any[] };
+  nazorat: { body: any[] };
+  publication: { body: any[] };
+}
+
 
 export interface Pagination<T = any> {
   page: number;
@@ -76,35 +117,12 @@ export interface Pagination<T = any> {
   body: T[];
 }
 
-export interface Teacher {
-  id: number;
-  fullName: string;
-  phone: string;
-  email: string;
-  biography?: string | null;
-  inputt?: string | null;
-  imageUrl?: string | null;
-  role?: string | null;
-  fileUrl?: string | null;
-  profession?: string | null;
-  lavozimName?: string | null;
-  departmentNamee?: string | null;
-  qualification: Pagination<any>;
-  research: Pagination<any>;
-  award: Pagination<any>;
-  consultation: Pagination<any>;
-  nazorat: Pagination<any>;
-  publication: Pagination<any>;
-}
-
 export interface TeacherResponse {
   success: boolean;
   message: string;
   data: Teacher;
 }
-// Teacher Id bo'yicha olish
 
-// ✅ Rasm yuklash
 export const uploadTeacherImage = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('file', file);
@@ -122,7 +140,6 @@ export const uploadTeacherImage = async (file: File): Promise<string> => {
     response.data
   );
 };
-//PDF yuklashga
 export const uploadTeacherPDF = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('file', file);
@@ -141,7 +158,6 @@ export const uploadTeacherPDF = async (file: File): Promise<string> => {
   );
 }; 
 
-// ✅ GET - O'qituvchilarni olish (pagination bilan)
 export const getTeachers = async (
   params?: GetTeachersParams
 ): Promise<TeachersResponse['data']> => {
@@ -150,17 +166,14 @@ export const getTeachers = async (
     size: params?.size ?? 10,
   };
 
-  // Name filter
   if (params?.name && params.name.trim()) {
     queryParams.name = params.name.trim();
   }
 
-  // Lavozim filter
   if (params?.lavozim && params.lavozim.trim()) {
     queryParams.lavozim = params.lavozim.trim();
   }
 
-  // College filter
   if (params?.college && params.college.trim()) {
     queryParams.college = params.college.trim();
   }
@@ -186,7 +199,6 @@ export const getTeachers = async (
     throw error;
   }
 };
-// ✅ CREATE - O'qituvchi qo'shish 
 export const createTeacher = async (
   data: TeacherCreateData
 ): Promise<Teacher> => {

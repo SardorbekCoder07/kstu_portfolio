@@ -1,9 +1,13 @@
-// pages/teachers/AddTeachers.tsx
-import { PageHeader } from '../../components/ui/PageHeader';
-import { PlusOutlined, RightOutlined } from '@ant-design/icons';
-import { useDrawerStore } from '../../stores/useDrawerStore';
-import { TeacherSidebar } from './TeacherSidebar';
-import { useState, useEffect } from 'react';
+import { PageHeader } from "../../components/ui/PageHeader";
+import {
+  PlusOutlined,
+  RightOutlined,
+  ExclamationCircleOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
+import { useDrawerStore } from "../../stores/useDrawerStore";
+import { TeacherSidebar } from "./TeacherSidebar";
+import { useState, useEffect } from "react";
 import {
   Card,
   Button,
@@ -14,27 +18,28 @@ import {
   Pagination,
   Select,
   Space,
-} from 'antd';
-import { UserOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
-import { useTeacherOperations } from '../../hooks/useTeacherOperation';
-import { useDepartmentOperations } from '../../hooks/useDepartmentOperation';
-import { usePositionOperations } from '../../hooks/usePositionOperation';
+  Modal,
+  message,
+} from "antd";
+import { useNavigate } from "react-router-dom";
+import { useTeacherOperations } from "../../hooks/useTeacherOperation";
+import { useDepartmentOperations } from "../../hooks/useDepartmentOperation";
+import { usePositionOperations } from "../../hooks/usePositionOperation";
+import axiosClient from "../../api/axiosClient";
+
+const { confirm } = Modal;
 
 const AddTeachers = () => {
   const { openDrawer, closeDrawer } = useDrawerStore();
   const navigate = useNavigate();
 
-  // Filter states
-  const [searchValue, setSearchValue] = useState('');
+  const [searchValue, setSearchValue] = useState("");
   const [selectedLavozim, setSelectedLavozim] = useState<string | undefined>(
     undefined
   );
   const [selectedCollege, setSelectedCollege] = useState<string | undefined>(
     undefined
   );
-
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
@@ -45,60 +50,59 @@ const AddTeachers = () => {
     createTeacherMutation,
     uploadImageMutation,
     uploadPDFMutation,
+    refetch, // qayta yuklash uchun
   } = useTeacherOperations(
     {
-      page: currentPage - 1, // Backend 0 dan boshlanadi
+      page: currentPage - 1,
       size: pageSize,
       name: searchValue.trim() || undefined,
       lavozim: selectedLavozim,
       college: selectedCollege,
     },
-    closeDrawer 
+    closeDrawer
   );
-  const { departments } =
-    useDepartmentOperations();
+
+  const { departments } = useDepartmentOperations();
   const { positions } = usePositionOperations();
-  // Filterlar o'zgarganda sahifani resetlash
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchValue, selectedLavozim, selectedCollege]);
-
-  const handleSearchChange = (value: string) => {
-    setSearchValue(value);
-  };
-
-  const handleLavozimChange = (value: string) => {
-    setSelectedLavozim(value || undefined);
-  };
-
-  const handleCollegeChange = (value: string) => {
-    setSelectedCollege(value || undefined);
-  };
 
   const handleViewDetails = (teacherId: number) => {
     navigate(`/teachers/${teacherId}`);
   };
 
-  const handlePageChange = (page: number, size: number) => {
-    setCurrentPage(page);
-    setPageSize(size);
-  };
+  const handleDeleteTeacher = async (teacherId: number) => {
+  confirm({
+    title: "Ushbu o‘qituvchini o‘chirmoqchimisiz?",
+    icon: <ExclamationCircleOutlined />,
+    content: "O‘chirish qaytarib bo‘lmaydigan amal.",
+    okText: "Delete",
+    okType: "danger",
+    cancelText: "Cancel",
+    centered: true, // 🟦 Modalni o‘rtaga joylashtiradi
+    async onOk() {
+      try {
+        await axiosClient.delete(`/user/${teacherId}`);
+        message.success("O‘qituvchi muvaffaqiyatli o‘chirildi");
+        refetch(); // ro‘yxatni yangilash
+      } catch (err: any) {
+        console.error(err);
+        message.error("O‘chirishda xatolik yuz berdi");
+      }
+    },
+  });
+};
 
-  const handleClearFilters = () => {
-    setSearchValue('');
-    setSelectedLavozim(undefined);
-    setSelectedCollege(undefined);
-    setCurrentPage(1);
-  };
 
-  // Lavozimlar ro'yxati (positionlar)
-  const lavozimOptions = positions.map(pos => ({
+
+  const lavozimOptions = positions.map((pos) => ({
     label: pos.name,
     value: pos.name,
   }));
 
-  // Kafedra/College ro'yxati
-  const collegeOptions = departments.map(dept => ({
+  const collegeOptions = departments.map((dept) => ({
     label: dept.name,
     value: dept.name,
   }));
@@ -107,11 +111,11 @@ const AddTeachers = () => {
     <div className="flex flex-col gap-6">
       <PageHeader
         count={total}
-        countLabel="O'qituvchilar soni"
-        searchPlaceholder="O'qituvchilarni qidirish..."
+        countLabel="O‘qituvchilar soni"
+        searchPlaceholder="O‘qituvchini qidirish..."
         searchValue={searchValue}
-        onSearchChange={handleSearchChange}
-        buttonText="Ustoz qo'shish"
+        onSearchChange={setSearchValue}
+        buttonText="Ustoz qo‘shish"
         buttonIcon={<PlusOutlined />}
         onButtonClick={openDrawer}
       />
@@ -128,25 +132,33 @@ const AddTeachers = () => {
       <div className="bg-white p-4 rounded-lg shadow-sm">
         <Space size="middle" wrap className="w-full">
           <Select
-            placeholder="Lavozim bo'yicha"
+            placeholder="Lavozim bo‘yicha"
             style={{ width: 200 }}
             allowClear
             value={selectedLavozim}
-            onChange={handleLavozimChange}
+            onChange={setSelectedLavozim}
             options={lavozimOptions}
           />
 
           <Select
-            placeholder="Kafedra bo'yicha"
+            placeholder="Kafedra bo‘yicha"
             style={{ width: 200 }}
             allowClear
             value={selectedCollege}
-            onChange={handleCollegeChange}
+            onChange={setSelectedCollege}
             options={collegeOptions}
           />
 
           {(selectedLavozim || selectedCollege) && (
-            <Button onClick={handleClearFilters}>Filtrlarni tozalash</Button>
+            <Button
+              onClick={() => {
+                setSelectedLavozim(undefined);
+                setSelectedCollege(undefined);
+                setSearchValue("");
+              }}
+            >
+              Filtrlarni tozalash
+            </Button>
           )}
         </Space>
       </div>
@@ -159,13 +171,12 @@ const AddTeachers = () => {
         ) : (
           <>
             <Row gutter={[16, 16]}>
-              {teachers.map(teacher => (
+              {teachers.map((teacher) => (
                 <Col xs={24} sm={12} md={8} lg={6} key={teacher.id}>
                   <Card
                     hoverable
                     className="overflow-hidden"
-                    onClick={() => handleViewDetails(teacher.id)}
-                    styles={{ body: { padding: '16px' } }}
+                    styles={{ body: { padding: "16px" } }}
                     cover={
                       <div className="relative w-full h-72 overflow-hidden bg-gradient-to-br from-blue-100 to-blue-50">
                         {teacher.imgUrl ? (
@@ -194,9 +205,27 @@ const AddTeachers = () => {
                           {teacher.departmentName}
                         </div>
                       </div>
-                      <div className="flex items-center justify-between border-t border-gray-300 pt-2">
-                        <p className='!m-0'>Batafsil</p>
-                        <RightOutlined />
+                      <div className="flex items-center justify-between border-t border-gray-300 pt-2 cursor-pointer"></div>
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          type="primary"
+                          block
+                          onClick={() => handleViewDetails(teacher.id)}
+                        >
+                          <p className="!m-0">Batafsil</p>
+                          <RightOutlined size={10}/>
+                        </Button>
+
+                        <Button
+                          danger
+                          block
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteTeacher(teacher.id);
+                          }}
+                        >
+                          Delete
+                        </Button>
                       </div>
                     </div>
                   </Card>
@@ -206,29 +235,28 @@ const AddTeachers = () => {
 
             {teachers.length === 0 && !isTeachersLoading && (
               <div className="flex justify-center py-20">
-                <Empty description="O'qituvchi topilmadi" />
+                <Empty description="O‘qituvchi topilmadi" />
               </div>
             )}
 
-            {/* Pagination - O'ng tomonda */}
             {total > 0 && (
               <div className="flex justify-end mt-8">
                 <Pagination
                   current={currentPage}
                   total={total}
                   pageSize={pageSize}
-                  onChange={handlePageChange}
-                  onShowSizeChange={handlePageChange}
+                  onChange={setCurrentPage}
+                  onShowSizeChange={setPageSize}
                   showSizeChanger
                   showQuickJumper
                   showTotal={(total, range) =>
                     `${range[0]}-${range[1]} / ${total} ta`
                   }
-                  pageSizeOptions={['10', '20', '30', '50']}
+                  pageSizeOptions={["10", "20", "30", "50"]}
                   locale={{
-                    items_per_page: '/ sahifa',
-                    jump_to: "O'tish",
-                    page: 'Sahifa',
+                    items_per_page: "/ sahifa",
+                    jump_to: "O‘tish",
+                    page: "Sahifa",
                   }}
                 />
               </div>
