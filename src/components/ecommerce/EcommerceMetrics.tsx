@@ -6,7 +6,7 @@ export default function EcommerceMetrics() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: getDashboardStats,
-    staleTime: 5 * 60 * 1000, // 5 daqiqa cache
+    staleTime: 5 * 60 * 1000, 
   });
 
   if (isLoading) return <div>Loading metrics...</div>;

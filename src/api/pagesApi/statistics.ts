@@ -1,9 +1,8 @@
+import { toast } from "sonner";
 import axiosClient from "../axiosClient";
 import { API_ENDPOINTS } from "../endpoints";
 
-// -----------------------------
-// ✅ Types
-// -----------------------------
+//Typelar
 
 export interface DashboardStats {
   countAllUsers: number;
@@ -28,9 +27,6 @@ export interface AgeGroupStats {
   percentage: number;
 }
 
-// -----------------------------
-// ✅ Responses
-// -----------------------------
 export interface DashboardResponse {
   success: boolean;
   message: string;
@@ -49,48 +45,42 @@ export interface AgeResponse {
   data: AgeGroupStats[];
 }
 
-// -----------------------------
-// ✅ API Calls
-// -----------------------------
+//Apilar
 
-// 1️⃣ /user/dashboard
+// user/dashboard
 export const getDashboardStats = async (): Promise<DashboardStats> => {
   try {
     const response = await axiosClient.get<DashboardResponse>(
       API_ENDPOINTS.USERDASHBOARD
     );
-    console.log("📥 GET Dashboard Response:", response.data);
     return response.data.data;
   } catch (error: any) {
-    console.error("❌ GET Dashboard Error:", error.response?.data || error.message);
+    toast.error("❌ GET Dashboard Error:", error.response?.data || error.message);
     throw error;
   }
 };
 
-// 2️⃣ /user/gender-dashboard
+// user/gender-dashboard
 export const getGenderStats = async (): Promise<GenderStats> => {
   try {
     const response = await axiosClient.get<GenderResponse>(
       API_ENDPOINTS.USERGENDERDASHBOARD
     );
-    console.log("📥 GET Gender Response:", response.data);
     return response.data.data;
   } catch (error: any) {
-    console.error("❌ GET Gender Error:", error.response?.data || error.message);
+    toast.error("❌ GET Gender Error:", error.response?.data || error.message);
     throw error;
   }
 };
-
-// 3️⃣ /user/age-dashboard
+// user/age-dashboard
 export const getAgeStats = async (): Promise<AgeGroupStats[]> => {
   try {
     const response = await axiosClient.get<AgeResponse>(
       API_ENDPOINTS.USERAGEDASHBOARD
     );
-    console.log("📥 GET Age Response:", response.data);
     return response.data.data;
   } catch (error: any) {
-    console.error("❌ GET Age Error:", error.response?.data || error.message);
+    toast.error("❌ GET Age Error:", error.response?.data || error.message);
     throw error;
   }
 };
