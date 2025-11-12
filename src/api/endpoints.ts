@@ -7,4 +7,7 @@ export const API_ENDPOINTS = {
   POSITION: '/lavozim',
   AUTHSAVEUSER: '/auth/saveUser',
   USERS: 'user/',
+  USERDASHBOARD:"/user/dashboard",
+  USERAGEDASHBOARD:"/user/age-dashboard",
+  USERGENDERDASHBOARD:"/user/gender-dashboard"
 };

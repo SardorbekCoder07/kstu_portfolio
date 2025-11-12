@@ -96,7 +96,7 @@ export default function MonthlySalesChart() {
   function toggleDropdown() {
     setIsOpen(!isOpen);
   }
-
+ 
   function closeDropdown() {
     setIsOpen(false);
   }
