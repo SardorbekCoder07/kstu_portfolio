@@ -159,9 +159,15 @@ export const TeacherSidebar = ({
     multiple: true,
     fileList: PDFfile,
     beforeUpload: (file: File & { uid?: string }) => {
-      const isPDF = file.type === "application/pdf";
-      if (!isPDF) {
-        message.error("Faqat PDF formatdagi faylni yuklash mumkin!");
+      const isAllowedType =
+        file.type === "application/pdf" ||
+        file.type ===
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+      if (!isAllowedType) {
+        message.error(
+          "Faqat PDF yoki DOCX formatdagi fayllarni yuklash mumkin!"
+        );
         return Upload.LIST_IGNORE;
       }
 
@@ -187,6 +193,7 @@ export const TeacherSidebar = ({
       setPDFfile((prev) => prev.filter((item) => item.uid !== file.uid));
     },
   };
+
   const isLoading =
     createMutation.isPending ||
     uploadImageMutation?.isPending ||
@@ -349,7 +356,13 @@ export const TeacherSidebar = ({
           />
         </Form.Item>
 
-        <Form.Item label="Biografiya" name="biography">
+        <Form.Item
+          label="Biografiya"
+          name="biography"
+          rules={[
+            { required: true, message: "Iltimos, biografiyani kiriting!" },
+          ]}
+        >
           <TextArea
             placeholder="Qisqacha biografiya kiriting"
             rows={4}
@@ -357,7 +370,10 @@ export const TeacherSidebar = ({
           />
         </Form.Item>
 
-        <Form.Item label="Qo'shimcha ma'lumot" name="input">
+        <Form.Item label="Qo'shimcha ma'lumot" name="input" 
+        rules={[
+            { required: true, message: "Iltimos, Qo'shimcha malumotni kiriting!" },
+          ]}>
           <Input placeholder="Qo'shimcha ma'lumot" size="large" />
         </Form.Item>
 
@@ -388,20 +404,41 @@ export const TeacherSidebar = ({
           </Dragger>
         </Form.Item>
 
-        <Form.Item label="Mutaxasisligi" name="profession">
+        <Form.Item
+          label="Mutaxasisligi"
+          name="profession"
+          rules={[
+            { required: true, message: "Iltimos, mutaxasislikni kiriting!" },
+          ]}
+        >
           <Input placeholder="Mutaxasisligi" size="large" />
         </Form.Item>
 
-        <Form.Item label="PDF">
+        <Form.Item
+          label="Fayllar"
+          required
+          rules={[
+            {
+              validator: () => {
+                if (PDFfile.length === 0) {
+                  return Promise.reject(
+                    "Iltimos, kamida bitta PDF yoki DOCX yuklang!"
+                  );
+                }
+                return Promise.resolve();
+              },
+            },
+          ]}
+        >
           <Dragger {...draggerPropsPDF}>
             <p className="ant-upload-drag-icon">
               <InboxOutlined />
             </p>
             <p className="ant-upload-text">
-              PDFni yuklash uchun bosing yoki sudrab keling
+              PDF yoki DOCXni yuklash uchun bosing yoki sudrab keling
             </p>
             <p className="ant-upload-hint">
-              Faqat PDF formatdagi fayllar. Maksimal hajm: 5MB
+              Faqat PDF yoki DOCX formatdagi fayllar. Maksimal hajm: 5MB
             </p>
           </Dragger>
         </Form.Item>
