@@ -4,6 +4,8 @@ import {
   RightOutlined,
   ExclamationCircleOutlined,
   UserOutlined,
+  EditOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import { useDrawerStore } from "../../stores/useDrawerStore";
 import { TeacherSidebar } from "./TeacherSidebar";
@@ -74,28 +76,26 @@ const AddTeachers = () => {
   };
 
   const handleDeleteTeacher = async (teacherId: number) => {
-  confirm({
-    title: "Ushbu o‘qituvchini o‘chirmoqchimisiz?",
-    icon: <ExclamationCircleOutlined />,
-    content: "O‘chirish qaytarib bo‘lmaydigan amal.",
-    okText: "Delete",
-    okType: "danger",
-    cancelText: "Cancel",
-    centered: true, // 🟦 Modalni o‘rtaga joylashtiradi
-    async onOk() {
-      try {
-        await axiosClient.delete(`/user/${teacherId}`);
-        message.success("O‘qituvchi muvaffaqiyatli o‘chirildi");
-        refetch(); // ro‘yxatni yangilash
-      } catch (err: any) {
-        console.error(err);
-        message.error("O‘chirishda xatolik yuz berdi");
-      }
-    },
-  });
-};
-
-
+    confirm({
+      title: "Ushbu o‘qituvchini o‘chirmoqchimisiz?",
+      icon: <ExclamationCircleOutlined />,
+      content: "O‘chirish qaytarib bo‘lmaydigan amal.",
+      okText: "Delete",
+      okType: "danger",
+      cancelText: "Cancel",
+      centered: true, // 🟦 Modalni o‘rtaga joylashtiradi
+      async onOk() {
+        try {
+          await axiosClient.delete(`/user/${teacherId}`);
+          message.success("O‘qituvchi muvaffaqiyatli o‘chirildi");
+          refetch(); // ro‘yxatni yangilash
+        } catch (err: any) {
+          console.error(err);
+          message.error("O‘chirishda xatolik yuz berdi");
+        }
+      },
+    });
+  };
 
   const lavozimOptions = positions.map((pos) => ({
     label: pos.name,
@@ -207,24 +207,41 @@ const AddTeachers = () => {
                       </div>
                       <div className="flex items-center justify-between border-t border-gray-300 pt-2 cursor-pointer"></div>
                       <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2 justify-between">
+                          <Button
+                            danger
+                            block
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTeacher(teacher.id);
+                            }}
+                          >
+                            <DeleteOutlined />
+                            Delete
+                          </Button>
+
+                          <Button
+                            style={{
+                              borderColor: "#eab308",
+                              color: "#eab308"
+                            }} // Sariq
+                            block
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // handleEditTeacher(teacher.id); // yoki handleEdit
+                            }}
+                          >
+                            <EditOutlined />
+                            Tahrirlash
+                          </Button>
+                        </div>
                         <Button
                           type="primary"
                           block
                           onClick={() => handleViewDetails(teacher.id)}
                         >
                           <p className="!m-0">Batafsil</p>
-                          <RightOutlined size={10}/>
-                        </Button>
-
-                        <Button
-                          danger
-                          block
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteTeacher(teacher.id);
-                          }}
-                        >
-                          Delete
+                          <RightOutlined size={10} />
                         </Button>
                       </div>
                     </div>
