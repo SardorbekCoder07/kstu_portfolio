@@ -14,7 +14,6 @@ export default function EcommerceMetrics() {
     return <div className="text-red-500">Ma'lumotlarni yuklashda xatolik!</div>;
 
   const { countAllUsers, countAcademic, countFemale, countMale } = data;
-  console.log(data);
 
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-6">
