@@ -224,11 +224,11 @@ const AddTeachers = () => {
                             style={{
                               borderColor: "#eab308",
                               color: "#eab308"
-                            }} // Sariq
+                            }}
                             block
                             onClick={(e) => {
                               e.stopPropagation();
-                              // handleEditTeacher(teacher.id); // yoki handleEdit
+                              openDrawer()
                             }}
                           >
                             <EditOutlined />
