@@ -91,7 +91,7 @@ export default function StatisticsCards() {
   if (isError) return <p className="text-center text-red-500">Xatolik: {error.message}</p>
 
   return (
-    <div className="max-w-[1200px] mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div className="mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       {stats?.map((stat) => (
         <StatCard key={stat.id} stat={stat} />
       ))}
