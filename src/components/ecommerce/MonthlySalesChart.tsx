@@ -26,7 +26,7 @@ export default function AgeDistributionChart() {
   const seriesData = data.map((item) => item.total);
 
   const options: ApexOptions = {
-    colors: ["#4ade80"], 
+    colors: ["#2864d4ff"], 
     chart: { fontFamily: "Outfit, sans-serif", type: "bar", height: 180, toolbar: { show: false } },
     plotOptions: { bar: { horizontal: false, columnWidth: "39%", borderRadius: 5, borderRadiusApplication: "end" } },
     dataLabels: { enabled: false },
