@@ -1,10 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dropdown } from '../ui/dropdown/Dropdown';
 import { Link } from 'react-router';
 import { toast } from 'sonner';
+import axiosClient from '../../api/axiosClient'; // 🟢 API ulanish
+import type { AxiosResponse } from 'axios';
+
+interface UserData {
+  id: number;
+  fullName: string;
+  phone: string;
+  email: string;
+  biography: string | null;
+  input: string | null;
+  imageUrl: string | null;
+  role: string;
+  fileUrl: string | null;
+  profession: string | null;
+  lavozimName: string | null;
+  departmentName: string | null;
+  qualification: string | null;
+  research: string | null;
+  award: string | null;
+  consultation: string | null;
+  nazorat: string | null;
+  publication: string | null;
+}
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<UserData | null>(null);
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -13,10 +37,28 @@ export default function UserDropdown() {
   function closeDropdown() {
     setIsOpen(false);
   }
+
   const logoutFn = () => {
     localStorage.removeItem('access_token');
-    toast.success("Siz tizimdan muvaffaqqiyatli chiqdingiz")
+    localStorage.removeItem('user_id');
+    toast.success('Siz tizimdan muvaffaqqiyatli chiqdingiz');
   };
+
+  // 🟢 Foydalanuvchi ma’lumotini API orqali olish:
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response: AxiosResponse<{ success: boolean; data: UserData }> = await axiosClient.get('/user');
+        if (response.data?.data) {
+          setUser(response.data.data);
+        }
+      } catch (error) {
+        toast.error('Foydalanuvchi ma’lumotlarini olishda xatolik yuz berdi!');
+      }
+    };
+    fetchUser();
+  }, []);
+
   return (
     <div className="relative">
       <button
@@ -24,10 +66,17 @@ export default function UserDropdown() {
         className="flex items-center text-gray-700 dropdown-toggle dark:text-gray-400"
       >
         <span className="mr-3 overflow-hidden rounded-full h-8 w-8 border-2 border-black">
-          <img src="/images/image.png" className='w-full h-full' alt="User" />
+          <img
+            src={user?.imageUrl || '/images/image.png'}
+            className="w-full h-full object-cover"
+            alt="User"
+          />
         </span>
 
-        <span className="block mr-1 font-medium text-theme-sm">Admin</span>
+        <span className="block mr-1 font-medium text-theme-sm">
+          {user?.fullName || 'Foydalanuvchi'}
+        </span>
+
         <svg
           className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
@@ -51,20 +100,29 @@ export default function UserDropdown() {
       <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
-        className="absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
+        className="absolute right-0 mt-[17px] flex w-[280px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
       >
         <div>
-          <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-            Admin
-          </span>
-          <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-            ID:123456789
+          <span className="mt-0.5 block text-lg text-gray-500 dark:text-gray-400">
+            ID: {user?.id ?? 'Noma’lum'}
           </span>
         </div>
+
+        {/* 🔹 Faqat null bo‘lmagan ma’lumotlarni chiqarish */}
+        <div className="mt-3 space-y-1 text-sm text-gray-600 dark:text-gray-400">
+          {Object.entries(user || {})
+            .filter(([_, value]) => value !== null && typeof value === 'string' && value.trim() !== '')
+            .map(([key, value]) => (
+              <p key={key}>
+                <strong>{key}:</strong> {value as string}
+              </p>
+            ))}
+        </div>
+
         <Link
           onClick={logoutFn}
           to="/signin"
-          className="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+          className="flex items-center gap-3 px-3 py-2 mt-4 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
         >
           <svg
             className="fill-gray-500 group-hover:fill-gray-700 dark:group-hover:fill-gray-300"
