@@ -15,7 +15,6 @@ import { InboxOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import type { UploadFile, UploadProps } from "antd/es/upload/interface";
 import { useQueryClient, type UseMutationResult } from "@tanstack/react-query";
-
 const { Dragger } = Upload;
 const { TextArea } = Input;
 
@@ -118,14 +117,8 @@ const handleSubmit = async () => {
 
     await createMutation.mutateAsync(formData);
 
-    const previousData = queryClient.getQueryData<any[]>(["teachers"]) || [];
-    queryClient.setQueryData(["teachers"], [...previousData, formData]);
     queryClient.invalidateQueries({ queryKey: ["age-distribution"] });
     queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-    queryClient.setQueryData(["dashboard-stats"], (oldData: any) => ({
-      ...oldData,
-      countAllUsers: (oldData?.countAllUsers || 0) + 1,
-    }));
 
     handleClose();
   } catch (error) {

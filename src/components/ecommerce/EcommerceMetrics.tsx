@@ -5,8 +5,7 @@ import { getDashboardStats } from "../../api/pagesApi/statistics";
 export default function EcommerceMetrics() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["dashboard-stats"],
-    queryFn: getDashboardStats,
-    staleTime: 5 * 60 * 1000, 
+    queryFn: getDashboardStats
   });
 
   if (isLoading) return <div>Loading metrics...</div>;
