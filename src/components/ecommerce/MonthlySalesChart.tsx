@@ -18,7 +18,7 @@ export default function AgeDistributionChart() {
   const toggleDropdown = () => setIsOpen(!isOpen);
   const closeDropdown = () => setIsOpen(false);
 
-  if (isLoading) return <div>Yuklanmoqda...</div>;
+  if (isLoading) return <div>Diagram Natijalari Yuklanmoqda...</div>;
   if (isError || !data)
     return <div className="text-red-500">Ma'lumotlarni yuklashda xatolik!</div>;
 

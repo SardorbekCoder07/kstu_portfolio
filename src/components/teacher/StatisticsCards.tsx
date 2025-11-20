@@ -87,7 +87,7 @@ export default function StatisticsCards() {
     retry: 2,
   })
 
-  if (isLoading) return <p className="text-center">Yuklanmoqda...</p>
+  if (isLoading) return <p className="text-center">Statiistikalar Yuklanmoqda...</p>
   if (isError) return <p className="text-center text-red-500">Xatolik: {error.message}</p>
 
   return (
