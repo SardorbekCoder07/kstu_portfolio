@@ -14,7 +14,7 @@ import { useDrawerStore } from "../../stores/useDrawerStore";
 import { InboxOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import type { UploadFile, UploadProps } from "antd/es/upload/interface";
-import type { UseMutationResult } from "@tanstack/react-query";
+import { useQueryClient, type UseMutationResult } from "@tanstack/react-query";
 
 const { Dragger } = Upload;
 const { TextArea } = Input;
@@ -74,54 +74,58 @@ export const TeacherSidebar = ({
     setPDFfile([]);
     closeDrawer();
   };
+const queryClient = useQueryClient();
+const handleSubmit = async () => {
+  try {
+    const values = await form.validateFields();
 
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
+    let uploadedImageUrl = "";
+    let uploadedPDFUrls: string[] = [];
 
-      let uploadedImageUrl = "";
-      let uploadedPDFUrls: string[] = [];
+    if (fileList.length > 0 && fileList[0].originFileObj) {
+      const imageData = await uploadImageMutation.mutateAsync(
+        fileList[0].originFileObj
+      );
+      uploadedImageUrl = imageData || "";
+    }
 
-      if (fileList.length > 0 && fileList[0].originFileObj) {
-        const imageData = await uploadImageMutation.mutateAsync(
-          fileList[0].originFileObj
-        );
-        uploadedImageUrl = imageData || "";
-      }
-
-      if (PDFfile.length > 0) {
-        for (const file of PDFfile) {
-          if (file.originFileObj) {
-            const pdfUrl = await uploadPDFMutation.mutateAsync(
-              file.originFileObj
-            );
-            uploadedPDFUrls.push(pdfUrl);
-          }
+    if (PDFfile.length > 0) {
+      for (const file of PDFfile) {
+        if (file.originFileObj) {
+          const pdfUrl = await uploadPDFMutation.mutateAsync(
+            file.originFileObj
+          );
+          uploadedPDFUrls.push(pdfUrl);
         }
       }
-
-      const formData: TeacherFormValues & { pdfUrls?: string[] } = {
-        fullName: values.fullName,
-        phoneNumber: values.phoneNumber,
-        biography: values.biography || "",
-        imgUrl: uploadedImageUrl,
-        input: values.input || "",
-        profession: values.profession || "",
-        lavozmId: Number(values.lavozmId),
-        email: values.email,
-        age: Number(values.age),
-        gender: values.gender === "male",
-        password: values.password,
-        departmentId: Number(values.departmentId),
-        pdfUrls: uploadedPDFUrls,
-      };
-
-      await createMutation.mutateAsync(formData);
-      handleClose();
-    } catch (error) {
-      console.error("Validation or submission failed:", error);
     }
-  };
+
+    const formData: TeacherFormValues & { pdfUrls?: string[] } = {
+      fullName: values.fullName,
+      phoneNumber: values.phoneNumber,
+      biography: values.biography || "",
+      imgUrl: uploadedImageUrl,
+      input: values.input || "",
+      profession: values.profession || "",
+      lavozmId: Number(values.lavozmId),
+      email: values.email,
+      age: Number(values.age),
+      gender: values.gender === "male",
+      password: values.password,
+      departmentId: Number(values.departmentId),
+      pdfUrls: uploadedPDFUrls,
+    };
+
+    await createMutation.mutateAsync(formData);
+
+    queryClient.invalidateQueries({ queryKey: ["age-distribution"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+
+    handleClose();
+  } catch (error) {
+    console.error("Validation or submission failed:", error);
+  }
+};
 
   const draggerProps: UploadProps = {
     name: "teacherImage",
