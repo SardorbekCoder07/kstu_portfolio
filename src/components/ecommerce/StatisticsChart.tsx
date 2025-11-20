@@ -17,7 +17,7 @@ export default function AgeDistributionChart() {
     queryFn: getAgeStats,
   });
 
-  if (isLoading) return <div>Diagram Natijalari Yuklanmoqda...</div>;
+  if (isLoading) return <div></div>;
   if (isError || !data)
     return <div className="text-red-500">Ma'lumotlarni yuklashda xatolik!</div>;
 

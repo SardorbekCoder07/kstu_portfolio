@@ -8,7 +8,7 @@ export default function EcommerceMetrics() {
     queryFn: getDashboardStats
   });
 
-  if (isLoading) return <div>Loading metrics...</div>;
+  if (isLoading) return <div></div>;
   if (isError || !data)
     return <div className="text-red-500">Ma'lumotlarni yuklashda xatolik!</div>;
 
