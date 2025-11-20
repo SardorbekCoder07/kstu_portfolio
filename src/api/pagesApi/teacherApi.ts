@@ -1,5 +1,5 @@
-import axiosClient from '../axiosClient';
-import { API_ENDPOINTS } from '../endpoints';
+import axiosClient from "../axiosClient";
+import { API_ENDPOINTS } from "../endpoints";
 
 export interface Teacher {
   id: number;
@@ -7,7 +7,7 @@ export interface Teacher {
   lavozim: string;
   email: string;
   imgUrl: string;
-  input: string; 
+  input: string;
   phoneNumber: string;
   departmentName: string;
 }
@@ -17,9 +17,9 @@ export interface TeacherCreateData {
   phoneNumber: string;
   biography: string;
   imgUrl: string;
-  fileUrl:string;
+  fileUrl: string;
   input: string;
-  profession:string;
+  profession: string;
   lavozmId: number;
   email: string;
   age: number;
@@ -29,16 +29,13 @@ export interface TeacherCreateData {
 }
 
 export interface TeacherUpdateData {
-  fullName?: string;
-  phoneNumber?: string;
-  biography?: string;
-  imgUrl?: string;
+  id: number;
+  fullName: string;
+  phone: string;
+  email: string;
+  biography: string;
   input?: string;
-  lavozmId?: number;
-  email?: string;
-  age?: number;
-  gender?: boolean;
-  departmentId?: number;
+  imageUrl?: string;
   fileUrl?: string;
   profession?: string;
 }
@@ -86,7 +83,6 @@ export interface TeacherStatistics {
   data: TeacherStatisticsData;
 }
 
-
 export interface Teacher {
   id: number;
   fullName: string;
@@ -108,7 +104,6 @@ export interface Teacher {
   publication: { body: any[] };
 }
 
-
 export interface Pagination<T = any> {
   page: number;
   size: number;
@@ -125,11 +120,11 @@ export interface TeacherResponse {
 
 export const uploadTeacherImage = async (file: File): Promise<string> => {
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append("file", file);
 
   const response = await axiosClient.post(API_ENDPOINTS.FILE, formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
     },
   });
 
@@ -142,11 +137,11 @@ export const uploadTeacherImage = async (file: File): Promise<string> => {
 };
 export const uploadTeacherPDF = async (file: File): Promise<string> => {
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append("file", file);
 
   const response = await axiosClient.post(API_ENDPOINTS.FILEPDF, formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
     },
   });
 
@@ -156,11 +151,11 @@ export const uploadTeacherPDF = async (file: File): Promise<string> => {
     response.data.url ||
     response.data
   );
-}; 
+};
 
 export const getTeachers = async (
   params?: GetTeachersParams
-): Promise<TeachersResponse['data']> => {
+): Promise<TeachersResponse["data"]> => {
   const queryParams: any = {
     page: params?.page ?? 0,
     size: params?.size ?? 10,
@@ -178,8 +173,8 @@ export const getTeachers = async (
     queryParams.college = params.college.trim();
   }
 
-  console.log('📤 GET Teachers Request URL:', `${API_ENDPOINTS.USERS}search`);
-  console.log('📤 GET Teachers Request params:', queryParams);
+  console.log("📤 GET Teachers Request URL:", `${API_ENDPOINTS.USERS}search`);
+  console.log("📤 GET Teachers Request params:", queryParams);
 
   try {
     const response = await axiosClient.get<TeachersResponse>(
@@ -189,11 +184,11 @@ export const getTeachers = async (
       }
     );
 
-    console.log('📥 GET Teachers Response:', response.data);
+    console.log("📥 GET Teachers Response:", response.data);
     return response.data.data;
   } catch (error: any) {
     console.error(
-      '❌ GET Teachers Error:',
+      "❌ GET Teachers Error:",
       error.response?.data || error.message
     );
     throw error;
@@ -202,15 +197,32 @@ export const getTeachers = async (
 export const createTeacher = async (
   data: TeacherCreateData
 ): Promise<Teacher> => {
-  console.log('📤 POST Teacher Request:', data);
-
   try {
     const response = await axiosClient.post(API_ENDPOINTS.AUTHSAVEUSER, data);
-    console.log('📥 POST Teacher Response:', response.data);
+    console.log("📥 POST Teacher Response:", response.data);
     return response.data.data || response.data;
   } catch (error: any) {
     console.error(
-      '❌ POST Teacher Error:',
+      "❌ POST Teacher Error:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
+};
+
+export const updateTeacher = async (
+  data: TeacherUpdateData
+): Promise<Teacher> => {
+  try {
+    console.log("📤 PUT Teacher Request (Body da ID bilan):", data);
+
+    const response = await axiosClient.put(API_ENDPOINTS.EDITUSERS, data);
+
+    console.log("📥 PUT Teacher Response:", response.data);
+    return response.data.data || response.data;
+  } catch (error: any) {
+    console.error(
+      "❌ PUT Teacher Error:",
       error.response?.data || error.message
     );
     throw error;

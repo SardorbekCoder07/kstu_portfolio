@@ -161,6 +161,8 @@ const Departments = () => {
   };
 
   const handleEdit = (department: any) => {
+    console.log(department);
+    
     setEditingDepartment(department);
     setDepartmentName(department.name);
     setSelectedFacultyId(department.collegeId);

@@ -31,6 +31,21 @@ import axiosClient from "../../api/axiosClient";
 
 const { confirm } = Modal;
 
+interface Teacher {
+  id: number;
+  fullName: string;
+  lavozim: string;
+  email: string;
+  imgUrl: string;
+  input: string;
+  phoneNumber: string;
+  departmentName: string;
+  age?: number;
+  gender?: boolean;
+  biography?: string;
+  profession?: string;
+}
+
 const AddTeachers = () => {
   const { openDrawer, closeDrawer } = useDrawerStore();
   const navigate = useNavigate();
@@ -44,15 +59,20 @@ const AddTeachers = () => {
   );
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [selectedTeacher, setSelectedTeacher] = useState<Partial<Teacher> | undefined>(
+    undefined
+  );
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const {
     teachers,
     total,
     isTeachersLoading,
     createTeacherMutation,
+    updateTeacherMutation,
     uploadImageMutation,
     uploadPDFMutation,
-    refetch, // qayta yuklash uchun
+    refetch,
   } = useTeacherOperations(
     {
       page: currentPage - 1,
@@ -75,23 +95,46 @@ const AddTeachers = () => {
     navigate(`/teachers/${teacherId}`);
   };
 
+  const handleAddTeacher = () => {
+    setSelectedTeacher(undefined);
+    setIsEditMode(false);
+    openDrawer();
+  };
+
+  const handleEditTeacher = (teacher: Teacher) => {
+    setSelectedTeacher({
+      id: teacher.id,
+      fullName: teacher.name,
+      email: teacher.email,
+      phoneNumber: teacher.phoneNumber,
+      biography: teacher.biography || "",
+      input: teacher.input || "",
+      profession: teacher.profession || "",
+      imgUrl: teacher.imgUrl,
+      age: teacher.age,
+      gender: teacher.gender,
+    });
+    setIsEditMode(true);
+    openDrawer();
+  };
+
   const handleDeleteTeacher = async (teacherId: number) => {
     confirm({
-      title: "Ushbu o‘qituvchini o‘chirmoqchimisiz?",
+      title: "Ushbu o'qituvchini o'chirmoqchimisiz?",
       icon: <ExclamationCircleOutlined />,
-      content: "O‘chirish qaytarib bo‘lmaydigan amal.",
+      content: "O'chirish qaytarib bo'lmaydigan amal.",
       okText: "Delete",
       okType: "danger",
       cancelText: "Cancel",
-      centered: true, // 🟦 Modalni o‘rtaga joylashtiradi
+      centered: true,
       async onOk() {
         try {
           await axiosClient.delete(`/user/${teacherId}`);
-          message.success("O‘qituvchi muvaffaqiyatli o‘chirildi");
-          refetch(); // ro‘yxatni yangilash
+          message.success("O'qituvchi muvaffaqiyatli o'chirildi");
+          refetch();
         } catch (err: any) {
           console.error(err);
-          message.error("O‘chirishda xatolik yuz berdi");
+          message.error("O'chirishda xatolik yuz berdi");
         }
       },
     });
@@ -111,28 +154,20 @@ const AddTeachers = () => {
     <div className="flex flex-col gap-6">
       <PageHeader
         count={total}
-        countLabel="O‘qituvchilar soni"
-        searchPlaceholder="O‘qituvchini qidirish..."
+        countLabel="O'qituvchilar soni"
+        searchPlaceholder="O'qituvchini qidirish..."
         searchValue={searchValue}
         onSearchChange={setSearchValue}
-        buttonText="Ustoz qo‘shish"
+        buttonText="Ustoz qo'shish"
         buttonIcon={<PlusOutlined />}
-        onButtonClick={openDrawer}
-      />
-
-      <TeacherSidebar
-        createMutation={createTeacherMutation}
-        uploadImageMutation={uploadImageMutation}
-        uploadPDFMutation={uploadPDFMutation}
-        departmentList={departments}
-        positionList={positions}
+        onButtonClick={handleAddTeacher}
       />
 
       {/* Filterlar */}
       <div className="bg-white p-4 rounded-lg shadow-sm">
         <Space size="middle" wrap className="w-full">
           <Select
-            placeholder="Lavozim bo‘yicha"
+            placeholder="Lavozim bo'yicha"
             style={{ width: 200 }}
             allowClear
             value={selectedLavozim}
@@ -141,7 +176,7 @@ const AddTeachers = () => {
           />
 
           <Select
-            placeholder="Kafedra bo‘yicha"
+            placeholder="Kafedra bo'yicha"
             style={{ width: 200 }}
             allowClear
             value={selectedCollege}
@@ -223,12 +258,14 @@ const AddTeachers = () => {
                           <Button
                             style={{
                               borderColor: "#eab308",
-                              color: "#eab308"
+                              color: "#eab308",
                             }}
                             block
                             onClick={(e) => {
                               e.stopPropagation();
-                              openDrawer()
+                              handleEditTeacher(teacher);
+                              console.log(teacher);
+                              
                             }}
                           >
                             <EditOutlined />
@@ -252,7 +289,7 @@ const AddTeachers = () => {
 
             {teachers.length === 0 && !isTeachersLoading && (
               <div className="flex justify-center py-20">
-                <Empty description="O‘qituvchi topilmadi" />
+                <Empty description="O'qituvchi topilmadi" />
               </div>
             )}
 
@@ -272,7 +309,7 @@ const AddTeachers = () => {
                   pageSizeOptions={["10", "20", "30", "50"]}
                   locale={{
                     items_per_page: "/ sahifa",
-                    jump_to: "O‘tish",
+                    jump_to: "O'tish",
                     page: "Sahifa",
                   }}
                 />
@@ -280,6 +317,16 @@ const AddTeachers = () => {
             )}
           </>
         )}
+        <TeacherSidebar
+          initialValues={selectedTeacher}
+          editMode={isEditMode}
+          createMutation={createTeacherMutation}
+          updateMutation={updateTeacherMutation}
+          uploadImageMutation={uploadImageMutation}
+          uploadPDFMutation={uploadPDFMutation}
+          departmentList={departments}
+          positionList={positions}
+        />
       </div>
     </div>
   );
