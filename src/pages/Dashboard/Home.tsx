@@ -17,10 +17,10 @@ export default function Home() {
         </div>
 
         {/* Quyidagilarni ham to‘liq ekranda qoldiramiz */}
-        <div className="col-span-6">
+        <div className="md:col-span-6 col-span-12">
           <MonthlySalesChart />
         </div>
-        <div className="col-span-6">
+        <div className="md:col-span-6 col-span-12">
           <GenderStatChart />
         </div>
         <div className="col-span-12">
