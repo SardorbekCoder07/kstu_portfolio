@@ -2,6 +2,7 @@ import EcommerceMetrics from '../../components/ecommerce/EcommerceMetrics';
 import MonthlySalesChart from '../../components/ecommerce/MonthlySalesChart';
 import StatisticsChart from '../../components/ecommerce/StatisticsChart';
 import PageMeta from '../../components/common/PageMeta';
+import GenderStatChart from '../../components/ecommerce/GenderStatChart';
 export default function Home() {
   return (
     <>
@@ -16,10 +17,12 @@ export default function Home() {
         </div>
 
         {/* Quyidagilarni ham to‘liq ekranda qoldiramiz */}
-        <div className="col-span-12">
+        <div className="col-span-6">
           <MonthlySalesChart />
         </div>
-
+        <div className="col-span-6">
+          <GenderStatChart />
+        </div>
         <div className="col-span-12">
           <StatisticsChart />
         </div>

@@ -24,7 +24,7 @@ const VerticalComposedChart = () => {
   }
 
   return (
-    <ResponsiveContainer width="45%" height={400}>
+    <ResponsiveContainer width="100%" height={400}>
       <ComposedChart
         layout="vertical"
         data={chartData}
