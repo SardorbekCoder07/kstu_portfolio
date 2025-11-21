@@ -12,13 +12,14 @@ import {
 } from "antd";
 import { useDrawerStore } from "../../stores/useDrawerStore";
 import { InboxOutlined } from "@ant-design/icons";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { UploadFile, UploadProps } from "antd/es/upload/interface";
 import { useQueryClient, type UseMutationResult } from "@tanstack/react-query";
 const { Dragger } = Upload;
 const { TextArea } = Input;
 
 interface TeacherFormValues {
+  id?: number;
   fullName: string;
   phoneNumber: string;
   biography: string;
@@ -28,8 +29,8 @@ interface TeacherFormValues {
   lavozmId: number;
   email: string;
   age: number;
-  gender: boolean;
-  password: string;
+  gender: boolean | string;
+  password?: string;
   departmentId: number;
 }
 
@@ -49,6 +50,7 @@ interface TeacherSidebarProps {
   departmentList?: Department[];
   positionList?: Position[];
   createMutation: UseMutationResult<any, any, any, any>;
+  updateMutation?: UseMutationResult<any, any, any, any>;
   uploadImageMutation: UseMutationResult<any, any, File, any>;
   uploadPDFMutation: UseMutationResult<any, any, File, any>;
 }
@@ -59,6 +61,7 @@ export const TeacherSidebar = ({
   departmentList = [],
   positionList = [],
   createMutation,
+  updateMutation,
   uploadImageMutation,
   uploadPDFMutation,
 }: TeacherSidebarProps) => {
@@ -66,65 +69,135 @@ export const TeacherSidebar = ({
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [PDFfile, setPDFfile] = useState<UploadFile[]>([]);
+  const [currentEditMode, setCurrentEditMode] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Edit mode va initial values o'zgarishi bilan
+  useEffect(() => {
+    if (isOpen && initialValues?.id) {
+      setCurrentEditMode(true);
+      // Gender ni string dan boolean ga o'tkazish
+      const genderValue = typeof initialValues.gender === 'boolean' 
+        ? (initialValues.gender ? 'male' : 'female') 
+        : initialValues.gender;
+
+      form.setFieldsValue({
+        ...initialValues,
+        gender: genderValue,
+      });
+    } else {
+      setCurrentEditMode(false);
+      form.resetFields();
+    }
+  }, [isOpen, initialValues, form]);
 
   const handleClose = () => {
     form.resetFields();
     setFileList([]);
     setPDFfile([]);
+    setCurrentEditMode(false);
     closeDrawer();
   };
-const queryClient = useQueryClient();
-const handleSubmit = async () => {
-  try {
-    const values = await form.validateFields();
 
-    let uploadedImageUrl = "";
-    let uploadedPDFUrls: string[] = [];
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
 
-    if (fileList.length > 0 && fileList[0].originFileObj) {
-      const imageData = await uploadImageMutation.mutateAsync(
-        fileList[0].originFileObj
-      );
-      uploadedImageUrl = imageData || "";
-    }
+      if (currentEditMode && initialValues?.id) {
+        // ✅ EDIT MODE
+        let uploadedImageUrl = initialValues.imgUrl || "";
+        let uploadedPDFUrl = initialValues.imgUrl || "";
 
-    if (PDFfile.length > 0) {
-      for (const file of PDFfile) {
-        if (file.originFileObj) {
-          const pdfUrl = await uploadPDFMutation.mutateAsync(
-            file.originFileObj
+        // Yangi rasm bo'lsa yuklash
+        if (fileList.length > 0 && fileList[0].originFileObj) {
+          const imageData = await uploadImageMutation.mutateAsync(
+            fileList[0].originFileObj
           );
-          uploadedPDFUrls.push(pdfUrl);
+          uploadedImageUrl = imageData || "";
         }
+
+        // Yangi PDF bo'lsa yuklash
+        if (PDFfile.length > 0 && PDFfile[0].originFileObj) {
+          const pdfUrl = await uploadPDFMutation.mutateAsync(
+            PDFfile[0].originFileObj
+          );
+          uploadedPDFUrl = pdfUrl || "";
+        }
+
+        const updateData = {
+          id: initialValues.id,
+          fullName: values.fullName,
+          phoneNumber: values.phoneNumber,
+          biography: values.biography || "",
+          imgUrl: uploadedImageUrl,
+          input: values.input || "",
+          profession: values.profession || "",
+          lavozmId: Number(values.lavozmId),
+          email: values.email,
+          age: Number(values.age),
+          gender: values.gender === "male",
+          departmentId: Number(values.departmentId),
+          fileUrl: uploadedPDFUrl,
+        };
+
+        await updateMutation?.mutateAsync(updateData);
+
+        queryClient.invalidateQueries({ queryKey: ["teachers"] });
+        queryClient.invalidateQueries({ queryKey: ["age-distribution"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+
+        handleClose();
+      } else {
+        // ✅ CREATE MODE
+        let uploadedImageUrl = "";
+        let uploadedPDFUrls: string[] = [];
+
+        if (fileList.length > 0 && fileList[0].originFileObj) {
+          const imageData = await uploadImageMutation.mutateAsync(
+            fileList[0].originFileObj
+          );
+          uploadedImageUrl = imageData || "";
+        }
+
+        if (PDFfile.length > 0) {
+          for (const file of PDFfile) {
+            if (file.originFileObj) {
+              const pdfUrl = await uploadPDFMutation.mutateAsync(
+                file.originFileObj
+              );
+              uploadedPDFUrls.push(pdfUrl);
+            }
+          }
+        }
+
+        const formData: any = {
+          fullName: values.fullName,
+          phoneNumber: values.phoneNumber,
+          biography: values.biography || "",
+          imgUrl: uploadedImageUrl,
+          input: values.input || "",
+          profession: values.profession || "",
+          lavozmId: Number(values.lavozmId),
+          email: values.email,
+          age: Number(values.age),
+          gender: values.gender === "male",
+          password: values.password,
+          departmentId: Number(values.departmentId),
+          pdfUrls: uploadedPDFUrls,
+        };
+
+        await createMutation.mutateAsync(formData);
+
+        queryClient.invalidateQueries({ queryKey: ["teachers"] });
+        queryClient.invalidateQueries({ queryKey: ["age-distribution"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+
+        handleClose();
       }
+    } catch (error) {
+      console.error("Validation or submission failed:", error);
     }
-
-    const formData: TeacherFormValues & { pdfUrls?: string[] } = {
-      fullName: values.fullName,
-      phoneNumber: values.phoneNumber,
-      biography: values.biography || "",
-      imgUrl: uploadedImageUrl,
-      input: values.input || "",
-      profession: values.profession || "",
-      lavozmId: Number(values.lavozmId),
-      email: values.email,
-      age: Number(values.age),
-      gender: values.gender === "male",
-      password: values.password,
-      departmentId: Number(values.departmentId),
-      pdfUrls: uploadedPDFUrls,
-    };
-
-    await createMutation.mutateAsync(formData);
-
-    queryClient.invalidateQueries({ queryKey: ["age-distribution"] });
-    queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-
-    handleClose();
-  } catch (error) {
-    console.error("Validation or submission failed:", error);
-  }
-};
+  };
 
   const draggerProps: UploadProps = {
     name: "teacherImage",
@@ -157,6 +230,7 @@ const handleSubmit = async () => {
       setFileList([]);
     },
   };
+
   const draggerPropsPDF: UploadProps = {
     name: "teacherPDF",
     multiple: true,
@@ -199,12 +273,13 @@ const handleSubmit = async () => {
 
   const isLoading =
     createMutation.isPending ||
+    updateMutation?.isPending ||
     uploadImageMutation?.isPending ||
     uploadPDFMutation?.isPending;
 
   return (
     <Drawer
-      title={editMode ? "Ustozni tahrirlash" : "Yangi ustoz qo'shish"}
+      title={currentEditMode ? "Ustozni tahrirlash" : "Yangi ustoz qo'shish"}
       placement="right"
       onClose={handleClose}
       open={isOpen}
@@ -220,7 +295,7 @@ const handleSubmit = async () => {
             loading={isLoading}
             size="large"
           >
-            {editMode ? "Saqlash" : "Qo'shish"}
+            {currentEditMode ? "Saqlash" : "Qo'shish"}
           </Button>
         </div>
       }
@@ -228,7 +303,6 @@ const handleSubmit = async () => {
       <Form
         form={form}
         layout="vertical"
-        initialValues={initialValues}
         autoComplete="off"
       >
         <Form.Item
@@ -305,19 +379,21 @@ const handleSubmit = async () => {
           </Radio.Group>
         </Form.Item>
 
-        <Form.Item
-          label="Parol"
-          name="password"
-          rules={[
-            { required: true, message: "Iltimos, parol kiriting!" },
-            {
-              min: 6,
-              message: "Parol kamida 6 ta belgidan iborat bo'lishi kerak!",
-            },
-          ]}
-        >
-          <Input.Password placeholder="Parolni kiriting" size="large" />
-        </Form.Item>
+        {!currentEditMode && (
+          <Form.Item
+            label="Parol"
+            name="password"
+            rules={[
+              { required: true, message: "Iltimos, parol kiriting!" },
+              {
+                min: 6,
+                message: "Parol kamida 6 ta belgidan iborat bo'lishi kerak!",
+              },
+            ]}
+          >
+            <Input.Password placeholder="Parolni kiriting" size="large" />
+          </Form.Item>
+        )}
 
         <Form.Item
           label="Kafedra"
@@ -373,20 +449,23 @@ const handleSubmit = async () => {
           />
         </Form.Item>
 
-        <Form.Item label="Qo'shimcha ma'lumot" name="input" 
-        rules={[
+        <Form.Item
+          label="Qo'shimcha ma'lumot"
+          name="input"
+          rules={[
             { required: true, message: "Iltimos, Qo'shimcha malumotni kiriting!" },
-          ]}>
+          ]}
+        >
           <Input placeholder="Qo'shimcha ma'lumot" size="large" />
         </Form.Item>
 
         <Form.Item
           label="Rasm"
-          required
+          required={!currentEditMode}
           rules={[
             {
               validator: () => {
-                if (fileList.length === 0) {
+                if (!currentEditMode && fileList.length === 0) {
                   return Promise.reject("Iltimos, ustozning rasmini yuklang!");
                 }
                 return Promise.resolve();
@@ -419,13 +498,13 @@ const handleSubmit = async () => {
 
         <Form.Item
           label="Fayllar"
-          required
+          required={!currentEditMode}
           rules={[
             {
               validator: () => {
-                if (PDFfile.length === 0) {
+                if (!currentEditMode && PDFfile.length === 0) {
                   return Promise.reject(
-                    "Iltimos, kamida bitta PDF yoki DOCX yuklang!"
+                    "Iltimos, kamita bitta PDF yoki DOCX yuklang!"
                   );
                 }
                 return Promise.resolve();

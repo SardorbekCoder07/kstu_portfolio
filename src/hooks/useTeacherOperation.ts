@@ -1,4 +1,3 @@
-// hooks/useTeacherOperations.ts
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -8,6 +7,8 @@ import {
   getTeachers,
   GetTeachersParams,
   uploadTeacherPDF,
+  updateTeacher,
+  TeacherUpdateData,
 } from '../api/pagesApi/teacherApi';
 
 export const useTeacherOperations = (
@@ -31,7 +32,7 @@ export const useTeacherOperations = (
   // ✅ Rasm yuklash
   const uploadImageMutation = useMutation({
     mutationFn: uploadTeacherImage,
-    onSuccess: data => {
+    onSuccess: (data) => {
       return data;
     },
     onError: (error: any) => {
@@ -40,10 +41,10 @@ export const useTeacherOperations = (
     },
   });
 
-  // PDF yuklash
+  // ✅ PDF yuklash
   const uploadPDFMutation = useMutation({
     mutationFn: uploadTeacherPDF,
-    onSuccess: data => {
+    onSuccess: (data) => {
       return data;
     },
     onError: (error: any) => {
@@ -68,36 +69,21 @@ export const useTeacherOperations = (
     },
   });
 
-  // // ✅ UPDATE - O'qituvchini yangilash
-  // const updateTeacherMutation = useMutation({
-  //   mutationFn: updateTeacher,
-  //   onSuccess: () => {
-  //     toast.success("O'qituvchi muvaffaqiyatli yangilandi!");
-  //     queryClient.invalidateQueries({ queryKey: ['teachers'] });
-  //     onSuccess?.();
-  //   },
-  //   onError: (error: any) => {
-  //     toast.error(
-  //       error?.response?.data?.message ||
-  //         "O'qituvchi yangilashda xatolik yuz berdi!"
-  //     );
-  //   },
-  // });
-
-  // ✅ DELETE - O'qituvchini o'chirish
-  // const deleteTeacherMutation = useMutation({
-  //   mutationFn: deleteTeacher,
-  //   onSuccess: () => {
-  //     toast.success("O'qituvchi muvaffaqiyatli o'chirildi!");
-  //     queryClient.invalidateQueries({ queryKey: ['teachers'] });
-  //   },
-  //   onError: (error: any) => {
-  //     toast.error(
-  //       error?.response?.data?.message ||
-  //         "O'qituvchi o'chirishda xatolik yuz berdi!"
-  //     );
-  //   },
-  // });
+  // ✅ UPDATE - O'qituvchini yangilash
+  const updateTeacherMutation = useMutation({
+    mutationFn: updateTeacher,
+    onSuccess: () => {
+      toast.success("O'qituvchi muvaffaqiyatli yangilandi!");
+      queryClient.invalidateQueries({ queryKey: ['teachers'] });
+      onSuccess?.();
+    },
+    onError: (error: any) => {
+      toast.error(
+        error?.response?.data?.message ||
+          "O'qituvchi yangilashda xatolik yuz berdi!"
+      );
+    },
+  });
 
   return {
     // Data (pagination bilan)
@@ -115,7 +101,6 @@ export const useTeacherOperations = (
     uploadImageMutation,
     uploadPDFMutation,
     createTeacherMutation,
-    // updateTeacherMutation,
-    // deleteTeacherMutation,
+    updateTeacherMutation,
   };
 };
