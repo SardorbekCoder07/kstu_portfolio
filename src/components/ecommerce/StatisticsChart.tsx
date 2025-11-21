@@ -13,7 +13,7 @@ import { getAgeStats, AgeGroupStats } from "../../api/pagesApi/statistics";
 
 export default function AgeDistributionChart() {
   const { data, isLoading, isError } = useQuery<AgeGroupStats[]>({
-    queryKey: ["age-distribution"],
+    queryKey: ["age-distribution",1],
     queryFn: getAgeStats,
   });
 
