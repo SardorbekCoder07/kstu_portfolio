@@ -11,4 +11,5 @@
     USERDASHBOARD:"/user/dashboard",
     USERAGEDASHBOARD:"/user/age-dashboard",
     USERGENDERDASHBOARD:"/user/gender-dashboard",
+    LAVOZIMAPISTATISTICS:"/lavozim/get-lavozim-statistiks"
   };

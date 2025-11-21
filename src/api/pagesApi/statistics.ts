@@ -26,7 +26,10 @@ export interface AgeGroupStats {
   ageGroup: string;
   percentage: number;
 }
-
+export interface LavozimStats {
+  name: string;
+  totalEmployees: number;
+}
 export interface DashboardResponse {
   success: boolean;
   message: string;
@@ -43,6 +46,15 @@ export interface AgeResponse {
   success: boolean;
   message: string;
   data: AgeGroupStats[];
+}
+
+export interface LavozimStatsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    total: number;
+    data: LavozimStats[];
+  };
 }
 
 //Apilar
@@ -81,6 +93,18 @@ export const getAgeStats = async (): Promise<AgeGroupStats[]> => {
     return response.data.data;
   } catch (error: any) {
     toast.error("❌ GET Age Error:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const getLavozimStatistics = async (): Promise<LavozimStats[]> => {
+  try {
+    const response = await axiosClient.get<LavozimStatsResponse>(
+      API_ENDPOINTS.LAVOZIMAPISTATISTICS
+    );
+    return response.data.data.data;
+  } catch (error: any) {
+    toast.error("❌ GET Lavozim Error:", error.response?.data || error.message);
     throw error;
   }
 };
