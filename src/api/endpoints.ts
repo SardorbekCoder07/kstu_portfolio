@@ -10,5 +10,5 @@
     USERS: 'user/',
     USERDASHBOARD:"/user/dashboard",
     USERAGEDASHBOARD:"/user/age-dashboard",
-    USERGENDERDASHBOARD:"/user/gender-dashboard"
+    USERGENDERDASHBOARD:"/user/gender-dashboard",
   };
