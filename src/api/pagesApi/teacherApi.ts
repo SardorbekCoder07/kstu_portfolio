@@ -118,6 +118,7 @@ export interface TeacherResponse {
   data: Teacher;
 }
 
+
 export const uploadTeacherImage = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append("file", file);
