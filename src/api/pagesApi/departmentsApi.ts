@@ -91,9 +91,6 @@ export const updateDepartment = async (
   id: number,
   data: DepartmentUpdateData
 ): Promise<Department> => {
-  // console.log('📤 PUT Request URL:', `${API_ENDPOINTS.DEPARTMENT}/{id}`);
-  // console.log('📤 PUT Request body:', data);
-
   try {
     const response = await axiosClient.put(
       `${API_ENDPOINTS.DEPARTMENT}/${id}`,

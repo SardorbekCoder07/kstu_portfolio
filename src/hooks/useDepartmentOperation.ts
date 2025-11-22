@@ -41,7 +41,6 @@ export const useDepartmentOperations = (
     },
   });
 
-  // ✅ UPDATE
   const updateDepartmentMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) =>
       updateDepartment(id, data),

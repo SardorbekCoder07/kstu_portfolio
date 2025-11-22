@@ -6,8 +6,10 @@
     DEPARTMENT: '/department',
     POSITION: '/lavozim',
     AUTHSAVEUSER: '/auth/saveUser',
+    EDITUSERS:'/user',
     USERS: 'user/',
     USERDASHBOARD:"/user/dashboard",
     USERAGEDASHBOARD:"/user/age-dashboard",
-    USERGENDERDASHBOARD:"/user/gender-dashboard"
+    USERGENDERDASHBOARD:"/user/gender-dashboard",
+    LAVOZIMAPISTATISTICS:"/lavozim/get-lavozim-statistiks"
   };
