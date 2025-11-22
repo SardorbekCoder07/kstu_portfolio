@@ -56,7 +56,10 @@ export interface LavozimStatsResponse {
     data: LavozimStats[];
   };
 }
-
+export interface LavozimStatisticsResult {
+  total: number;
+  data: LavozimStats[];
+}
 //Apilar
 
 // user/dashboard
@@ -97,12 +100,16 @@ export const getAgeStats = async (): Promise<AgeGroupStats[]> => {
   }
 };
 
-export const getLavozimStatistics = async (): Promise<LavozimStats[]> => {
+export const getLavozimStatistics = async (): Promise<LavozimStatisticsResult> => {
   try {
     const response = await axiosClient.get<LavozimStatsResponse>(
       API_ENDPOINTS.LAVOZIMAPISTATISTICS
     );
-    return response.data.data.data;
+
+    return {
+      total: response.data.data.total,
+      data: response.data.data.data,
+    };
   } catch (error: any) {
     toast.error("❌ GET Lavozim Error:", error.response?.data || error.message);
     throw error;

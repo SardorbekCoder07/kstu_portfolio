@@ -8,23 +8,42 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  LabelList,
 } from "recharts";
-import { getLavozimStatistics, LavozimStats } from "../../api/pagesApi/statistics";
+import {
+  getLavozimStatistics,
+  LavozimStats,
+  LavozimStatisticsResult,
+} from "../../api/pagesApi/statistics";
 
 const VerticalComposedChart = () => {
-  const { data, isError } = useQuery<LavozimStats[]>({
+  const { data, isError } = useQuery<LavozimStatisticsResult>({
     queryKey: ["lavozim"],
-    queryFn: getLavozimStatistics, 
+    queryFn: getLavozimStatistics,
   });
 
-  const chartData = data || [];
-
   if (isError) {
-    return <div className="text-red-500">Ma'lumotlarni yuklashda xatolik!</div>;
+    return (
+      <div className="text-red-500">
+        Ma'lumotlarni yuklashda xatolik!
+      </div>
+    );
   }
 
+  // API dan: { total, data: [...] }
+  const total = data?.total || 1;
+  const list = data?.data || [];
+
+  // ➤ Har bir elementga foiz hisoblab beramiz
+  const chartData = list.map((item) => ({
+    ...item,
+    percentage: Number(((item.totalEmployees / total) * 100).toFixed(1)),
+  }));
+
+  console.log(chartData);
+
   return (
-    <ResponsiveContainer width="100%" height={400}>
+    <ResponsiveContainer width="100%" height={420}>
       <ComposedChart
         layout="vertical"
         data={chartData}
@@ -32,15 +51,20 @@ const VerticalComposedChart = () => {
       >
         <CartesianGrid stroke="#f5f5f5" />
         <XAxis type="number" />
-        <YAxis
-          dataKey="name"
-          type="category"
-          scale="band"
-          width={120}
-        />
+        <YAxis dataKey="name" type="category" width={130} />
+
         <Tooltip />
+
         <Legend />
-        <Bar dataKey="totalEmployees" barSize={20} fill="#413ea0" />
+
+        <Bar dataKey="totalEmployees" barSize={20} fill="#413ea0">
+          {/* ➤ Ustun yuqoriga foiz textini chiqaradi */}
+          <LabelList
+            dataKey="percentage"
+            position="right"
+            formatter={(v: number) => `${v}%`}
+          />
+        </Bar>
       </ComposedChart>
     </ResponsiveContainer>
   );
