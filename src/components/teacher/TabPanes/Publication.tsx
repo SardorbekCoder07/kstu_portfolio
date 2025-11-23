@@ -71,11 +71,11 @@ const Publication = () => {
 
                   {/* Matnlar */}
                   <div className="flex flex-col gap-2">
-                    <p className="text-gray-900 font-semibold text-sm leading-tight">
+                    <p className="text-gray-900 font-semibold text-sm leading-tight !m-0">
                       {item.title}
                     </p>
 
-                    <p className="text-gray-600 text-xs italic">
+                    <p className="text-gray-600 text-xs italic !m-0">
                       {item.journal}
                     </p>
 

@@ -73,15 +73,15 @@ const Control = () => {
 
                 {/* Matnlar */}
                 <div className="flex flex-col gap-2">
-                  <p className="text-gray-900 font-semibold text-sm leading-tight">
+                  <p className="text-gray-900 font-semibold text-sm leading-tight !m-0">
                     {item.title}
                   </p>
 
-                  <p className="text-gray-600 text-xs">
+                  <p className="text-gray-600 text-xs !m-0">
                     Tadqiqotchi: <span className="font-medium">{item.researcher}</span>
                   </p>
 
-                  <p className="text-gray-600 text-xs italic">
+                  <p className="text-gray-600 text-xs italic !m-0">
                     Universitet: <span className="font-medium">{item.university}</span>
                   </p>
 

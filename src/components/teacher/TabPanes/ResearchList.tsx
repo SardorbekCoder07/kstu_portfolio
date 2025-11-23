@@ -119,10 +119,10 @@ const ResearchAdvice: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <p className="text-gray-900 font-semibold text-sm leading-tight">
+                      <p className="text-gray-900 font-semibold text-sm leading-tight !m-0">
                         {item.name}
                       </p>
-                      <p className="text-gray-600 text-xs">
+                      <p className="text-gray-600 text-xs !m-0">
                         {item.description || "Tavsif kiritilmagan"}
                       </p>
 

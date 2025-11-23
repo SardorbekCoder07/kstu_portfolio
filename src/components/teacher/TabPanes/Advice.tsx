@@ -61,11 +61,11 @@ const Advice = () => {
 
             {/* Matnlar */}
             <div className="flex flex-col gap-2">
-              <p className="text-gray-900 font-semibold text-sm leading-tight">
+              <p className="text-gray-900 font-semibold text-sm leading-tight !m-0">
                 {item.title}
               </p>
 
-              <p className="text-gray-600 text-xs italic">{item.journal}</p>
+              <p className="text-gray-600 text-xs italic !m-0">{item.journal}</p>
 
               <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
                 <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full font-medium">
