@@ -34,6 +34,7 @@ export interface TeacherUpdateData {
   phone: string;
   email: string;
   biography: string;
+  age: number;
   input?: string;
   imageUrl?: string;
   fileUrl?: string;
@@ -96,6 +97,8 @@ export interface Teacher {
   profession: string | null;
   lavozimName: string;
   departmentName: string;
+  age: number; // ← qo‘shildi
+  gender: boolean; // agar kerak bo‘lsa
   qualification: { body: any[] };
   research: { body: any[] };
   award: { body: any[] };
@@ -103,6 +106,7 @@ export interface Teacher {
   nazorat: { body: any[] };
   publication: { body: any[] };
 }
+
 
 export interface Pagination<T = any> {
   page: number;

@@ -92,7 +92,7 @@ const ResearchAdvice: React.FC = () => {
               className="bg-blue-600 shadow-md hover:bg-blue-700"
               onClick={openModal}
             >
-              Yangi tadqiqot
+              Tadqiqot qo'shish
             </Button>
           </div>
 

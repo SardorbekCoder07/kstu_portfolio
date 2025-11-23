@@ -42,7 +42,7 @@ const Award = () => {
           className="bg-blue-600 shadow-md hover:bg-blue-700"
           onClick={openModal}
         >
-          Yangi mukofot
+          Mukofot qo'shish
         </Button>
       </div>
 

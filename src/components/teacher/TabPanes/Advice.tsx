@@ -42,7 +42,7 @@ const Advice = () => {
           className="bg-blue-600 shadow-md hover:bg-blue-700"
           onClick={openModal}
         >
-          Yangi tadqiqot
+          Maslahat qo'shish
         </Button>
       </div>
 

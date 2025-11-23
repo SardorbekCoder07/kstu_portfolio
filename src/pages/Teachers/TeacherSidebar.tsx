@@ -72,17 +72,27 @@ export const TeacherSidebar = ({
   const [currentEditMode, setCurrentEditMode] = useState(false);
   const queryClient = useQueryClient();
 
+  useEffect(() => {
+    console.log("Initial values:", initialValues);
+  }, [initialValues]);
+
   // Edit mode va initial values o'zgarishi bilan
   useEffect(() => {
     if (isOpen && initialValues?.id) {
       setCurrentEditMode(true);
-      // Gender ni string dan boolean ga o'tkazish
-      const genderValue = typeof initialValues.gender === 'boolean' 
-        ? (initialValues.gender ? 'male' : 'female') 
-        : initialValues.gender;
+
+      // Genderni boolean → string ("male"/"female") ga o'tkazish
+      const genderValue =
+        typeof initialValues.gender === "boolean"
+          ? initialValues.gender
+            ? "male"
+            : "female"
+          : initialValues.gender;
 
       form.setFieldsValue({
         ...initialValues,
+        phoneNumber: initialValues.phone || initialValues.phoneNumber,
+        age: initialValues.age ?? undefined, // age mavjud bo'lsa o‘tkaziladi
         gender: genderValue,
       });
     } else {
@@ -300,11 +310,7 @@ export const TeacherSidebar = ({
         </div>
       }
     >
-      <Form
-        form={form}
-        layout="vertical"
-        autoComplete="off"
-      >
+      <Form form={form} layout="vertical" autoComplete="off">
         <Form.Item
           label="To'liq ism"
           name="fullName"
@@ -453,7 +459,10 @@ export const TeacherSidebar = ({
           label="Qo'shimcha ma'lumot"
           name="input"
           rules={[
-            { required: true, message: "Iltimos, Qo'shimcha malumotni kiriting!" },
+            {
+              required: true,
+              message: "Iltimos, Qo'shimcha malumotni kiriting!",
+            },
           ]}
         >
           <Input placeholder="Qo'shimcha ma'lumot" size="large" />

@@ -77,7 +77,7 @@ const AddTeachers = () => {
     {
       page: currentPage - 1,
       size: pageSize,
-      name: searchValue.trim() || undefined,
+      fullName: searchValue.trim() || undefined,
       lavozim: selectedLavozim,
       college: selectedCollege,
     },
@@ -104,7 +104,7 @@ const AddTeachers = () => {
   const handleEditTeacher = (teacher: Teacher) => {
     setSelectedTeacher({
       id: teacher.id,
-      fullName: teacher.name,
+      fullName: teacher.fullName,
       email: teacher.email,
       phoneNumber: teacher.phoneNumber,
       biography: teacher.biography || "",
@@ -217,7 +217,7 @@ const AddTeachers = () => {
                         {teacher.imgUrl ? (
                           <img
                             src={teacher.imgUrl}
-                            alt={teacher.name}
+                            alt={teacher.fullName}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -230,7 +230,7 @@ const AddTeachers = () => {
                   >
                     <div className="space-y-3">
                       <div className="text-lg font-semibold text-gray-800 truncate">
-                        {teacher.name}
+                        {teacher.fullName}
                       </div>
                       <div className="space-y-1">
                         <div className="text-sm text-gray-600 truncate">
