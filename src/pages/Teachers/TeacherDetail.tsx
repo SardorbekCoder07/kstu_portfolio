@@ -23,14 +23,20 @@ const { TabPane } = Tabs;
 
 const fetchTeacher = async (id: string): Promise<Teacher> => {
   const res = await axiosClient.get(`/user/${id}`);
-  if (!res.data?.success) throw new Error("Ma’lumotni olishda xatolik yuz berdi");
+  if (!res.data?.success)
+    throw new Error("Ma’lumotni olishda xatolik yuz berdi");
   return res.data.data;
 };
 
 const TeacherDetail = () => {
   const { id } = useParams<{ id: string }>();
 
-  const { data: teacher, isLoading, isError, error } = useQuery<Teacher, Error>({
+  const {
+    data: teacher,
+    isLoading,
+    isError,
+    error,
+  } = useQuery<Teacher, Error>({
     queryKey: ["teacher", id],
     queryFn: () => fetchTeacher(id!),
     enabled: !!id,
@@ -56,7 +62,9 @@ const TeacherDetail = () => {
   }
 
   if (!teacher) {
-    return <p className="text-center text-red-500 mt-10">Ma’lumot topilmadi.</p>;
+    return (
+      <p className="text-center text-red-500 mt-10">Ma’lumot topilmadi.</p>
+    );
   }
 
   return (
@@ -89,28 +97,38 @@ const TeacherDetail = () => {
             <Biography text={teacher.biography} fallback="Joylashuv yo‘q" />
           </div>
 
-          <h3 className="font-semibold mb-2">O‘qituvchi haqida</h3>
-          <p className="text-gray-500 mb-5">{teacher.input}</p>
+          <div className="text-left mt-4 leading-relaxed space-y-1">
+            <h3 className="font-semibold !m-0">O‘qituvchi haqida</h3>
+            <p className="text-gray-500 !m-0">{teacher.input}</p>
+          </div>
 
           <div className="mt-6 space-y-3">
             <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border">
               <PhoneOutlined className="text-gray-600 text-[18px]" />
-              <p className="text-gray-700 font-medium">{teacher.phone || "—"}</p>
+              <p className="text-gray-700 !m-0 font-medium">
+                {teacher.phone || "—"}
+              </p>
             </div>
 
             <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border">
               <MailOutlined className="text-gray-600 text-[18px]" />
-              <p className="text-gray-700 font-medium">{teacher.email || "—"}</p>
+              <p className="text-gray-700 !m-0 font-medium">
+                {teacher.email || "—"}
+              </p>
             </div>
 
             <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border">
               <IdcardOutlined className="text-gray-600 text-[18px]" />
-              <p className="text-gray-700 font-medium">{teacher.lavozimName || "—"}</p>
+              <p className="text-gray-700 !m-0 font-medium">
+                {teacher.lavozimName || "—"}
+              </p>
             </div>
 
             <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border">
               <BankOutlined className="text-gray-600 text-[18px]" />
-              <p className="text-gray-700 font-medium">{teacher.departmentName || "—"}</p>
+              <p className="text-gray-700 !m-0 font-medium">
+                {teacher.departmentName || "—"}
+              </p>
             </div>
           </div>
         </Card>
