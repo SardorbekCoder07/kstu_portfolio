@@ -1,13 +1,32 @@
-import { useState } from "react";
-import { PlusOutlined, DownloadOutlined, UploadOutlined } from "@ant-design/icons";
-import { Button, Modal, Form, Input, Select, Upload, Typography, Empty } from "antd";
+import { useState, useEffect } from "react";
+import {
+  PlusOutlined,
+  DownloadOutlined,
+  UploadOutlined,
+} from "@ant-design/icons";
+import {
+  Button,
+  Modal,
+  Form,
+  Input,
+  Select,
+  Upload,
+  Typography,
+  Empty,
+  Spin,
+} from "antd";
+import {
+  getNazoratByUser,
+  ControlItem,
+} from "../../../api/pagesApi/controlApi";
 
-const { Title, Text } = Typography;
-const { TextArea } = Input;
+const { Title } = Typography;
 
 const Control = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [form] = Form.useForm();
+  const [controls, setControls] = useState<ControlItem[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const openModal = () => setIsOpen(true);
   const closeModal = () => {
@@ -15,30 +34,30 @@ const Control = () => {
     setIsOpen(false);
   };
 
-  const controls = [
-    {
-      id: 1,
-      title: "Aziziddin Nasafiy “Insoni komil” asarining falsafiy tahlili",
-      researcher: "Hasanova Shoxida Sadriddinovna",
-      university: "Andijon davlat universiteti",
-      year: 2025,
-      level: "Usta",
-      type: "Milliy",
-      role: "Nazoratchi",
-      status: "Tugallandi",
-      fileUrl: "#",
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const data = await getNazoratByUser(3); // userId misol
+        setControls(data.body);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <div className="bg-white mx-auto">
-
-      {/* Header */}
+      {/* Header */}{" "}
       <div className="flex justify-between items-center mb-10">
+        {" "}
         <Title level={2} className="!m-0 font-semibold">
-          Nazorat Ishlari
+          Nazorat Ishlari{" "}
         </Title>
-
         <Button
           type="primary"
           size="large"
@@ -46,12 +65,15 @@ const Control = () => {
           className="bg-blue-600 shadow-md hover:bg-blue-700"
           onClick={openModal}
         >
-          Nazorat qo‘shish
-        </Button>
+          Nazorat qo‘shish{" "}
+        </Button>{" "}
       </div>
-
-      {/* Empty */}
-      {controls.length === 0 ? (
+      {/* Loading / Empty / List */}
+      {loading ? (
+        <div className="flex justify-center py-24">
+          <Spin size="large" />
+        </div>
+      ) : controls.length === 0 ? (
         <Empty description="Hozircha nazoratlar mavjud emas" className="py-24">
           <Button type="primary" size="large" onClick={openModal}>
             Birinchi nazoratni qo‘shish
@@ -64,28 +86,26 @@ const Control = () => {
               key={item.id}
               className="flex items-start justify-between w-full p-5 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all"
             >
-              {/* Chap qism */}
               <div className="flex items-start gap-4">
-                {/* Gradient raqam */}
                 <div className="flex items-center justify-center w-10 h-10 text-white text-sm font-bold bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl shadow">
                   {index + 1}
                 </div>
 
-                {/* Matnlar */}
                 <div className="flex flex-col gap-2">
                   <p className="text-gray-900 font-semibold text-sm leading-tight !m-0">
-                    {item.title}
+                    {item.name}
                   </p>
 
                   <p className="text-gray-600 text-xs !m-0">
-                    Tadqiqotchi: <span className="font-medium">{item.researcher}</span>
+                    Tadqiqotchi:{" "}
+                    <span className="font-medium">{item.researcherName}</span>
                   </p>
 
                   <p className="text-gray-600 text-xs italic !m-0">
-                    Universitet: <span className="font-medium">{item.university}</span>
+                    Universitet:{" "}
+                    <span className="font-medium">{item.univerName}</span>
                   </p>
 
-                  {/* Taglar */}
                   <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
                     <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full font-medium">
                       {item.year}
@@ -94,25 +114,21 @@ const Control = () => {
                       {item.level}
                     </span>
                     <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
-                      {item.type}
-                    </span>
-                    <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">
-                      {item.role}
+                      {item.memberEnum}
                     </span>
                     <span
                       className={`px-3 py-1 rounded-full font-medium ${
-                        item.status === "Tugallandi"
+                        item.finished
                           ? "bg-green-100 text-green-700"
                           : "bg-yellow-100 text-yellow-700"
                       }`}
                     >
-                      {item.status}
+                      {item.finished ? "Tugallandi" : "Jarayonda"}
                     </span>
                   </div>
                 </div>
               </div>
 
-              {/* PDF */}
               {item.fileUrl && (
                 <a
                   href={item.fileUrl}
@@ -128,7 +144,6 @@ const Control = () => {
           ))}
         </div>
       )}
-
       {/* MODAL */}
       <Modal
         title={<Title level={3}>Yangi nazorat qo‘shish</Title>}
@@ -203,7 +218,11 @@ const Control = () => {
 
           <div className="flex justify-end gap-3 mt-6">
             <Button onClick={closeModal}>Bekor qilish</Button>
-            <Button type="primary" size="large" className="bg-blue-600 hover:bg-blue-700">
+            <Button
+              type="primary"
+              size="large"
+              className="bg-blue-600 hover:bg-blue-700"
+            >
               Qo‘shish
             </Button>
           </div>

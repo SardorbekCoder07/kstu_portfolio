@@ -81,7 +81,7 @@ const TeacherDetail = () => {
           cover={
             <img
               alt="teacher"
-              src={teacher.imageUrl || "/public/images/image.png"}
+              src={teacher.imageUrl || "../../../public/images/image.png"}
               className="w-full h-[300px] object-cover rounded-xl"
             />
           }
@@ -121,13 +121,6 @@ const TeacherDetail = () => {
               <IdcardOutlined className="text-gray-600 text-[18px]" />
               <p className="text-gray-700 !m-0 font-medium">
                 {teacher.lavozimName || "—"}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border">
-              <BankOutlined className="text-gray-600 text-[18px]" />
-              <p className="text-gray-700 !m-0 font-medium">
-                {teacher.departmentName || "—"}
               </p>
             </div>
           </div>

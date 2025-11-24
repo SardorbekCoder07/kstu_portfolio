@@ -1,78 +1,114 @@
-import { useQuery } from "@tanstack/react-query"
-import { useParams } from "react-router-dom"
-import StatCard from "./stat-card"
-import axiosClient from "../../api/axiosClient"
+import { useQuery } from "@tanstack/react-query";
+import { useParams } from "react-router-dom";
+import StatCard from "./stat-card";
+import axiosClient from "../../api/axiosClient";
 
 interface StatItem {
-  id: string
-  title: string
-  count: number
-  description: string
+  id: string;
+  title: string;
+  count: number;
+  description: string;
   details?: Array<{
-    label: string
-    value: number
-    color: string
-  }>
+    label: string;
+    value: number;
+    color: string;
+  }>;
 }
 
 // Ma'lumotni olish funksiyasi
 const fetchStatistics = async (teacherId: string): Promise<StatItem[]> => {
-  const res = await axiosClient.get(`/user/statistics/${teacherId}`)
-  const data = res.data.data
+  const res = await axiosClient.get(`/user/statistics/${teacherId}`);
+  const data = res.data.data;
 
   return [
     {
       id: "research",
-      title: "Research",
+      title: "Tadqiqotlar",
       count: data.tadqiqotlar,
-      description: "Active Projects",
+      description: "Faol loyihalar",
     },
     {
       id: "publications",
-      title: "Publications",
+      title: "Nashrlar",
       count: data.nashrlar,
-      description: "Total Publications",
+      description: "Jami nashrlar",
       details: [
-        { label: "Articles", value: data.maqolalar, color: "from-purple-500 to-blue-500" },
-        { label: "Books", value: data.kitoblar, color: "from-cyan-500 to-blue-400" },
-        { label: "Others", value: data.boshqalar, color: "from-green-500 to-cyan-500" },
+        {
+          label: "Maqolalar",
+          value: data.maqolalar,
+          color: "from-purple-500 to-blue-500",
+        },
+        {
+          label: "Kitoblar",
+          value: data.kitoblar,
+          color: "from-cyan-500 to-blue-400",
+        },
+        {
+          label: "Boshqalar",
+          value: data.boshqalar,
+          color: "from-green-500 to-cyan-500",
+        },
       ],
     },
     {
       id: "supervision",
-      title: "Supervision",
+      title: "Nazorat va Rahbarlik",
       count: data.ishYuritishlar,
-      description: "Students Supervised",
+      description: "Talabalar soni",
       details: [
-        { label: "Consultations", value: data.maslahatlar, color: "from-blue-600 to-blue-400" },
-        { label: "Control", value: data.nazorat, color: "from-cyan-500 to-blue-400" },
+        {
+          label: "Maslahatlar",
+          value: data.maslahatlar,
+          color: "from-blue-600 to-blue-400",
+        },
+        {
+          label: "Nazorat",
+          value: data.nazorat,
+          color: "from-cyan-500 to-blue-400",
+        },
       ],
     },
     {
       id: "training",
-      title: "Training & Involvement",
+      title: "Trening va Faoliyat",
       count: data.treninglar,
-      description: "Professional Engagements",
+      description: "Professional faoliyat",
       details: [
-        { label: "Editorial Membership", value: data.tahririyatAzolik, color: "from-purple-600 to-purple-400" },
-        { label: "Special Council", value: data.maxsusKengash, color: "from-indigo-600 to-indigo-400" },
+        {
+          label: "Tahririyat a’zoligi",
+          value: data.tahririyatAzolik,
+          color: "from-purple-600 to-purple-400",
+        },
+        {
+          label: "Maxsus kengash",
+          value: data.maxsusKengash,
+          color: "from-indigo-600 to-indigo-400",
+        },
       ],
     },
     {
       id: "awards",
-      title: "Awards & Recognitions",
+      title: "Mukofotlar",
       count: data.mukofotlar,
-      description: "Total Awards",
+      description: "Jami mukofotlar",
       details: [
-        { label: "Patent DGI", value: data.patentlar, color: "from-slate-700 to-slate-500" },
-        { label: "State Awards", value: data.davlatMukofotlari, color: "from-red-500 to-red-400" },
+        {
+          label: "Patent DGI",
+          value: data.patentlar,
+          color: "from-slate-700 to-slate-500",
+        },
+        {
+          label: "Davlat mukofotlari",
+          value: data.davlatMukofotlari,
+          color: "from-red-500 to-red-400",
+        },
       ],
     },
-  ]
-}
+  ];
+};
 
 export default function StatisticsCards() {
-  const { id } = useParams<{ id: string }>() // URL’dan teacherId ni olish
+  const { id } = useParams<{ id: string }>(); // URL’dan teacherId ni olish
 
   const {
     data: stats,
@@ -85,10 +121,12 @@ export default function StatisticsCards() {
     enabled: !!id, // id bo‘lmasa query ishlamaydi
     staleTime: 1000 * 60 * 5,
     retry: 2,
-  })
+  });
 
-  if (isLoading) return <p className="text-center">Statiistikalar Yuklanmoqda...</p>
-  if (isError) return <p className="text-center text-red-500">Xatolik: {error.message}</p>
+  if (isLoading)
+    return <p className="text-center">Statiistikalar Yuklanmoqda...</p>;
+  if (isError)
+    return <p className="text-center text-red-500">Xatolik: {error.message}</p>;
 
   return (
     <div className="mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -96,5 +134,5 @@ export default function StatisticsCards() {
         <StatCard key={stat.id} stat={stat} />
       ))}
     </div>
-  )
+  );
 }

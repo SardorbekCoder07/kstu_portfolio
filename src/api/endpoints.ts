@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
   EDITUSERS: '/user',
   USERS: 'user/',
   RESEARCH: '/research',
+  NAZORAT: '/nazorat',
   USERDASHBOARD: "/user/dashboard",
   USERAGEDASHBOARD: "/user/age-dashboard",
   USERGENDERDASHBOARD: "/user/gender-dashboard",
