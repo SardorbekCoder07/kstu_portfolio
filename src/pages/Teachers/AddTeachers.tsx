@@ -84,7 +84,8 @@ const AddTeachers = () => {
     closeDrawer
   );
 
-  const { departments } = useDepartmentOperations();
+  // ✅ Barcha kafedralarni olish (collegeName bilan)
+  const { allDepartments, isAllDepartmentsLoading } = useDepartmentOperations();
   const { positions } = usePositionOperations();
 
   useEffect(() => {
@@ -145,7 +146,8 @@ const AddTeachers = () => {
     value: pos.name,
   }));
 
-  const collegeOptions = departments.map((dept) => ({
+  // ✅ allDepartments dan foydalanish - name ni ko'rsatamiz
+  const collegeOptions = allDepartments.map((dept) => ({
     label: dept.name,
     value: dept.name,
   }));
@@ -182,6 +184,7 @@ const AddTeachers = () => {
             value={selectedCollege}
             onChange={setSelectedCollege}
             options={collegeOptions}
+            loading={isAllDepartmentsLoading}
           />
 
           {(selectedLavozim || selectedCollege) && (
@@ -265,7 +268,6 @@ const AddTeachers = () => {
                               e.stopPropagation();
                               handleEditTeacher(teacher);
                               console.log(teacher);
-                              
                             }}
                           >
                             <EditOutlined />
@@ -324,7 +326,7 @@ const AddTeachers = () => {
           updateMutation={updateTeacherMutation}
           uploadImageMutation={uploadImageMutation}
           uploadPDFMutation={uploadPDFMutation}
-          departmentList={departments}
+          departmentList={allDepartments}
           positionList={positions}
         />
       </div>

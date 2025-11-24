@@ -9,6 +9,19 @@ export interface Department {
   updatedAt?: string;
 }
 
+export interface SingleDepartment {
+  id: number;
+  name: string;
+  imgUrl: string;
+  collegeId: number;
+  collegeName: string;
+}
+
+export interface AllDepartment {
+  success: boolean;
+  message: string;
+  data: SingleDepartment[];
+}
 export interface DepartmentCreateData {
   name: string;
   imgUrl: string;
@@ -39,6 +52,20 @@ export interface DepartmentsResponse {
     body: Department[];
   };
 }
+
+export const getAllDepartments = async (): Promise<SingleDepartment[]> => {
+  try {
+    const response = await axiosClient.get<AllDepartment>(
+      `${API_ENDPOINTS.DEPARTMENT}/list`
+    );
+
+    console.log(' GET All Departments Response:', response.data);
+    return response.data.data;
+  } catch (error: any) {
+    console.error('GET All Departments Error:', error.response?.data || error.message);
+    throw error;
+  }
+};
 
 export const getDepartments = async (
   params?: GetDepartmentsParams
