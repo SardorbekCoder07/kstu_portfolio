@@ -77,7 +77,7 @@ const AddTeachers = () => {
     {
       page: currentPage - 1,
       size: pageSize,
-      fullName: searchValue.trim() || undefined,
+      name: searchValue.trim() || undefined,
       lavozim: selectedLavozim,
       college: selectedCollege,
     },
