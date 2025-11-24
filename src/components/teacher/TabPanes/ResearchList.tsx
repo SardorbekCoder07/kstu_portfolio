@@ -10,35 +10,38 @@ import {
   Empty,
   Typography,
 } from "antd";
-import { UploadOutlined, DownloadOutlined, PlusOutlined } from "@ant-design/icons";
+import { DownloadOutlined, PlusOutlined, InboxOutlined } from "@ant-design/icons";
 import type { UploadFile, UploadProps } from "antd";
 import { useModal } from "../../../hooks/useModal";
 import { useState } from "react";
+import { useParams } from "react-router-dom";
+import { useResearchOperations } from "../../../hooks/useResearchOperation";
+import Dragger from "antd/es/upload/Dragger";
 
 const { Title } = Typography;
 const { TextArea } = Input;
 
-const ResearchAdvice: React.FC = () => {
+const ResearchList: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const { isOpen, openModal, closeModal } = useModal(false);
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
-  // 🔵 Statik ma'lumot (API O'RNIGA)
-  const research = [
-    {
-      id: 1,
-      name: "Sun'iy intellekt asosida tahlil",
-      description: "AI yordamida ma’lumotlarni qayta ishlash",
-      year: 2024,
-      fileUrl: "#",
-      member: true,
-      memberEnum: "MILLIY",
-      univerName: "TATU",
-      finished: true,
-    },
-  ];
-
-  const isLoading = false;
+  const {
+    researches,
+    isResearchLoading,
+    createResearchMutation,
+    uploadPDFMutation,
+    refetch,
+  } = useResearchOperations(
+    parseInt(id!),
+    0,
+    100,
+    () => {
+      handleCloseModal();
+      refetch();
+    }
+  );
 
   const handleCloseModal = () => {
     closeModal();
@@ -48,10 +51,49 @@ const ResearchAdvice: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      await form.validateFields();
-      message.success("Tadqiqot qo‘shildi (faqat dizaynda)!");
+      const values = await form.validateFields();
+      let finalPdfUrl = values.fileUrl || "";
+
+      if (fileList.length > 0 && fileList[0].originFileObj) {
+
+        try {
+          finalPdfUrl = await uploadPDFMutation.mutateAsync(
+            fileList[0].originFileObj as File
+          );
+          message.success({
+            content: "PDF muvaffaqiyatli yuklandi!",
+            key: "uploadPdf",
+          });
+        } catch {
+          message.error({ content: "PDF yuklashda xatolik!", key: "uploadPdf" });
+          return;
+        }
+      }
+
+      await createResearchMutation.mutateAsync({
+        name: values.name,
+        description: values.description || "",
+        year: parseInt(values.year),
+        fileUrl: finalPdfUrl,
+        userId: parseInt(id!),
+        member: values.member ?? true,
+        univerName: values.univerName,
+        finished: values.finished ?? false,
+        memberEnum: values.memberEnum || "MILLIY",
+      });
+
+      message.success({
+        content: "Tadqiqot muvaffaqiyatli qo'shildi!",
+        key: "createResearch",
+      });
       handleCloseModal();
-    } catch (_) {}
+    } catch (error: any) {
+      if (error.errorFields) {
+        message.error("Iltimos, barcha majburiy maydonlarni to'ldiring!");
+      } else {
+        message.error("Xatolik yuz berdi!");
+      }
+    }
   };
 
   const uploadProps: UploadProps = {
@@ -63,6 +105,12 @@ const ResearchAdvice: React.FC = () => {
       return true;
     },
     beforeUpload: (file) => {
+      const isLt10M = file.size / 1024 / 1024 < 10;
+      if (!isLt10M) {
+        message.error("PDF hajmi 10MB dan kichik bo'lishi kerak!");
+        return Upload.LIST_IGNORE;
+      }
+
       setFileList([
         {
           uid: Date.now().toString(),
@@ -96,19 +144,22 @@ const ResearchAdvice: React.FC = () => {
             </Button>
           </div>
 
-          {isLoading ? (
+          {isResearchLoading ? (
             <div className="flex justify-center py-32">
               <Spin size="large" />
             </div>
-          ) : research.length === 0 ? (
-            <Empty description="Hozircha tadqiqotlar mavjud emas" className="py-24">
+          ) : researches.length === 0 ? (
+            <Empty
+              description="Hozircha tadqiqotlar mavjud emas"
+              className="py-24"
+            >
               <Button type="primary" onClick={openModal} size="large">
-                Birinchi tadqiqotni qo‘shish
+                Birinchi tadqiqotni qo'shish
               </Button>
             </Empty>
           ) : (
             <div className="space-y-4">
-              {research.map((item, index) => (
+              {researches.map((item, index) => (
                 <div
                   key={item.id}
                   className="flex items-start justify-between w-full p-5 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all"
@@ -140,11 +191,10 @@ const ResearchAdvice: React.FC = () => {
                           {item.univerName}
                         </span>
                         <span
-                          className={`px-3 py-1 rounded-full font-medium ${
-                            item.finished
-                              ? "bg-green-100 text-green-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}
+                          className={`px-3 py-1 rounded-full font-medium ${item.finished
+                            ? "bg-green-100 text-green-700"
+                            : "bg-yellow-100 text-yellow-700"
+                            }`}
                         >
                           {item.finished ? "Tugallangan" : "Jarayonda"}
                         </span>
@@ -155,6 +205,8 @@ const ResearchAdvice: React.FC = () => {
                   {item.fileUrl && (
                     <a
                       href={item.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex items-center gap-2 px-5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg cursor-pointer transition border border-blue-200 shadow-sm hover:shadow select-none"
                     >
                       <DownloadOutlined className="text-lg" />
@@ -169,14 +221,22 @@ const ResearchAdvice: React.FC = () => {
       </div>
 
       <Modal
-        title={<Title level={3}>Yangi tadqiqot qo‘shish</Title>}
+        title={<Title level={3}>Yangi tadqiqot qo'shish</Title>}
         open={isOpen}
         onCancel={handleCloseModal}
         footer={null}
         width={720}
         className="rounded-xl"
       >
-        <Form form={form} layout="vertical">
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{
+            memberEnum: "MILLIY",
+            finished: false,
+            member: true,
+          }}
+        >
           <div className="grid grid-cols-1 gap-4">
             <Form.Item
               name="name"
@@ -196,7 +256,7 @@ const ResearchAdvice: React.FC = () => {
                 label="Yil"
                 rules={[{ required: true, message: "Yilni kiriting!" }]}
               >
-                <Input type="number" size="large" />
+                <Input type="number" size="large" placeholder="2024" />
               </Form.Item>
 
               <Form.Item
@@ -209,14 +269,22 @@ const ResearchAdvice: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <Form.Item name="memberEnum" label="A'zolik turi">
+              <Form.Item
+                name="memberEnum"
+                label="A'zolik turi"
+                rules={[{ required: true, message: "Turini tanlang!" }]}
+              >
                 <Select size="large">
                   <Select.Option value="MILLIY">Milliy</Select.Option>
                   <Select.Option value="XALQARO">Xalqaro</Select.Option>
                 </Select>
               </Form.Item>
 
-              <Form.Item name="finished" label="Holati">
+              <Form.Item
+                name="finished"
+                label="Holati"
+                rules={[{ required: true, message: "Holatini tanlang!" }]}
+              >
                 <Select size="large">
                   <Select.Option value={false}>Jarayonda</Select.Option>
                   <Select.Option value={true}>Tugallangan</Select.Option>
@@ -224,14 +292,33 @@ const ResearchAdvice: React.FC = () => {
               </Form.Item>
             </div>
 
-            <Form.Item label="PDF yuklash (ixtiyoriy)">
-              <Upload {...uploadProps}>
-                <Button icon={<UploadOutlined />}>PDF tanlash</Button>
-              </Upload>
+            <Form.Item
+              label="PDF yuklash (ixtiyoriy)"
+              extra="Yoki quyida havolani kiriting"
+            >
+              <Dragger {...uploadProps}>
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">
+                  PDFni yuklash uchun bosing yoki sudrab keling
+                </p>
+                <p className="ant-upload-hint">
+                  Faqat PDF formatdagi fayllar. Maksimal hajm: 10MB
+                </p>
+              </Dragger>
             </Form.Item>
 
-            <Form.Item name="fileUrl" label="PDF havolasi">
-              <Input size="large" placeholder="https://example.com/file.pdf" />
+            <Form.Item
+              name="fileUrl"
+              label="Yoki PDF havolasini kiriting"
+              extra="Yuqorida fayl yuklagan bo'lsangiz, bu maydonni to'ldirmasangiz ham bo'ladi"
+            >
+              <Input
+                size="large"
+                placeholder="https://example.com/file.pdf"
+                disabled={fileList.length > 0}
+              />
             </Form.Item>
           </div>
 
@@ -242,8 +329,11 @@ const ResearchAdvice: React.FC = () => {
               size="large"
               className="bg-blue-600 hover:bg-blue-700"
               onClick={handleSubmit}
+              loading={
+                createResearchMutation.isPending || uploadPDFMutation.isPending
+              }
             >
-              Qo‘shish
+              Qo'shish
             </Button>
           </div>
         </Form>
@@ -252,4 +342,4 @@ const ResearchAdvice: React.FC = () => {
   );
 };
 
-export default ResearchAdvice;
+export default ResearchList

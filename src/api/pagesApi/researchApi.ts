@@ -1,8 +1,7 @@
-// api/pagesApi/researchApi.ts
+import axiosClient from '../axiosClient';
+import { API_ENDPOINTS } from '../endpoints';
 
-import axiosClient from "../axiosClient";
-
-export interface ResearchItem {
+export interface Research {
   id: number;
   name: string;
   description: string;
@@ -12,7 +11,30 @@ export interface ResearchItem {
   member: boolean;
   univerName: string;
   finished: boolean;
-  memberEnum: string;
+  memberEnum: 'MILLIY' | 'XALQARO';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ResearchCreateData {
+  name: string;
+  description: string;
+  year: number;
+  fileUrl: string;
+  userId: number;
+  member: boolean;
+  univerName: string;
+  finished: boolean;
+  memberEnum: 'MILLIY' | 'XALQARO';
+}
+
+export interface GetResearchParams {
+  page?: number;
+  size?: number;
+  name?: string;
+  userId?: number;
+  memberEnum?: 'MILLIY' | 'XALQARO';
+  finished?: boolean;
 }
 
 export interface ResearchResponse {
@@ -23,54 +45,65 @@ export interface ResearchResponse {
     size: number;
     totalPage: number;
     totalElements: number;
-    body: ResearchItem[];
+    body: Research[];
   };
 }
 
-// api/pagesApi/researchApi.ts
-export const createResearch = async (data: {
-  name: string;
-  description: string;
-  year: number;
-  fileUrl: string;
-  userId: number;
-  member: boolean;
-  univerName: string;
-  finished: boolean;
-  memberEnum: string;
-}) => {
-  const response = await axiosClient.post("/research", data);
-  return response.data;
-};
+export const getResearchesByUser = async (
+  userId: number,
+  page: number = 0,
+  size: number = 10
+): Promise<ResearchResponse['data']> => {
+  try {
 
-export const fetchResearch = async (): Promise<ResearchItem[]> => {
-  const res = await axiosClient.get<ResearchResponse>("/research?page=0&size=10");
+    const response = await axiosClient.get<ResearchResponse>(
+      `${API_ENDPOINTS.RESEARCH}/byUser/${userId}`,
+      {
+        params: { page, size }
+      }
+    );
 
-  if (!res.data.success) {
-    throw new Error("Tadqiqotlarni olishda xatolik");
+    return response.data.data;
+  } catch (error: any) {
+    throw error;
   }
-
-  return res.data.data.body; // faqat body ni qaytaryapmiz
 };
 
-// PDF yuklash uchun (tadqiqot uchun)
-export const uploadTeacherPDF = async (file: File): Promise<string> => {
+export const uploadResearchPDF = async (file: File): Promise<string> => {
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append('file', file);
 
-  const response = await axiosClient.post(API_ENDPOINTS.FILEPDF || "/file/pdf", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-
-  // Backend turli formatlarda qaytarishi mumkin
-  return (
-    response.data?.data ||
-    response.data?.fileUrl ||
-    response.data?.url ||
-    response.data?.path ||
-    response.data ||
-    ""
+  const response = await axiosClient.post(
+    API_ENDPOINTS.FILEPDF,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
   );
+
+  return (
+    response.data.data ||
+    response.data.fileUrl ||
+    response.data.url ||
+    response.data
+  );
+};
+
+export const createResearch = async (
+  data: ResearchCreateData
+): Promise<Research> => {
+  try {
+
+    const response = await axiosClient.post(
+      API_ENDPOINTS.RESEARCH,
+      data
+    );
+
+    console.log('📥 POST Research Response:', response.data);
+    return response.data.data || response.data;
+  } catch (error: any) {
+    throw error;
+  }
 };
