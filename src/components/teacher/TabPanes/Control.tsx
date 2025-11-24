@@ -3,6 +3,7 @@ import {
   PlusOutlined,
   DownloadOutlined,
   UploadOutlined,
+  InboxOutlined,
 } from "@ant-design/icons";
 import {
   Button,
@@ -19,6 +20,7 @@ import {
   getNazoratByUser,
   ControlItem,
 } from "../../../api/pagesApi/controlApi";
+import Dragger from "antd/es/upload/Dragger";
 
 const { Title } = Typography;
 
@@ -153,75 +155,96 @@ const Control = () => {
         width={720}
         className="rounded-xl"
       >
-        <Form form={form} layout="vertical">
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={(values) => {
+            // Transform status to boolean
+            const payload = {
+              name: values.name,
+              description: values.description || "",
+              year: Number(values.year),
+              fileUrl: values.fileUrl || "",
+              userId: 3, // default userId
+              researcherName: values.researcherName,
+              univerName: values.univerName || "",
+              level: values.level || "",
+              memberEnum: "MILLIY",
+              finished: values.finished === "Tugallandi",
+            };
+            console.log("Form payload:", payload);
+            closeModal();
+            form.resetFields();
+            // Bu yerda API call qilishingiz mumkin, masalan: addNazorat(payload)
+          }}
+        >
           <div className="grid grid-cols-1 gap-4">
             <Form.Item
-              name="title"
+              name="name"
               label="Nazorat nomi"
               rules={[{ required: true, message: "Nomini kiriting" }]}
             >
               <Input size="large" placeholder="Nazorat nomi..." />
             </Form.Item>
-
+            <Form.Item name="description" label="Tavsif">
+              <Input.TextArea
+                size="large"
+                placeholder="Nazorat tavsifi..."
+                rows={3}
+              />
+            </Form.Item>
             <Form.Item
-              name="researcher"
+              name="researcherName"
               label="Tadqiqotchi"
               rules={[{ required: true }]}
             >
               <Input size="large" placeholder="Tadqiqotchi ismi..." />
             </Form.Item>
-
-            <Form.Item name="university" label="Universitet">
+            <Form.Item name="univerName" label="Universitet">
               <Input size="large" placeholder="Universitet nomi..." />
             </Form.Item>
-
-            <div className="grid grid-cols-2 gap-4">
-              <Form.Item name="year" label="Yil" rules={[{ required: true }]}>
-                <Input type="number" size="large" />
-              </Form.Item>
-
-              <Form.Item name="level" label="Daraja">
-                <Select size="large">
-                  <Select.Option value="Usta">Usta</Select.Option>
-                  <Select.Option value="O‘rta">O‘rta</Select.Option>
-                </Select>
-              </Form.Item>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <Form.Item name="type" label="Turi">
-                <Input size="large" />
-              </Form.Item>
-
-              <Form.Item name="role" label="Roli">
-                <Input size="large" />
-              </Form.Item>
-            </div>
-
-            <Form.Item name="status" label="Holati">
-              <Select size="large">
+            <Form.Item name="year" label="Yil" rules={[{ required: true }]}>
+              <Input type="number" size="large" placeholder="2025" />
+            </Form.Item>
+            <Form.Item name="level" label="Daraja">
+              <Select size="large" placeholder="Darajani tanlang">
+                <Select.Option value="Usta">Usta</Select.Option>
+                <Select.Option value="O‘rta">O‘rta</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item name="finished" label="Holati">
+              <Select size="large" placeholder="Holatni tanlang">
                 <Select.Option value="Tugallandi">Tugallandi</Select.Option>
                 <Select.Option value="Jarayonda">Jarayonda</Select.Option>
               </Select>
             </Form.Item>
-
-            <Form.Item label="PDF yuklash">
-              <Upload>
-                <Button icon={<UploadOutlined />}>PDF tanlash</Button>
-              </Upload>
+            <Form.Item
+              label="PDF yuklash (ixtiyoriy)"
+              extra="Yoki quyida havolani kiriting"
+            >
+              <Dragger>
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">
+                  PDFni yuklash uchun bosing yoki sudrab keling
+                </p>
+                <p className="ant-upload-hint">
+                  Faqat PDF formatdagi fayllar. Maksimal hajm: 10MB
+                </p>
+              </Dragger>
             </Form.Item>
-
             <Form.Item name="fileUrl" label="PDF havolasi">
               <Input size="large" placeholder="https://example.com/file.pdf" />
             </Form.Item>
           </div>
-
           <div className="flex justify-end gap-3 mt-6">
             <Button onClick={closeModal}>Bekor qilish</Button>
             <Button
               type="primary"
               size="large"
               className="bg-blue-600 hover:bg-blue-700"
+              htmlType="submit"
             >
               Qo‘shish
             </Button>

@@ -35,6 +35,7 @@ export interface TeacherUpdateData {
   email: string;
   biography: string;
   age: number;
+  gender: boolean;
   input?: string;
   imageUrl?: string;
   fileUrl?: string;

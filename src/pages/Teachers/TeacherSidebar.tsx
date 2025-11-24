@@ -28,7 +28,7 @@ interface TeacherFormValues {
   profession: string;
   lavozmId: number;
   email: string;
-  age: number;
+  age: number | string;
   gender: boolean | string;
   password?: string;
   departmentId: number;
@@ -90,10 +90,21 @@ export const TeacherSidebar = ({
           : initialValues.gender;
 
       form.setFieldsValue({
-        ...initialValues,
-        phoneNumber: initialValues.phone || initialValues.phoneNumber,
-        age: initialValues.age ?? undefined, // age mavjud bo'lsa o‘tkaziladi
-        gender: genderValue,
+        fullName: initialValues.fullName ?? "",
+        email: initialValues.email ?? "",
+        phoneNumber: initialValues.phoneNumber ?? "",
+        age: initialValues.age ?? 18, // default yosh
+        gender:
+          typeof initialValues.gender === "boolean"
+            ? initialValues.gender
+              ? "male"
+              : "female"
+            : "male", // default erkak
+        profession: initialValues.profession ?? "",
+        biography: initialValues.biography ?? "",
+        input: initialValues.input ?? "",
+        departmentId: initialValues.departmentId ?? undefined,
+        lavozmId: initialValues.lavozmId ?? undefined,
       });
     } else {
       setCurrentEditMode(false);
@@ -144,7 +155,7 @@ export const TeacherSidebar = ({
           profession: values.profession || "",
           lavozmId: Number(values.lavozmId),
           email: values.email,
-          age: Number(values.age),
+          age: values.age,
           gender: values.gender === "male",
           departmentId: Number(values.departmentId),
           fileUrl: uploadedPDFUrl,

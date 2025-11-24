@@ -10,7 +10,11 @@ import {
   Empty,
   Typography,
 } from "antd";
-import { DownloadOutlined, PlusOutlined, InboxOutlined } from "@ant-design/icons";
+import {
+  DownloadOutlined,
+  PlusOutlined,
+  InboxOutlined,
+} from "@ant-design/icons";
 import type { UploadFile, UploadProps } from "antd";
 import { useModal } from "../../../hooks/useModal";
 import { useState } from "react";
@@ -33,15 +37,10 @@ const ResearchList: React.FC = () => {
     createResearchMutation,
     uploadPDFMutation,
     refetch,
-  } = useResearchOperations(
-    parseInt(id!),
-    0,
-    100,
-    () => {
-      handleCloseModal();
-      refetch();
-    }
-  );
+  } = useResearchOperations(parseInt(id!), 0, 100, () => {
+    handleCloseModal();
+    refetch();
+  });
 
   const handleCloseModal = () => {
     closeModal();
@@ -55,7 +54,6 @@ const ResearchList: React.FC = () => {
       let finalPdfUrl = values.fileUrl || "";
 
       if (fileList.length > 0 && fileList[0].originFileObj) {
-
         try {
           finalPdfUrl = await uploadPDFMutation.mutateAsync(
             fileList[0].originFileObj as File
@@ -65,7 +63,10 @@ const ResearchList: React.FC = () => {
             key: "uploadPdf",
           });
         } catch {
-          message.error({ content: "PDF yuklashda xatolik!", key: "uploadPdf" });
+          message.error({
+            content: "PDF yuklashda xatolik!",
+            key: "uploadPdf",
+          });
           return;
         }
       }
@@ -171,10 +172,18 @@ const ResearchList: React.FC = () => {
 
                     <div className="flex flex-col gap-2">
                       <p className="text-gray-900 font-semibold text-sm leading-tight !m-0">
-                        {item.name}
+                        {item.name
+                          ? item.description.length > 60
+                            ? `${item.description.slice(0, 60)}...`
+                            : item.description
+                          : "Tavsif kiritilmagan"}
                       </p>
                       <p className="text-gray-600 text-xs !m-0">
-                        {item.description || "Tavsif kiritilmagan"}
+                        {item.description
+                          ? item.description.length > 70
+                            ? `${item.description.slice(0, 70)}...`
+                            : item.description
+                          : "Tavsif kiritilmagan"}
                       </p>
 
                       <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
@@ -191,10 +200,11 @@ const ResearchList: React.FC = () => {
                           {item.univerName}
                         </span>
                         <span
-                          className={`px-3 py-1 rounded-full font-medium ${item.finished
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
-                            }`}
+                          className={`px-3 py-1 rounded-full font-medium ${
+                            item.finished
+                              ? "bg-green-100 text-green-700"
+                              : "bg-yellow-100 text-yellow-700"
+                          }`}
                         >
                           {item.finished ? "Tugallangan" : "Jarayonda"}
                         </span>
@@ -342,4 +352,4 @@ const ResearchList: React.FC = () => {
   );
 };
 
-export default ResearchList
+export default ResearchList;
