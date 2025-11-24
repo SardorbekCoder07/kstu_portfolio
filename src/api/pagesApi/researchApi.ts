@@ -95,6 +95,7 @@ export const createResearch = async (
   data: ResearchCreateData
 ): Promise<Research> => {
   try {
+    console.log('📤 POST Research Request:', data);
 
     const response = await axiosClient.post(
       API_ENDPOINTS.RESEARCH,

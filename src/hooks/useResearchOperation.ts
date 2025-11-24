@@ -22,7 +22,7 @@ export const useResearchOperations = (
     } = useQuery({
         queryKey: ['researches', userId, page, size],
         queryFn: () => getResearchesByUser(userId!, page, size),
-        enabled: !!userId, 
+        enabled: !!userId,
     });
 
     const createResearchMutation = useMutation({
@@ -34,7 +34,6 @@ export const useResearchOperations = (
         },
         onError: (error: any) => {
             toast.error(
-                error?.response?.data?.message ||
                 "Tadqiqot qo'shishda xatolik yuz berdi!"
             );
         },
@@ -43,7 +42,6 @@ export const useResearchOperations = (
     const uploadPDFMutation = useMutation({
         mutationFn: uploadResearchPDF,
         onSuccess: () => {
-            toast.success("PDF muvaffaqiyatli yuklandi!");
         },
         onError: (error: any) => {
             toast.error(
@@ -62,8 +60,8 @@ export const useResearchOperations = (
         isResearchLoading,
         researchError,
         refetch,
+
         createResearchMutation,
         uploadPDFMutation,
     };
 };
-

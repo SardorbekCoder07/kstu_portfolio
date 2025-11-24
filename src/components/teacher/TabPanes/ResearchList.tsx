@@ -9,6 +9,7 @@ import {
   Upload,
   Empty,
   Typography,
+  Pagination,
 } from "antd";
 import { DownloadOutlined, PlusOutlined, InboxOutlined } from "@ant-design/icons";
 import type { UploadFile, UploadProps } from "antd";
@@ -17,6 +18,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useResearchOperations } from "../../../hooks/useResearchOperation";
 import Dragger from "antd/es/upload/Dragger";
+import { toast } from "sonner";
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -26,17 +28,22 @@ const ResearchList: React.FC = () => {
   const { isOpen, openModal, closeModal } = useModal(false);
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
 
+  // ✅ Custom hook dan foydalanish
   const {
     researches,
+    total,
+    totalPages,
     isResearchLoading,
     createResearchMutation,
     uploadPDFMutation,
     refetch,
   } = useResearchOperations(
     parseInt(id!),
-    0,
-    100,
+    currentPage,
+    pageSize,
     () => {
       handleCloseModal();
       refetch();
@@ -54,18 +61,14 @@ const ResearchList: React.FC = () => {
       const values = await form.validateFields();
       let finalPdfUrl = values.fileUrl || "";
 
+      // PDF yuklash
       if (fileList.length > 0 && fileList[0].originFileObj) {
-
         try {
           finalPdfUrl = await uploadPDFMutation.mutateAsync(
             fileList[0].originFileObj as File
           );
-          message.success({
-            content: "PDF muvaffaqiyatli yuklandi!",
-            key: "uploadPdf",
-          });
         } catch {
-          message.error({ content: "PDF yuklashda xatolik!", key: "uploadPdf" });
+          toast.error("PDF yuklashda xatolik!");
           return;
         }
       }
@@ -82,16 +85,11 @@ const ResearchList: React.FC = () => {
         memberEnum: values.memberEnum || "MILLIY",
       });
 
-      message.success({
-        content: "Tadqiqot muvaffaqiyatli qo'shildi!",
-        key: "createResearch",
-      });
+      toast.success("Tadqiqot muvaffaqiyatli qo'shildi!");
       handleCloseModal();
     } catch (error: any) {
       if (error.errorFields) {
-        message.error("Iltimos, barcha majburiy maydonlarni to'ldiring!");
-      } else {
-        message.error("Xatolik yuz berdi!");
+        toast.error("Iltimos, barcha majburiy maydonlarni to'ldiring!");
       }
     }
   };
@@ -107,7 +105,7 @@ const ResearchList: React.FC = () => {
     beforeUpload: (file) => {
       const isLt10M = file.size / 1024 / 1024 < 10;
       if (!isLt10M) {
-        message.error("PDF hajmi 10MB dan kichik bo'lishi kerak!");
+        toast.error("PDF hajmi 10MB dan kichik bo'lishi kerak!");
         return Upload.LIST_IGNORE;
       }
 
@@ -215,6 +213,33 @@ const ResearchList: React.FC = () => {
                   )}
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* ✅ Paginatsiya */}
+          {total > 0 && (
+            <div className="flex justify-end mt-8">
+              <Pagination
+                current={currentPage + 1}
+                total={total}
+                pageSize={pageSize}
+                onChange={(page) => setCurrentPage(page - 1)}
+                onShowSizeChange={(_, size) => {
+                  setPageSize(size);
+                  setCurrentPage(0);
+                }}
+                showSizeChanger
+                showQuickJumper
+                showTotal={(total, range) =>
+                  `${range[0]}-${range[1]} / ${total} ta`
+                }
+                pageSizeOptions={["10", "20", "30", "50"]}
+                locale={{
+                  items_per_page: "/ sahifa",
+                  jump_to: "O'tish",
+                  page: "Sahifa",
+                }}
+              />
             </div>
           )}
         </div>
@@ -342,4 +367,4 @@ const ResearchList: React.FC = () => {
   );
 };
 
-export default ResearchList
+export default ResearchList;
