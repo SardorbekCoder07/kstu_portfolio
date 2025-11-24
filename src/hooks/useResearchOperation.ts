@@ -32,7 +32,7 @@ export const useResearchOperations = (
             queryClient.invalidateQueries({ queryKey: ['researches'] });
             onSuccess?.();
         },
-        onError: (error: any) => {
+        onError: () => {
             toast.error(
                 "Tadqiqot qo'shishda xatolik yuz berdi!"
             );

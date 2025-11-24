@@ -2,7 +2,6 @@ import {
   Spin,
   Modal,
   Button,
-  message,
   Form,
   Input,
   Select,
@@ -35,7 +34,6 @@ const ResearchList: React.FC = () => {
   const {
     researches,
     total,
-    totalPages,
     isResearchLoading,
     createResearchMutation,
     uploadPDFMutation,
