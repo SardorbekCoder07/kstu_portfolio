@@ -21,13 +21,13 @@ import {
   Select,
   Space,
   Modal,
-  message,
 } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useTeacherOperations } from "../../hooks/useTeacherOperation";
 import { useDepartmentOperations } from "../../hooks/useDepartmentOperation";
 import { usePositionOperations } from "../../hooks/usePositionOperation";
 import axiosClient from "../../api/axiosClient";
+import { toast } from "sonner";
 
 const { confirm } = Modal;
 
@@ -131,11 +131,11 @@ const AddTeachers = () => {
       async onOk() {
         try {
           await axiosClient.delete(`/user/${teacherId}`);
-          message.success("O'qituvchi muvaffaqiyatli o'chirildi");
+          toast.success("O'qituvchi muvaffaqiyatli o'chirildi");
           refetch();
         } catch (err: any) {
           console.error(err);
-          message.error("O'chirishda xatolik yuz berdi");
+          toast.error("O'chirishda xatolik yuz berdi");
         }
       },
     });
@@ -270,7 +270,7 @@ const AddTeachers = () => {
                               console.log(teacher);
                             }}
                           >
-                            <EditOutlined />
+                            <EditOutlined />     
                             Tahrirlash
                           </Button>
                         </div>
