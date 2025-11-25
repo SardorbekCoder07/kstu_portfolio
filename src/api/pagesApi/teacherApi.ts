@@ -108,7 +108,6 @@ export interface Teacher {
   publication: { body: any[] };
 }
 
-
 export interface Pagination<T = any> {
   page: number;
   size: number;
@@ -122,7 +121,6 @@ export interface TeacherResponse {
   message: string;
   data: Teacher;
 }
-
 
 export const uploadTeacherImage = async (file: File): Promise<string> => {
   const formData = new FormData();
