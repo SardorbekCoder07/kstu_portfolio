@@ -28,6 +28,19 @@ export interface ResearchCreateData {
   memberEnum: 'MILLIY' | 'XALQARO';
 }
 
+export interface ResearchUpdateData {
+  id: number;
+  name: string;
+  description: string;
+  year: number;
+  fileUrl: string;
+  userId: number;
+  member: boolean;
+  univerName: string;
+  finished: boolean;
+  memberEnum: 'MILLIY' | 'XALQARO';
+}
+
 export interface GetResearchParams {
   page?: number;
   size?: number;
@@ -48,14 +61,12 @@ export interface ResearchResponse {
     body: Research[];
   };
 }
-
 export const getResearchesByUser = async (
   userId: number,
   page: number = 0,
   size: number = 10
 ): Promise<ResearchResponse['data']> => {
   try {
-
     const response = await axiosClient.get<ResearchResponse>(
       `${API_ENDPOINTS.RESEARCH}/byUser/${userId}`,
       {
@@ -95,16 +106,39 @@ export const createResearch = async (
   data: ResearchCreateData
 ): Promise<Research> => {
   try {
-    console.log('📤 POST Research Request:', data);
-
     const response = await axiosClient.post(
       API_ENDPOINTS.RESEARCH,
       data
     );
-
-    console.log('📥 POST Research Response:', response.data);
     return response.data.data || response.data;
   } catch (error: any) {
+    throw error;
+  }
+};
+
+export const updateResearch = async (
+  data: ResearchUpdateData
+): Promise<Research> => {
+  try {
+
+    const response = await axiosClient.put(
+      `${API_ENDPOINTS.RESEARCH}/${data.id}`,
+      data
+    );
+    return response.data.data || response.data;
+  } catch (error: any) {
+    throw error;
+  }
+};
+
+export const deleteResearch = async (id: number): Promise<void> => {
+  try {
+    const response = await axiosClient.delete(
+      `${API_ENDPOINTS.RESEARCH}/${id}`
+    );
+    return response.data;
+  } catch (error: any) {
+    console.error(error.response?.data || error.message);
     throw error;
   }
 };

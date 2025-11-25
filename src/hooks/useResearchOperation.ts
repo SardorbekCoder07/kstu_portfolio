@@ -2,7 +2,9 @@ import { toast } from 'sonner';
 import {
     createResearch,
     uploadResearchPDF,
-    getResearchesByUser
+    getResearchesByUser,
+    updateResearch,
+    deleteResearch,
 } from '../api/pagesApi/researchApi';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -33,8 +35,34 @@ export const useResearchOperations = (
             onSuccess?.();
         },
         onError: () => {
+            toast.error("Tadqiqot qo'shishda xatolik yuz berdi!");
+        },
+    });
+
+    const updateResearchMutation = useMutation({
+        mutationFn: updateResearch,
+        onSuccess: () => {
+            toast.success('Tadqiqot muvaffaqiyatli yangilandi!');
+            queryClient.invalidateQueries({ queryKey: ['researches'] });
+            onSuccess?.();
+        },
+        onError: (error: any) => {
             toast.error(
-                "Tadqiqot qo'shishda xatolik yuz berdi!"
+                error?.response?.data?.message ||
+                'Tadqiqotni yangilashda xatolik yuz berdi!'
+            );
+        },
+    });
+    const deleteResearchMutation = useMutation({
+        mutationFn: deleteResearch,
+        onSuccess: () => {
+            toast.success("Tadqiqot muvaffaqiyatli o'chirildi!");
+            queryClient.invalidateQueries({ queryKey: ['researches'] });
+        },
+        onError: (error: any) => {
+            toast.error(
+                error?.response?.data?.message ||
+                "Tadqiqotni o'chirishda xatolik yuz berdi!"
             );
         },
     });
@@ -62,6 +90,8 @@ export const useResearchOperations = (
         refetch,
 
         createResearchMutation,
+        updateResearchMutation,
+        deleteResearchMutation,
         uploadPDFMutation,
     };
 };
