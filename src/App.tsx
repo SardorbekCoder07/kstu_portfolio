@@ -14,10 +14,12 @@ import Faculties from './pages/Faculties/Faculties';
 import Departments from './pages/Departments/Departments';
 import TeacherDetail from './pages/Teachers/TeacherDetail';
 import Postion from './pages/Position/Postion';
+import NetworkListener from './components/NetworkListener';
 
 export default function App() {
   return (
     <>
+      <NetworkListener /> 
       <Router>
         <Toaster position="top-right" duration={2000} richColors />
         <ScrollToTop />
