@@ -116,9 +116,7 @@ const ResearchList: React.FC = () => {
           finalPdfUrl = await uploadPDFMutation.mutateAsync(
             fileList[0].originFileObj as File
           );
-          toast.success("PDF muvaffaqiyatli yuklandi!");
         } catch {
-          toast.error("PDF yuklashda xatolik!");
           return;
         }
       }
