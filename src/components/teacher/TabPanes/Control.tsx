@@ -160,8 +160,8 @@ const Control = () => {
   };
 
   return (
-    <div className="bg-white min-h-screen">
-      <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="bg-white">
+      <div className="mx-auto">
         <div className="flex justify-between items-center mb-10">
           <Title level={2} className="!mb-0 font-semibold">
             Nazorat Ishlari
