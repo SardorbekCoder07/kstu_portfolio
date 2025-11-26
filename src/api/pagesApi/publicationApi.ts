@@ -68,6 +68,7 @@ export interface PublicationByIdResponse {
 }
 
 export interface PublicationUpdate {
+  id: number;
   userId: number;
   name: string;
   description: string;
@@ -136,13 +137,14 @@ export const createPublication = async (
   }
 };
 
+
 export const updatePublication = async (
   data: PublicationUpdate
 ): Promise<Publication> => {
   try {
 
     const response = await axiosClient.put(
-      `${API_ENDPOINTS.PUBLICATION}/${data.userId}`,
+      `${API_ENDPOINTS.PUBLICATION}/${data.id}`,
       data
     );
     return response.data.data || response.data;
