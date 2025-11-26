@@ -11,7 +11,7 @@ export default function NetworkBanner() {
         window.addEventListener("online", updateStatus);
         window.addEventListener("offline", updateStatus);
 
-        updateStatus(); // sahifa ochilganda tekshirish
+        updateStatus(); 
 
         return () => {
             window.removeEventListener("online", updateStatus);
