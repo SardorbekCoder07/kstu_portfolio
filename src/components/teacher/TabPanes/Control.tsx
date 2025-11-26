@@ -48,11 +48,14 @@ const Control = () => {
   const [form] = Form.useForm();
 
   const [currentPage, setCurrentPage] = useState(0);
-  const pageSize = 10;
+  // const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
 
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [editingItem, setEditingItem] = useState<ControlItem | null>(null);
-  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>({});
+  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>(
+    {}
+  );
 
   const {
     controles,
@@ -100,7 +103,9 @@ const Control = () => {
 
       if (fileList.length > 0 && fileList[0].originFileObj) {
         try {
-          finalPdfUrl = await uploadPDFMutation.mutateAsync(fileList[0].originFileObj as File);
+          finalPdfUrl = await uploadPDFMutation.mutateAsync(
+            fileList[0].originFileObj as File
+          );
         } catch {
           toast.error("PDF yuklashda xatolik yuz berdi!");
           return;
@@ -120,7 +125,10 @@ const Control = () => {
       };
 
       if (editingItem) {
-        await updateControlMutation.mutateAsync({ id: editingItem.id, ...payload });
+        await updateControlMutation.mutateAsync({
+          id: editingItem.id,
+          ...payload,
+        });
       } else {
         await createControlMutation.mutateAsync(payload as any);
       }
@@ -182,7 +190,10 @@ const Control = () => {
             <Spin size="large" />
           </div>
         ) : controles.length === 0 ? (
-          <Empty description="Hozircha nazorat ishlari mavjud emas" className="py-24">
+          <Empty
+            description="Hozircha nazorat ishlari mavjud emas"
+            className="py-24"
+          >
             <Button type="primary" size="large" onClick={openModal}>
               Birinchi nazoratni qo'shish
             </Button>
@@ -232,7 +243,9 @@ const Control = () => {
                       </div>
 
                       <div className="flex flex-col gap-2 flex-1">
-                        <p className="text-gray-900 font-semibold text-sm !m-0">{item.name}</p>
+                        <p className="text-gray-900 font-semibold text-sm !m-0">
+                          {item.name}
+                        </p>
 
                         {item.description && (
                           <div>
@@ -251,11 +264,17 @@ const Control = () => {
                         )}
 
                         <p className="text-gray-600 text-xs !m-0">
-                          Tadqiqotchi: <span className="font-medium">{item.researcherName}</span>
+                          Tadqiqotchi:{" "}
+                          <span className="font-medium">
+                            {item.researcherName}
+                          </span>
                         </p>
                         {item.univerName && (
                           <p className="text-gray-600 text-xs italic !m-0">
-                            Universitet: <span className="font-medium">{item.univerName}</span>
+                            Universitet:{" "}
+                            <span className="font-medium">
+                              {item.univerName}
+                            </span>
                           </p>
                         )}
 
@@ -289,7 +308,9 @@ const Control = () => {
                         className="flex items-center gap-2 px-5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg border border-blue-200 shadow-sm hover:shadow transition flex-shrink-0"
                       >
                         <DownloadOutlined className="text-lg" />
-                        <span className="text-[13px] font-medium">PDF Fayli</span>
+                        <span className="text-[13px] font-medium">
+                          PDF Fayli
+                        </span>
                       </a>
                     )}
                   </div>
@@ -297,15 +318,28 @@ const Control = () => {
               })}
             </div>
 
-            {total > pageSize && (
+            {total > 0 && (
               <div className="flex justify-end mt-8">
                 <Pagination
                   current={currentPage + 1}
                   total={total}
                   pageSize={pageSize}
                   onChange={(page) => setCurrentPage(page - 1)}
-                  showTotal={(total, range) => `${range[0]}-${range[1]} / ${total} ta`}
-                  showSizeChanger={false}
+                  onShowSizeChange={(_, size) => {
+                    setPageSize(size);
+                    setCurrentPage(0);
+                  }}
+                  showSizeChanger
+                  showQuickJumper
+                  showTotal={(total, range) =>
+                    `${range[0]}-${range[1]} / ${total} ta`
+                  }
+                  pageSizeOptions={["10", "20", "30", "50"]}
+                  locale={{
+                    items_per_page: "/ sahifa",
+                    jump_to: "O'tish",
+                    page: "Sahifa",
+                  }}
                 />
               </div>
             )}
@@ -335,7 +369,10 @@ const Control = () => {
                 label="Nazorat nomi"
                 rules={[{ required: true, message: "Nomini kiriting!" }]}
               >
-                <Input size="large" placeholder="Masalan: Magistrlik dissertatsiyasi..." />
+                <Input
+                  size="large"
+                  placeholder="Masalan: Magistrlik dissertatsiyasi..."
+                />
               </Form.Item>
 
               <Form.Item name="description" label="Tavsif">
@@ -360,8 +397,14 @@ const Control = () => {
                   label="Yil"
                   rules={[
                     { required: true, message: "Yilni kiriting!" },
-                    { pattern: /^(19|20|21)\d{2}$/, message: "1900–2100 oralig'ida yil kiriting!" },
-                    { len: 4, message: "Yil 4 ta raqamdan iborat bo'lishi kerak!" },
+                    {
+                      pattern: /^(19|20|21)\d{2}$/,
+                      message: "1900–2100 oralig'ida yil kiriting!",
+                    },
+                    {
+                      len: 4,
+                      message: "Yil 4 ta raqamdan iborat bo'lishi kerak!",
+                    },
                   ]}
                 >
                   <Input
@@ -370,8 +413,13 @@ const Control = () => {
                     placeholder="2025"
                     min={1900}
                     max={2100}
-                    onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()}
-                    onInput={(e: any) => e.target.value.length > 4 && (e.target.value = e.target.value.slice(0, 4))}
+                    onKeyPress={(e) =>
+                      !/[0-9]/.test(e.key) && e.preventDefault()
+                    }
+                    onInput={(e: any) =>
+                      e.target.value.length > 4 &&
+                      (e.target.value = e.target.value.slice(0, 4))
+                    }
                   />
                 </Form.Item>
 
@@ -379,7 +427,9 @@ const Control = () => {
                   <Select size="large" placeholder="Tanlang" allowClear>
                     <Select.Option value="Usta">Usta</Select.Option>
                     <Select.Option value="O'rta">O'rta</Select.Option>
-                    <Select.Option value="Boshlang'ich">Boshlang'ich</Select.Option>
+                    <Select.Option value="Boshlang'ich">
+                      Boshlang'ich
+                    </Select.Option>
                   </Select>
                 </Form.Item>
               </div>
@@ -391,12 +441,17 @@ const Control = () => {
                 </Select>
               </Form.Item>
 
-              <Form.Item label="PDF yuklash (ixtiyoriy)" extra="Yoki havolani kiriting">
+              <Form.Item
+                label="PDF yuklash (ixtiyoriy)"
+                extra="Yoki havolani kiriting"
+              >
                 <Dragger {...uploadProps}>
                   <p className="ant-upload-drag-icon">
                     <InboxOutlined />
                   </p>
-                  <p className="ant-upload-text">PDFni bosing yoki sudrab keling</p>
+                  <p className="ant-upload-text">
+                    PDFni bosing yoki sudrab keling
+                  </p>
                   <p className="ant-upload-hint">Faqat PDF, maksimal 10MB</p>
                 </Dragger>
               </Form.Item>
