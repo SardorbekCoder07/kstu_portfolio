@@ -216,6 +216,7 @@ const Control = () => {
                   >
                     <div className="absolute bottom-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                       <Button
+                        type="primary"
                         size="small"
                         icon={<EditOutlined />}
                         className="bg-blue-500 hover:bg-blue-600 text-white border-0 shadow"
