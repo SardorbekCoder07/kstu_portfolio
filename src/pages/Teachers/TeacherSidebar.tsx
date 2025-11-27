@@ -14,7 +14,7 @@ import { InboxOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
 import type { UploadFile, UploadProps } from "antd/es/upload/interface";
 import { useQueryClient, type UseMutationResult } from "@tanstack/react-query";
-import { toast } from "sonner"; // YANGI IMPORT
+import { toast } from "sonner"; // Sonner import
 
 const { Dragger } = Upload;
 const { TextArea } = Input;
@@ -72,9 +72,11 @@ export const TeacherSidebar = ({
   const [currentEditMode, setCurrentEditMode] = useState(false);
   const queryClient = useQueryClient();
 
+  // Edit mode va initial values
   useEffect(() => {
     if (isOpen && initialValues?.id) {
       setCurrentEditMode(true);
+
       form.setFieldsValue({
         fullName: initialValues.fullName ?? "",
         email: initialValues.email ?? "",
@@ -92,9 +94,23 @@ export const TeacherSidebar = ({
         departmentId: initialValues.departmentId ?? undefined,
         lavozmId: initialValues.lavozmId ?? undefined,
       });
+
+      // Agar oldin rasm boʻlsa, koʻrsatish
+      if (initialValues.imgUrl) {
+        setFileList([
+          {
+            uid: "-1",
+            name: "Oldingi rasm",
+            status: "done",
+            url: initialValues.imgUrl,
+          },
+        ]);
+      }
     } else {
       setCurrentEditMode(false);
       form.resetFields();
+      setFileList([]);
+      setPDFfile([]);
     }
   }, [isOpen, initialValues, form]);
 
@@ -113,22 +129,24 @@ export const TeacherSidebar = ({
       if (currentEditMode && initialValues?.id) {
         // EDIT MODE
         let uploadedImageUrl = initialValues.imgUrl || "";
-        let uploadedPDFUrl = initialValues.imgUrl || ""; // agar oldin pdf bo'lsa
+        let uploadedPDFUrl = initialValues.fileUrl || initialValues.imgUrl || "";
 
+        // Yangi rasm yuklash
         if (fileList.length > 0 && fileList[0].originFileObj) {
           toast.loading("Rasm yuklanmoqda...");
-          const imageData = await uploadImageMutation.mutateAsync(fileList[0].originFileObj);
-          uploadedImageUrl = imageData || "";
+          const imageData = await uploadImageMutation.mutateAsync(fileList[0].originFileObj!);
+          uploadedImageUrl = imageData;
           toast.dismiss();
-          toast.success("Rasm yuklandi!");
+          toast.success("Rasm muvaffaqiyatli yuklandi!");
         }
 
+        // Yangi PDF yuklash
         if (PDFfile.length > 0 && PDFfile[0].originFileObj) {
           toast.loading("PDF yuklanmoqda...");
-          const pdfUrl = await uploadPDFMutation.mutateAsync(PDFfile[0].originFileObj);
-          uploadedPDFUrl = pdfUrl || "";
+          const pdfUrl = await uploadPDFMutation.mutateAsync(PDFfile[0].originFileObj!);
+          uploadedPDFUrl = pdfUrl;
           toast.dismiss();
-          toast.success("PDF yuklandi!");
+          toast.success("PDF muvaffaqiyatli yuklandi!");
         }
 
         const updateData = {
@@ -159,20 +177,17 @@ export const TeacherSidebar = ({
         handleClose();
       } else {
         // CREATE MODE
-        let uploadedImageUrl = "";
-        let uploadedPDFUrls: string[] = [];
-
         if (fileList.length === 0) {
-          toast.error("Ustozning rasmini yuklang!");
+          toast.error("Iltimos, ustozning rasmini yuklang!");
           return;
         }
 
         toast.loading("Rasm yuklanmoqda...");
         const imageData = await uploadImageMutation.mutateAsync(fileList[0].originFileObj!);
-        uploadedImageUrl = imageData || "";
         toast.dismiss();
         toast.success("Rasm yuklandi!");
 
+        let uploadedPDFUrls: string[] = [];
         if (PDFfile.length > 0) {
           toast.loading("PDF fayllar yuklanmoqda...");
           for (const file of PDFfile) {
@@ -182,14 +197,14 @@ export const TeacherSidebar = ({
             }
           }
           toast.dismiss();
-          toast.success("Barcha PDF yuklandi!");
+          toast.success(`${uploadedPDFUrls.length} ta PDF yuklandi!`);
         }
 
-        const formData: any = {
+        const formData = {
           fullName: values.fullName,
           phoneNumber: values.phoneNumber,
           biography: values.biography || "",
-          imgUrl: uploadedImageUrl,
+          imgUrl: imageData,
           input: values.input || "",
           profession: values.profession || "",
           lavozmId: Number(values.lavozmId),
@@ -214,16 +229,17 @@ export const TeacherSidebar = ({
       }
     } catch (error: any) {
       toast.error(error.message || "Ma'lumotlarni saqlashda xatolik yuz berdi!");
-      console.error("Submission error:", error);
+      console.error("Xatolik:", error);
     }
   };
 
+  // Rasm yuklash
   const draggerProps: UploadProps = {
     name: "teacherImage",
     multiple: false,
     fileList,
     maxCount: 1,
-    beforeUpload: (file: File) => {
+    beforeUpload: (file) => {
       const isImage = file.type.startsWith("image/");
       if (!isImage) {
         toast.error("Faqat rasm yuklash mumkin! (JPG, PNG, JPEG)");
@@ -245,45 +261,43 @@ export const TeacherSidebar = ({
       ]);
       return false;
     },
-    onRemove: () => {
-      setFileList([]);
-    },
+    onRemove: () => setFileList([]),
   };
 
+  // PDF yuklash
   const draggerPropsPDF: UploadProps = {
     name: "teacherPDF",
     multiple: true,
     fileList: PDFfile,
-    beforeUpload: (file: File & { uid?: string }) => {
-      const isAllowedType =
+    beforeUpload: (file) => {
+      const isAllowed =
         file.type === "application/pdf" ||
         file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-      if (!isAllowedType) {
-        toast.error("Faqat PDF yoki DOCX fayllarni yuklash mumkin!");
+      if (!isAllowed) {
+        toast.error("Faqat PDF yoki DOCX fayllar yuklanadi!");
         return Upload.LIST_IGNORE;
       }
 
       const isLt5M = file.size / 1024 / 1024 < 5;
       if (!isLt5M) {
-        toast.error("Har bir fayl hajmi 5MB dan kichik bo'lishi kerak!");
+        toast.error("Fayl hajmi 5MB dan kichik bo'lishi kerak!");
         return Upload.LIST_IGNORE;
       }
 
       setPDFfile((prev) => [
         ...prev,
         {
-          uid: file.uid || String(Date.now()),
+          uid: file.uid || Date.now().toString(),
           name: file.name,
           status: "done",
           originFileObj: file,
         } as UploadFile,
       ]);
-
       return false;
     },
     onRemove: (file) => {
-      setPDFfile((prev) => prev.filter((item) => item.uid !== file.uid));
+      setPDFfile((prev) => prev.filter((f) => f.uid !== file.uid));
     },
   };
 
@@ -299,9 +313,9 @@ export const TeacherSidebar = ({
       placement="right"
       onClose={handleClose}
       open={isOpen}
-      width={480}
+      width={520}
       footer={
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-3">
           <Button onClick={handleClose} size="large" disabled={isLoading}>
             Bekor qilish
           </Button>
@@ -311,15 +325,77 @@ export const TeacherSidebar = ({
             loading={isLoading}
             size="large"
           >
-            {currentEditMode ? "Saqlash" : "Qo'shish"}
+            {currentEditMode ? "Saqlash" : "Qo‘shish"}
           </Button>
         </div>
       }
     >
       <Form form={form} layout="vertical" autoComplete="off">
-        {/* Barcha Form.Item lar oʻzgarmadi – faqat toastlar oʻzgardi */}
-        {/* ... oldingi formalar ... */}
-        {/* Men ularni qisqartirdim, lekin oʻzgarmadi */}
+        {/* Barcha formalar */}
+        <Form.Item label="To'liq ism" name="fullName" rules={[{ required: true, message: "Ism kiriting!" }]}>
+          <Input placeholder="Ism Familiya" size="large" />
+        </Form.Item>
+
+        <Form.Item label="Email" name="email" rules={[{ required: true, type: "email", message: "To'g'ri email kiriting!" }]}>
+          <Input placeholder="email@example.com" size="large" />
+        </Form.Item>
+
+        <Form.Item label="Telefon raqami" name="phoneNumber" rules={[{ required: true }]}>
+          <Input placeholder="+998 XX XXX XX XX" size="large" />
+        </Form.Item>
+
+        <Form.Item label="Yosh" name="age" rules={[{ required: true }]}>
+          <InputNumber min={18} max={100} style={{ width: "100%" }} size="large" />
+        </Form.Item>
+
+        <Form.Item label="Jins" name="gender" rules={[{ required: true }]}>
+          <Radio.Group>
+            <Radio value="male">Erkak</Radio>
+            <Radio value="female">Ayol</Radio>
+          </Radio.Group>
+        </Form.Item>
+
+        {!currentEditMode && (
+          <Form.Item label="Parol" name="password" rules={[{ required: true, min: 6 }]}>
+            <Input.Password size="large" />
+          </Form.Item>
+        )}
+
+        <Form.Item label="Kafedra" name="departmentId" rules={[{ required: true }]}>
+          <Select placeholder="Kafedra tanlang" size="large" options={departmentList.map(d => ({ value: d.id, label: d.name }))} />
+        </Form.Item>
+
+        <Form.Item label="Lavozim" name="lavozmId" rules={[{ required: true }]}>
+          <Select placeholder="Lavozim tanlang" size="large" options={positionList.map(p => ({ value: p.id, label: p.name }))} />
+        </Form.Item>
+
+        <Form.Item label="Biografiya" name="biography" rules={[{ required: true }]}>
+          <TextArea rows={4} placeholder="Qisqacha biografiya" showCount />
+        </Form.Item>
+
+        <Form.Item label="Qo'shimcha ma'lumot" name="input" rules={[{ required: true }]}>
+          <Input size="large" />
+        </Form.Item>
+
+        <Form.Item label="Mutaxassisligi" name="profession" rules={[{ required: true }]}>
+          <Input size="large" />
+        </Form.Item>
+
+        <Form.Item label="Rasm" rules={[{ required: !currentEditMode, message: "Rasm yuklang!" }]}>
+          <Dragger {...draggerProps}>
+            <p className="ant-upload-drag-icon"><InboxOutlined /></p>
+            <p className="ant-upload-text">Rasmni bosing yoki sudrab keling</p>
+            <p className="ant-upload-hint">JPG, PNG, JPEG • Max 5MB</p>
+          </Dragger>
+        </Form.Item>
+
+        <Form.Item label="Fayllar (PDF/DOCX)" rules={[{ required: !currentEditMode, message: "Kamida 1 ta fayl yuklang!" }]}>
+          <Dragger {...draggerPropsPDF}>
+            <p className="ant-upload-drag-icon"><InboxOutlined /></p>
+            <p className="ant-upload-text">PDF yoki DOCX yuklang</p>
+            <p className="ant-upload-hint">Bir nechta fayl • Har biri max 5MB</p>
+          </Dragger>
+        </Form.Item>
       </Form>
     </Drawer>
   );
