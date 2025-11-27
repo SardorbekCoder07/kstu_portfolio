@@ -17,6 +17,8 @@ import Mukofot from "../../components/teacher/TabPanes/Award";
 import Maslahat from "../../components/teacher/TabPanes/Advice";
 import StatisticsCards from "../../components/teacher/StatisticsCards";
 import ResearchList from "../../components/teacher/TabPanes/ResearchList";
+import { useEffect } from "react";
+import { toast } from "sonner";
 
 const { TabPane } = Tabs;
 
@@ -52,11 +54,26 @@ const TeacherDetail = () => {
   }
 
   if (isError) {
-    message.error(error.message);
+    // Faqat bir marta chiqsin deyish uchun useEffect ichida koʻrsatamiz
+    useEffect(() => {
+      if (error?.message) {
+        toast.error(error.message);
+      } else {
+        toast.error("Ma'lumotlarni yuklashda xatolik yuz berdi!");
+      }
+    }, []); // Boʻsh dependency — faqat bir marta chiqadi
+
     return (
-      <p className="text-center text-red-500 mt-10">
-        Ma’lumotni yuklashda xatolik: {error.message}
-      </p>
+      <div className="flex flex-col items-center justify-center mt-20 gap-4">
+        <p className="text-red-500 text-lg">
+          Ma’lumotni yuklashda xatolik yuz berdi
+        </p>
+        {error?.message && (
+          <p className="text-sm text-gray-600 bg-gray-100 px-4 py-2 rounded">
+            {error.message}
+          </p>
+        )}
+      </div>
     );
   }
 
