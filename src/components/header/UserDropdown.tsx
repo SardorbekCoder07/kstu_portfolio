@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { Link } from "react-router";
 import { toast } from "sonner";
-import axiosClient from "../../api/axiosClient"; // 🟢 API ulanish
-import type { AxiosResponse } from "axios";
+import axiosClient from "../../api/axiosClient";
 
 interface UserData {
   id: number;

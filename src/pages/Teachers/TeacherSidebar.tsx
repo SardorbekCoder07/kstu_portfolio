@@ -57,7 +57,6 @@ interface TeacherSidebarProps {
 
 export const TeacherSidebar = ({
   initialValues,
-  editMode = false,
   departmentList = [],
   positionList = [],
   createMutation,
@@ -80,14 +79,6 @@ export const TeacherSidebar = ({
   useEffect(() => {
     if (isOpen && initialValues?.id) {
       setCurrentEditMode(true);
-
-      // Genderni boolean → string ("male"/"female") ga o'tkazish
-      const genderValue =
-        typeof initialValues.gender === "boolean"
-          ? initialValues.gender
-            ? "male"
-            : "female"
-          : initialValues.gender;
 
       form.setFieldsValue({
         fullName: initialValues.fullName ?? "",

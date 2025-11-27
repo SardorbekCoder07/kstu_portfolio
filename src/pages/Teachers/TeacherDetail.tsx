@@ -4,7 +4,6 @@ import {
   MailOutlined,
   PhoneOutlined,
   IdcardOutlined,
-  BankOutlined,
   ClockCircleOutlined,
 } from "@ant-design/icons";
 import { Teacher } from "../../api/pagesApi/teacherApi";

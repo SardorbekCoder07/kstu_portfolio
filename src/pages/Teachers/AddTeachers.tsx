@@ -266,11 +266,10 @@ const AddTeachers = () => {
                             block
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleEditTeacher(teacher);
-                              console.log(teacher);
+                              handleEditTeacher(teacher as Teacher);
                             }}
                           >
-                            <EditOutlined />     
+                            <EditOutlined />
                             Tahrirlash
                           </Button>
                         </div>
