@@ -192,12 +192,7 @@ const Faculties = () => {
     uploadImageMutation.isPending;
 
   // 🔍 Debug: Loading holati
-  console.log('🔍 Loading states:', {
-    isFacultiesLoading,
-    faculties: faculties.length,
-    total,
-  });
-
+ 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader

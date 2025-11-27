@@ -59,7 +59,6 @@ export const getAllDepartments = async (): Promise<SingleDepartment[]> => {
       `${API_ENDPOINTS.DEPARTMENT}/list`
     );
 
-    console.log(' GET All Departments Response:', response.data);
     return response.data.data;
   } catch (error: any) {
     console.error('GET All Departments Error:', error.response?.data || error.message);
@@ -90,7 +89,6 @@ export const getDepartments = async (
       { params: queryParams }
     );
 
-    console.log('📥 GET Response:', response.data);
     return response.data.data;
   } catch (error: any) {
     console.error('❌ GET Error:', error.response?.data || error.message);
@@ -123,7 +121,6 @@ export const updateDepartment = async (
       `${API_ENDPOINTS.DEPARTMENT}/${id}`,
       data
     );
-    // console.log('📥 PUT Response:', response.data);
     return response.data.data || response.data;
   } catch (error: any) {
     console.error('❌ PUT Error:', error.response?.data || error.message);
@@ -132,13 +129,11 @@ export const updateDepartment = async (
 };
 
 export const deleteDepartment = async (id: number): Promise<void> => {
-  // console.log('📤 DELETE Request URL:', `/department/${id}`);
 
   try {
     const response = await axiosClient.delete(
       `${API_ENDPOINTS.DEPARTMENT}/${id}`
     );
-    console.log('📥 DELETE Response:', response.data);
     return response.data;
   } catch (error: any) {
     console.error('❌ DELETE Error:', error.response?.data || error.message);

@@ -72,7 +72,6 @@ export const TeacherSidebar = ({
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    console.log("Initial values:", initialValues);
   }, [initialValues]);
 
   // Edit mode va initial values o'zgarishi bilan
