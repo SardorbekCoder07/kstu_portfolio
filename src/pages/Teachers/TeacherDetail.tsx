@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { Card, Tabs, Spin, message } from "antd";
+import { Card, Tabs, Spin } from "antd";
 import {
   MailOutlined,
   PhoneOutlined,
@@ -97,7 +97,7 @@ const TeacherDetail = () => {
           cover={
             <img
               alt="teacher"
-              src={teacher.imageUrl || "../../../public/images/image.png"}
+              src={teacher.imageUrl || "/public/images/image.png"}
               className="w-full h-[300px] object-cover rounded-xl"
             />
           }

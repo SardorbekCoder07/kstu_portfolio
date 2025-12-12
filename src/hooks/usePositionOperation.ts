@@ -74,7 +74,6 @@ export const usePositionOperations = () => {
     try {
       let addPosition = await addPositionMutation.mutateAsync(data);
       if (addPosition) {
-        toast.success("Lavozim muvaffaqqiyatli qo'shildi");
         return true;
       } else {
         toast.error("Bu lavozim allaqochon qo'shilgan");

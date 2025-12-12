@@ -16,7 +16,7 @@ import {
   PlusOutlined,
   InboxOutlined,
   EditOutlined,
-  DeleteOutlined
+  DeleteOutlined,
 } from "@ant-design/icons";
 import type { UploadFile, UploadProps } from "antd";
 import { useModal } from "../../../hooks/useModal";
@@ -49,7 +49,9 @@ const ResearchList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [editingResearch, setEditingResearch] = useState<Research | null>(null);
-  const [expandedCards, setExpandedCards] = useState<{ [key: number]: boolean }>({});
+  const [expandedCards, setExpandedCards] = useState<{
+    [key: number]: boolean;
+  }>({});
 
   const {
     researches,
@@ -60,15 +62,10 @@ const ResearchList: React.FC = () => {
     deleteResearchMutation,
     uploadPDFMutation,
     refetch,
-  } = useResearchOperations(
-    parseInt(id!),
-    currentPage,
-    pageSize,
-    () => {
-      handleCloseModal();
-      refetch();
-    }
-  );
+  } = useResearchOperations(parseInt(id!), currentPage, pageSize, () => {
+    handleCloseModal();
+    refetch();
+  });
 
   const handleCloseModal = () => {
     closeModal();
@@ -78,9 +75,9 @@ const ResearchList: React.FC = () => {
   };
 
   const toggleExpand = (itemId: number) => {
-    setExpandedCards(prev => ({
+    setExpandedCards((prev) => ({
       ...prev,
-      [itemId]: !prev[itemId]
+      [itemId]: !prev[itemId],
     }));
   };
 
@@ -102,8 +99,7 @@ const ResearchList: React.FC = () => {
   const handleDelete = async (researchId: number) => {
     try {
       await deleteResearchMutation.mutateAsync(researchId);
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   const handleSubmit = async () => {
@@ -178,6 +174,13 @@ const ResearchList: React.FC = () => {
       return false;
     },
   };
+  const truncateText = (
+    text: string | null | undefined,
+    limit: number = 10
+  ): string => {
+    if (!text) return "";
+    return text.length > limit ? text.slice(0, limit) + "..." : text;
+  };
 
   return (
     <>
@@ -216,9 +219,10 @@ const ResearchList: React.FC = () => {
                 const isExpanded = expandedCards[item.id];
                 const descriptionLength = item.description?.length || 0;
                 const shouldShowToggle = descriptionLength > 150;
-                const displayDescription = isExpanded || !shouldShowToggle
-                  ? item.description
-                  : item.description?.substring(0, 150) + "...";
+                const displayDescription =
+                  isExpanded || !shouldShowToggle
+                    ? item.description
+                    : item.description?.substring(0, 150) + "...";
 
                 return (
                   <div
@@ -274,7 +278,9 @@ const ResearchList: React.FC = () => {
                               onClick={() => toggleExpand(item.id)}
                               className="text-blue-600 hover:text-blue-700 font-medium text-xs mt-1 transition-colors"
                             >
-                              {isExpanded ? "Kamroq ko'rish" : "Ko'proq ko'rish"}
+                              {isExpanded
+                                ? "Kamroq ko'rish"
+                                : "Ko'proq ko'rish"}
                             </button>
                           )}
                         </div>
@@ -292,11 +298,15 @@ const ResearchList: React.FC = () => {
                           <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium">
                             {item.univerName}
                           </span>
+                          <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium">
+                            {truncateText(item.univerName)}
+                          </span>
                           <span
-                            className={`px-3 py-1 rounded-full font-medium ${item.finished
-                              ? "bg-green-100 text-green-700"
-                              : "bg-yellow-100 text-yellow-700"
-                              }`}
+                            className={`px-3 py-1 rounded-full font-medium ${
+                              item.finished
+                                ? "bg-green-100 text-green-700"
+                                : "bg-yellow-100 text-yellow-700"
+                            }`}
                           >
                             {item.finished ? "Tugallangan" : "Jarayonda"}
                           </span>
@@ -312,7 +322,9 @@ const ResearchList: React.FC = () => {
                         className="flex items-center gap-2 px-5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg cursor-pointer transition border border-blue-200 shadow-sm hover:shadow select-none flex-shrink-0"
                       >
                         <DownloadOutlined className="text-lg" />
-                        <span className="text-[13px] font-medium">PDF Fayli</span>
+                        <span className="text-[13px] font-medium">
+                          PDF Fayli
+                        </span>
                       </a>
                     )}
                   </div>
@@ -352,7 +364,9 @@ const ResearchList: React.FC = () => {
       <Modal
         title={
           <Title level={3}>
-            {editingResearch ? "Tadqiqotni tahrirlash" : "Yangi tadqiqot qo'shish"}
+            {editingResearch
+              ? "Tadqiqotni tahrirlash"
+              : "Yangi tadqiqot qo'shish"}
           </Title>
         }
         open={isOpen}

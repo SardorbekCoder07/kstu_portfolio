@@ -43,7 +43,6 @@ export const useFacultyOperations = (
   const createFacultyMutation = useMutation({
     mutationFn: createFaculty,
     onSuccess: () => {
-      toast.success("Fakultet muvaffaqiyatli qo'shildi!");
       queryClient.invalidateQueries({ queryKey: ['faculties'] });
       onSuccess?.();
     },
@@ -59,7 +58,6 @@ export const useFacultyOperations = (
   const updateFacultyMutation = useMutation({
     mutationFn: updateFaculty,
     onSuccess: () => {
-      toast.success('Fakultet muvaffaqiyatli yangilandi!');
       queryClient.invalidateQueries({ queryKey: ['faculties'] });
       onSuccess?.();
     },
@@ -75,7 +73,6 @@ export const useFacultyOperations = (
   const deleteFacultyMutation = useMutation({
     mutationFn: deleteFaculty,
     onSuccess: () => {
-      toast.success("Fakultet muvaffaqiyatli o'chirildi!");
       queryClient.invalidateQueries({ queryKey: ['faculties'] });
     },
     onError: (error: any) => {

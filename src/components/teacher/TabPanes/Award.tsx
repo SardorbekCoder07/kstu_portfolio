@@ -127,10 +127,8 @@ const Award: React.FC = () => {
           id: editingAward.id,
           ...data,
         });
-        toast.success("Mukofot yangilandi");
       } else {
         await createAwardMutation.mutateAsync(data);
-        toast.success("Yangi mukofot qo‘shildi");
       }
 
       handleCloseModal();

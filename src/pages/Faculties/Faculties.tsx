@@ -104,7 +104,6 @@ const Faculties = () => {
       let imageUrl = uploadedImageId || editingFaculty?.imgUrl || '';
 
       if (selectedFile) {
-        toast.loading('Rasm yuklanmoqda...');
 
         await new Promise<void>((resolve, reject) => {
           uploadImageMutation.mutate(selectedFile, {
@@ -138,7 +137,6 @@ const Faculties = () => {
           return;
         }
 
-        toast.loading('Fakultet yangilanmoqda...');
         updateFacultyMutation.mutate(
           { id: editingFaculty.id, data: facultyData },
           {
@@ -152,7 +150,6 @@ const Faculties = () => {
           }
         );
       } else {
-        toast.loading('Fakultet qoʻshilmoqda...');
         createFacultyMutation.mutate(facultyData, {
           onSuccess: () => {
             toast.success('Yangi fakultet muvaffaqiyatli qoʻshildi!');
@@ -187,7 +184,6 @@ const Faculties = () => {
 
   const handleDelete = (id: number) => {
     setDeletingId(id);
-    toast.loading('Fakultet oʻchirilmoqda...');
     deleteFacultyMutation.mutate(id, {
       onSuccess: () => {
         toast.success('Fakultet muvaffaqiyatli oʻchirildi!');

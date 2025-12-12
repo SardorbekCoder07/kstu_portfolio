@@ -396,7 +396,8 @@ const PublicationList: React.FC = () => {
                 <Select size="large">
                   <Select.Option value="ARTICLE">Maqola</Select.Option>
                   <Select.Option value="BOOK">Kitob</Select.Option>
-                  <Select.Option value="THESIS">Tadqiqot</Select.Option>
+                  <Select.Option value="PROCEEDING">Tadqiqot</Select.Option>
+                  <Select.Option value="OTHERS">Boshqa</Select.Option>
                 </Select>
               </Form.Item>
 
@@ -406,8 +407,9 @@ const PublicationList: React.FC = () => {
                 rules={[{ required: true, message: "Tanlang!" }]}
               >
                 <Select size="large">
-                  <Select.Option value="AUTHOR">Muallif</Select.Option>
+                  <Select.Option value="FIRST_AUTHOR">Muallif</Select.Option>
                   <Select.Option value="COAUTHOR">Hammuallif</Select.Option>
+                  <Select.Option value="BOTH_AUTHOR">Boshqa</Select.Option>
                 </Select>
               </Form.Item>
             </div>
@@ -419,7 +421,7 @@ const PublicationList: React.FC = () => {
                 rules={[{ required: true, message: "Darajani tanlang!" }]}
               >
                 <Select size="large">
-                  <Select.Option value="LOCAL">Mahalliy</Select.Option>
+                  <Select.Option value="NATIONAL">Mahalliy</Select.Option>
                   <Select.Option value="INTERNATIONAL">Xalqaro</Select.Option>
                 </Select>
               </Form.Item>

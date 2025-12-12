@@ -154,10 +154,8 @@ const AdviceList: React.FC = () => {
           id: editingAdvice.id,
           ...data,
         });
-        toast.success("Maslahat yangilandi");
       } else {
         await createAdviceMutation.mutateAsync(data);
-        toast.success("Yangi maslahat qo‘shildi");
       }
 
       handleCloseModal();

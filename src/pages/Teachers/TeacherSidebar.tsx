@@ -25,6 +25,7 @@ interface TeacherFormValues {
   phoneNumber: string;
   biography: string;
   imgUrl: string;
+  fileUrl: string;
   input: string;
   profession: string;
   lavozmId: number;
@@ -133,20 +134,16 @@ export const TeacherSidebar = ({
 
         // Yangi rasm yuklash
         if (fileList.length > 0 && fileList[0].originFileObj) {
-          toast.loading("Rasm yuklanmoqda...");
           const imageData = await uploadImageMutation.mutateAsync(fileList[0].originFileObj!);
           uploadedImageUrl = imageData;
           toast.dismiss();
-          toast.success("Rasm muvaffaqiyatli yuklandi!");
         }
 
         // Yangi PDF yuklash
         if (PDFfile.length > 0 && PDFfile[0].originFileObj) {
-          toast.loading("PDF yuklanmoqda...");
           const pdfUrl = await uploadPDFMutation.mutateAsync(PDFfile[0].originFileObj!);
           uploadedPDFUrl = pdfUrl;
           toast.dismiss();
-          toast.success("PDF muvaffaqiyatli yuklandi!");
         }
 
         const updateData = {
@@ -165,10 +162,8 @@ export const TeacherSidebar = ({
           fileUrl: uploadedPDFUrl,
         };
 
-        toast.loading("Ustoz ma'lumotlari yangilanmoqda...");
         await updateMutation?.mutateAsync(updateData);
         toast.dismiss();
-        toast.success("Ustoz muvaffaqiyatli tahrirlandi!");
 
         queryClient.invalidateQueries({ queryKey: ["teachers"] });
         queryClient.invalidateQueries({ queryKey: ["age-distribution"] });
@@ -182,14 +177,11 @@ export const TeacherSidebar = ({
           return;
         }
 
-        toast.loading("Rasm yuklanmoqda...");
         const imageData = await uploadImageMutation.mutateAsync(fileList[0].originFileObj!);
         toast.dismiss();
-        toast.success("Rasm yuklandi!");
 
         let uploadedPDFUrls: string[] = [];
         if (PDFfile.length > 0) {
-          toast.loading("PDF fayllar yuklanmoqda...");
           for (const file of PDFfile) {
             if (file.originFileObj) {
               const pdfUrl = await uploadPDFMutation.mutateAsync(file.originFileObj);
@@ -197,7 +189,6 @@ export const TeacherSidebar = ({
             }
           }
           toast.dismiss();
-          toast.success(`${uploadedPDFUrls.length} ta PDF yuklandi!`);
         }
 
         const formData = {
@@ -216,10 +207,8 @@ export const TeacherSidebar = ({
           pdfUrls: uploadedPDFUrls,
         };
 
-        toast.loading("Yangi ustoz qo'shilmoqda...");
         await createMutation.mutateAsync(formData);
         toast.dismiss();
-        toast.success("Yangi ustoz muvaffaqiyatli qo'shildi!");
 
         queryClient.invalidateQueries({ queryKey: ["teachers"] });
         queryClient.invalidateQueries({ queryKey: ["age-distribution"] });

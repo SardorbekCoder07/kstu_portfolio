@@ -133,7 +133,6 @@ const Control = () => {
         await createControlMutation.mutateAsync(payload as any);
       }
 
-      toast.success(editingItem ? "Nazorat yangilandi!" : "Nazorat qo'shildi!");
     } catch (err: any) {
       if (err.errorFields) {
         toast.error("Iltimos, barcha majburiy maydonlarni to'ldiring!");

@@ -59,9 +59,9 @@ const AddTeachers = () => {
   );
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  const [selectedTeacher, setSelectedTeacher] = useState<Partial<Teacher> | undefined>(
-    undefined
-  );
+  const [selectedTeacher, setSelectedTeacher] = useState<
+    Partial<Teacher> | undefined
+  >(undefined);
   const [isEditMode, setIsEditMode] = useState(false);
 
   const {
@@ -84,7 +84,6 @@ const AddTeachers = () => {
     closeDrawer
   );
 
-  // ✅ Barcha kafedralarni olish (collegeName bilan)
   const { allDepartments, isAllDepartmentsLoading } = useDepartmentOperations();
   const { positions } = usePositionOperations();
 
@@ -102,18 +101,20 @@ const AddTeachers = () => {
     openDrawer();
   };
 
-  const handleEditTeacher = (teacher: Teacher) => {
+  const handleEditTeacher = (teacher: any) => {
     setSelectedTeacher({
       id: teacher.id,
       fullName: teacher.fullName,
+      lavozim: teacher.lavozim,
       email: teacher.email,
       phoneNumber: teacher.phoneNumber,
-      biography: teacher.biography || "",
-      input: teacher.input || "",
-      profession: teacher.profession || "",
-      imgUrl: teacher.imgUrl,
-      age: teacher.age,
-      gender: teacher.gender,
+      biography: teacher.biography ?? "",
+      input: teacher.input ?? "",
+      profession: teacher.profession ?? "", // null → "" — xato shu yerda hal bo'ladi!
+      imgUrl: teacher.imgUrl ?? "",
+      age: teacher.age ?? undefined,
+      gender: teacher.gender ?? undefined,
+      departmentName: teacher.departmentName,
     });
     setIsEditMode(true);
     openDrawer();
@@ -146,7 +147,6 @@ const AddTeachers = () => {
     value: pos.name,
   }));
 
-  // ✅ allDepartments dan foydalanish - name ni ko'rsatamiz
   const collegeOptions = allDepartments.map((dept) => ({
     label: dept.name,
     value: dept.name,
@@ -269,7 +269,7 @@ const AddTeachers = () => {
                               handleEditTeacher(teacher);
                             }}
                           >
-                            <EditOutlined />     
+                            <EditOutlined />
                             Tahrirlash
                           </Button>
                         </div>
@@ -301,7 +301,10 @@ const AddTeachers = () => {
                   total={total}
                   pageSize={pageSize}
                   onChange={setCurrentPage}
-                  onShowSizeChange={setPageSize}
+                  onShowSizeChange={(page, size) => {
+                    setPageSize(size);
+                    setCurrentPage(1);
+                  }}
                   showSizeChanger
                   showQuickJumper
                   showTotal={(total, range) =>
