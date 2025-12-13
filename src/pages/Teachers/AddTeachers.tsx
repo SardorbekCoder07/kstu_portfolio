@@ -301,7 +301,7 @@ const AddTeachers = () => {
                   total={total}
                   pageSize={pageSize}
                   onChange={setCurrentPage}
-                  onShowSizeChange={(page, size) => {
+                  onShowSizeChange={(size) => {
                     setPageSize(size);
                     setCurrentPage(1);
                   }}
