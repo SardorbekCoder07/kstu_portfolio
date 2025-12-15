@@ -107,16 +107,16 @@ export default function GenderPieChart({
         outerRadius={120}
         dataKey="value"
         isAnimationActive={isAnimationActive}
-        label={({ cx, cy, midAngle, outerRadius, index }) => {
+        label={({ cx, cy, midAngle = 0, outerRadius, index }) => {
           const RADIAN = Math.PI / 180;
-          const radius = outerRadius + 15; 
+          const radius = outerRadius + 15;
           const x = cx + radius * Math.cos(-midAngle * RADIAN);
           const y = cy + radius * Math.sin(-midAngle * RADIAN);
           return (
             <text
               x={x}
               y={y}
-              fill={COLORS[index % COLORS.length]} 
+              fill={COLORS[index % COLORS.length]}
               textAnchor={x > cx ? "start" : "end"}
               dominantBaseline="central"
               fontWeight="bold"
@@ -126,7 +126,7 @@ export default function GenderPieChart({
           );
         }}
       >
-        {chartData.map((entry, index) => (
+        {chartData.map((_, index) => (
           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
         ))}
       </Pie>

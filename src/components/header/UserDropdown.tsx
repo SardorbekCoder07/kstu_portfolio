@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Dropdown } from '../ui/dropdown/Dropdown';
-import { Link } from 'react-router';
-import { toast } from 'sonner';
-import axiosClient from '../../api/axiosClient'; // 🟢 API ulanish
-import type { AxiosResponse } from 'axios';
+import { useState, useEffect } from "react";
+import { Dropdown } from "../ui/dropdown/Dropdown";
+import { Link } from "react-router";
+import { toast } from "sonner";
+import axiosClient from "../../api/axiosClient";
 
 interface UserData {
   id: number;
@@ -39,23 +38,26 @@ export default function UserDropdown() {
   }
 
   const logoutFn = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user_id');
-    toast.success('Siz tizimdan muvaffaqqiyatli chiqdingiz');
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user_id");
+    toast.success("Siz tizimdan muvaffaqqiyatli chiqdingiz");
   };
 
   // 🟢 Foydalanuvchi ma’lumotini API orqali olish:
   useEffect(() => {
+    const cached = localStorage.getItem("user_cache");
+
+    if (cached) {
+      setUser(JSON.parse(cached));
+      return;
+    }
+
     const fetchUser = async () => {
-      try {
-        const response: AxiosResponse<{ success: boolean; data: UserData }> = await axiosClient.get('/user');
-        if (response.data?.data) {
-          setUser(response.data.data);
-        }
-      } catch (error) {
-        toast.error('Foydalanuvchi ma’lumotlarini olishda xatolik yuz berdi!');
-      }
+      const response = await axiosClient.get("/user");
+      setUser(response.data.data);
+      localStorage.setItem("user_cache", JSON.stringify(response.data.data));
     };
+
     fetchUser();
   }, []);
 
@@ -67,19 +69,19 @@ export default function UserDropdown() {
       >
         <span className="mr-3 overflow-hidden rounded-full h-8 w-8 border-2 border-black">
           <img
-            src={user?.imageUrl || '/images/image.png'}
+            src={user?.imageUrl || "/images/image.png"}
             className="w-full h-full object-cover"
             alt="User"
           />
         </span>
 
         <span className="block mr-1 font-medium text-theme-sm">
-          {user?.fullName || 'Foydalanuvchi'}
+          {user?.fullName || "Foydalanuvchi"}
         </span>
 
         <svg
           className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
-            isOpen ? 'rotate-180' : ''
+            isOpen ? "rotate-180" : ""
           }`}
           width="18"
           height="20"
@@ -104,14 +106,19 @@ export default function UserDropdown() {
       >
         <div>
           <span className="mt-0.5 block text-lg text-gray-500 dark:text-gray-400">
-            ID: {user?.id ?? 'Noma’lum'}
+            ID: {user?.id ?? "Noma’lum"}
           </span>
         </div>
 
         {/* 🔹 Faqat null bo‘lmagan ma’lumotlarni chiqarish */}
         <div className="mt-3 space-y-1 text-sm text-gray-600 dark:text-gray-400">
           {Object.entries(user || {})
-            .filter(([_, value]) => value !== null && typeof value === 'string' && value.trim() !== '')
+            .filter(
+              ([_, value]) =>
+                value !== null &&
+                typeof value === "string" &&
+                value.trim() !== ""
+            )
             .map(([key, value]) => (
               <p key={key}>
                 <strong>{key}:</strong> {value as string}

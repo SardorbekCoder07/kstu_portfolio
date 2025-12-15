@@ -35,6 +35,7 @@ export interface TeacherUpdateData {
   email: string;
   biography: string;
   age: number;
+  gender: boolean;
   input?: string;
   imageUrl?: string;
   fileUrl?: string;
@@ -107,7 +108,6 @@ export interface Teacher {
   publication: { body: any[] };
 }
 
-
 export interface Pagination<T = any> {
   page: number;
   size: number;
@@ -121,7 +121,6 @@ export interface TeacherResponse {
   message: string;
   data: Teacher;
 }
-
 
 export const uploadTeacherImage = async (file: File): Promise<string> => {
   const formData = new FormData();
@@ -178,8 +177,6 @@ export const getTeachers = async (
     queryParams.college = params.college.trim();
   }
 
-  console.log("📤 GET Teachers Request URL:", `${API_ENDPOINTS.USERS}search`);
-  console.log("📤 GET Teachers Request params:", queryParams);
 
   try {
     const response = await axiosClient.get<TeachersResponse>(
@@ -189,7 +186,6 @@ export const getTeachers = async (
       }
     );
 
-    console.log("📥 GET Teachers Response:", response.data);
     return response.data.data;
   } catch (error: any) {
     console.error(
@@ -204,7 +200,6 @@ export const createTeacher = async (
 ): Promise<Teacher> => {
   try {
     const response = await axiosClient.post(API_ENDPOINTS.AUTHSAVEUSER, data);
-    console.log("📥 POST Teacher Response:", response.data);
     return response.data.data || response.data;
   } catch (error: any) {
     console.error(
@@ -219,11 +214,9 @@ export const updateTeacher = async (
   data: TeacherUpdateData
 ): Promise<Teacher> => {
   try {
-    console.log("📤 PUT Teacher Request (Body da ID bilan):", data);
 
     const response = await axiosClient.put(API_ENDPOINTS.EDITUSERS, data);
 
-    console.log("📥 PUT Teacher Response:", response.data);
     return response.data.data || response.data;
   } catch (error: any) {
     console.error(

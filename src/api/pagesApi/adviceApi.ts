@@ -1,7 +1,36 @@
-import axiosClient from '../axiosClient';
-import { API_ENDPOINTS } from '../endpoints';
+import axiosClient from "../axiosClient";
+import { API_ENDPOINTS } from "../endpoints";
 
-export interface Research {
+export enum FinishedEnum {
+  COMPLETED = "COMPLETED",
+  IN_PROGRESS = "IN_PROGRESS",
+  FINISHED = "FINISHED",
+}
+
+export interface AdviceCreate {
+  name: string;
+  description: string;
+  year: number;
+  fileUrl: string;
+  userId: number;
+  member: boolean;
+  finishedEnum: FinishedEnum;
+  leader: string;
+}
+
+export interface AdviceUpdate {
+  id: number; // update qilinadigan obyektning ID si
+  name: string;
+  description: string;
+  year: number;
+  fileUrl: string;
+  userId: number;
+  member: boolean;
+  finishedEnum: FinishedEnum;
+  leader: string;
+}
+
+export interface Advice {
   id: number;
   name: string;
   description: string;
@@ -9,48 +38,11 @@ export interface Research {
   fileUrl: string;
   userId: number;
   member: boolean;
-  univerName: string;
-  finished: boolean;
-  memberEnum: 'MILLIY' | 'XALQARO';
-  createdAt?: string;
-  updatedAt?: string;
+  finishedEnum: FinishedEnum;
+  leader: string;
 }
 
-export interface ResearchCreateData {
-  name: string;
-  description: string;
-  year: number;
-  fileUrl: string;
-  userId: number;
-  member: boolean;
-  univerName: string;
-  finished: boolean;
-  memberEnum: 'MILLIY' | 'XALQARO';
-}
-
-export interface ResearchUpdateData {
-  id: number;
-  name: string;
-  description: string;
-  year: number;
-  fileUrl: string;
-  userId: number;
-  member: boolean;
-  univerName: string;
-  finished: boolean;
-  memberEnum: 'MILLIY' | 'XALQARO';
-}
-
-export interface GetResearchParams {
-  page?: number;
-  size?: number;
-  name?: string;
-  userId?: number;
-  memberEnum?: 'MILLIY' | 'XALQARO';
-  finished?: boolean;
-}
-
-export interface ResearchResponse {
+export interface AdviceResponse {
   success: boolean;
   message: string;
   data: {
@@ -58,17 +50,18 @@ export interface ResearchResponse {
     size: number;
     totalPage: number;
     totalElements: number;
-    body: Research[];
+    body: Advice[];
   };
 }
-export const getResearchesByUser = async (
+
+export const getAdviceByUser = async (
   userId: number,
   page: number = 0,
   size: number = 10
-): Promise<ResearchResponse['data']> => {
+): Promise<AdviceResponse['data']> => {
   try {
-    const response = await axiosClient.get<ResearchResponse>(
-      `${API_ENDPOINTS.RESEARCH}/byUser/${userId}`,
+    const response = await axiosClient.get<AdviceResponse>(
+      `${API_ENDPOINTS.ADVICE}/byUser/${userId}`,
       {
         params: { page, size }
       }
@@ -80,7 +73,7 @@ export const getResearchesByUser = async (
   }
 };
 
-export const uploadResearchPDF = async (file: File): Promise<string> => {
+export const uploadAdvicePDF = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append('file', file);
 
@@ -102,13 +95,12 @@ export const uploadResearchPDF = async (file: File): Promise<string> => {
   );
 };
 
-
-export const createResearch = async (
-  data: ResearchCreateData
-): Promise<Research> => {
+export const createAdvice = async (
+  data: AdviceCreate
+): Promise<Advice> => {
   try {
     const response = await axiosClient.post(
-      API_ENDPOINTS.RESEARCH,
+      API_ENDPOINTS.ADVICE,
       data
     );
     return response.data.data || response.data;
@@ -117,13 +109,13 @@ export const createResearch = async (
   }
 };
 
-export const updateResearch = async (
-  data: ResearchUpdateData
-): Promise<Research> => {
+export const updateAdvice = async (
+  data: AdviceUpdate
+): Promise<Advice> => {
   try {
 
     const response = await axiosClient.put(
-      `${API_ENDPOINTS.RESEARCH}/${data.id}`,
+      `${API_ENDPOINTS.ADVICE}/${data.id}`,
       data
     );
     return response.data.data || response.data;
@@ -132,10 +124,10 @@ export const updateResearch = async (
   }
 };
 
-export const deleteResearch = async (id: number): Promise<void> => {
+export const deleteAdvice = async (id: number): Promise<void> => {
   try {
     const response = await axiosClient.delete(
-      `${API_ENDPOINTS.RESEARCH}/${id}`
+      `${API_ENDPOINTS.ADVICE}/${id}`
     );
     return response.data;
   } catch (error: any) {
@@ -143,3 +135,4 @@ export const deleteResearch = async (id: number): Promise<void> => {
     throw error;
   }
 };
+

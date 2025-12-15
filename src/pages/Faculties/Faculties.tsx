@@ -2,11 +2,12 @@ import { PlusOutlined } from '@ant-design/icons';
 import { useModalStore } from '../../stores/useModalStore';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useState, useEffect } from 'react';
-import { message, Pagination } from 'antd';
+import { Pagination } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { FacultyTable } from './FacultyTable';
 import { FacultyModal } from './FacultyModal';
 import { useFacultyOperations } from '../../hooks/useFacultyOperation';
+import { toast } from 'sonner'; // YANGI IMPORT
 
 interface Faculty {
   id: number;
@@ -25,25 +26,20 @@ const Faculties = () => {
   const [editingFaculty, setEditingFaculty] = useState<Faculty | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  // ✅ Qidiruv state
   const [searchValue, setSearchValue] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  // ✅ Pagination state
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
 
-  // ✅ Debounce qidiruv
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchValue);
       setCurrentPage(0);
     }, 500);
-
     return () => clearTimeout(timer);
   }, [searchValue]);
 
-  // ✅ Fakultet operatsiyalari
   const {
     faculties,
     total,
@@ -79,12 +75,12 @@ const Faculties = () => {
     beforeUpload: async (file: File) => {
       const isImage = file.type.startsWith('image/');
       if (!isImage) {
-        message.error('Faqat rasm yuklash mumkin!');
+        toast.error('Faqat rasm yuklash mumkin!');
         return false;
       }
       const isLt5M = file.size / 1024 / 1024 < 5;
       if (!isLt5M) {
-        message.error("Rasm hajmi 5MB dan kichik bo'lishi kerak!");
+        toast.error("Rasm hajmi 5MB dan kichik bo'lishi kerak!");
         return false;
       }
       setFileList([file as any]);
@@ -100,7 +96,7 @@ const Faculties = () => {
 
   const handleSave = async () => {
     if (!facultyName.trim()) {
-      message.error('Fakultet nomini kiriting!');
+      toast.error('Fakultet nomini kiriting!');
       return;
     }
 
@@ -108,16 +104,18 @@ const Faculties = () => {
       let imageUrl = uploadedImageId || editingFaculty?.imgUrl || '';
 
       if (selectedFile) {
+
         await new Promise<void>((resolve, reject) => {
           uploadImageMutation.mutate(selectedFile, {
             onSuccess: data => {
               imageUrl = data;
               setUploadedImageId(data);
+              toast.success('Rasm muvaffaqiyatli yuklandi!');
               resolve();
             },
-            onError: error => {
-              message.error('Rasmni yuklashda xatolik!');
-              reject(error);
+            onError: () => {
+              toast.error('Rasmni yuklashda xatolik yuz berdi!');
+              reject();
             },
           });
         });
@@ -134,20 +132,36 @@ const Faculties = () => {
           imageUrl !== editingFaculty.imgUrl;
 
         if (!hasChanges) {
-          message.info("Hech qanday o'zgarish kiritilmadi!");
+          toast.info("Hech qanday o'zgarish kiritilmadi!");
           resetForm();
           return;
         }
 
-        updateFacultyMutation.mutate({
-          id: editingFaculty.id,
-          data: facultyData,
-        });
+        updateFacultyMutation.mutate(
+          { id: editingFaculty.id, data: facultyData },
+          {
+            onSuccess: () => {
+              toast.success('Fakultet muvaffaqiyatli yangilandi!');
+              resetForm();
+            },
+            onError: () => {
+              toast.error('Fakultetni yangilashda xatolik!');
+            },
+          }
+        );
       } else {
-        createFacultyMutation.mutate(facultyData);
+        createFacultyMutation.mutate(facultyData, {
+          onSuccess: () => {
+            toast.success('Yangi fakultet muvaffaqiyatli qoʻshildi!');
+            resetForm();
+          },
+          onError: () => {
+            toast.error('Fakultet qoʻshishda xatolik!');
+          },
+        });
       }
     } catch (error) {
-      console.error('Error saving faculty:', error);
+      toast.error('Kutilmagan xatolik yuz berdi!');
     }
   };
 
@@ -171,17 +185,21 @@ const Faculties = () => {
   const handleDelete = (id: number) => {
     setDeletingId(id);
     deleteFacultyMutation.mutate(id, {
+      onSuccess: () => {
+        toast.success('Fakultet muvaffaqiyatli oʻchirildi!');
+      },
+      onError: () => {
+        toast.error('Fakultetni oʻchirishda xatolik!');
+      },
       onSettled: () => setDeletingId(null),
     });
   };
 
-  // ✅ Pagination o'zgarishi
   const handlePageChange = (page: number, pageSize: number) => {
     setCurrentPage(page - 1);
     setPageSize(pageSize);
   };
 
-  // ✅ Qidiruv o'zgarishi
   const handleSearchChange = (value: string) => {
     setSearchValue(value);
   };
@@ -190,13 +208,6 @@ const Faculties = () => {
     createFacultyMutation.isPending ||
     updateFacultyMutation.isPending ||
     uploadImageMutation.isPending;
-
-  // 🔍 Debug: Loading holati
-  console.log('🔍 Loading states:', {
-    isFacultiesLoading,
-    faculties: faculties.length,
-    total,
-  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -214,7 +225,7 @@ const Faculties = () => {
         }}
       />
 
-      {/* ✅ Error display */}
+      {/* Xatolik */}
       {facultiesError && (
         <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
           <strong>Xatolik:</strong>{' '}
@@ -223,7 +234,6 @@ const Faculties = () => {
         </div>
       )}
 
-      {/* ✅ Fakultetlar jadvali */}
       <FacultyTable
         faculties={faculties}
         isLoading={isFacultiesLoading}
@@ -235,7 +245,6 @@ const Faculties = () => {
         text='Fakultet'
       />
 
-      {/* ✅ Pagination */}
       {total > 0 && (
         <div className="flex justify-end mt-4">
           <Pagination
@@ -251,7 +260,6 @@ const Faculties = () => {
         </div>
       )}
 
-      {/* Modal */}
       <FacultyModal
         isOpen={isOpen}
         onCancel={resetForm}

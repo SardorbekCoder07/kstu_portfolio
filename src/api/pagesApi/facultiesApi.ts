@@ -74,15 +74,12 @@ export const getFaculties = async (
     queryParams.name = params.name.trim();
   }
 
-  console.log('📤 GET Faculties Request URL:', '/college/page');
-  console.log('📤 GET Faculties Request params:', queryParams);
 
   try {
     const response = await axiosClient.get<FacultiesResponse>('/college/page', {
       params: queryParams,
     });
 
-    console.log('📥 GET Faculties Response:', response.data);
     return response.data.data;
   } catch (error: any) {
     console.error(
@@ -103,11 +100,9 @@ export const getAllFaculties = async (): Promise<Faculty[]> => {
 export const createFaculty = async (
   data: FacultyCreateData
 ): Promise<Faculty> => {
-  console.log('📤 POST Faculty Request:', data);
 
   try {
     const response = await axiosClient.post(API_ENDPOINTS.FACULTIES, data);
-    console.log('📥 POST Faculty Response:', response.data);
     return response.data.data || response.data;
   } catch (error: any) {
     console.error(
@@ -126,14 +121,12 @@ export const updateFaculty = async ({
   id: number;
   data: FacultyUpdateData;
 }): Promise<Faculty> => {
-  console.log('📤 PUT Faculty Request:', { id, data });
 
   try {
     const response = await axiosClient.put(
       `${API_ENDPOINTS.FACULTIES}/${id}`,
       data
     );
-    console.log('📥 PUT Faculty Response:', response.data);
     return response.data.data || response.data;
   } catch (error: any) {
     console.error(
@@ -146,13 +139,11 @@ export const updateFaculty = async ({
 
 // ✅ DELETE - Fakultetni o'chirish
 export const deleteFaculty = async (id: number): Promise<void> => {
-  console.log('📤 DELETE Faculty Request:', id);
 
   try {
     const response = await axiosClient.delete(
       `${API_ENDPOINTS.FACULTIES}/${id}`
     );
-    console.log('📥 DELETE Faculty Response:', response.data);
     return response.data;
   } catch (error: any) {
     console.error(

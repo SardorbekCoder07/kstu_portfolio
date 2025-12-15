@@ -8,7 +8,6 @@ import {
   GetTeachersParams,
   uploadTeacherPDF,
   updateTeacher,
-  TeacherUpdateData,
 } from '../api/pagesApi/teacherApi';
 
 export const useTeacherOperations = (

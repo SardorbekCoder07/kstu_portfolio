@@ -2,7 +2,9 @@ import { toast } from 'sonner';
 import {
     createResearch,
     uploadResearchPDF,
-    getResearchesByUser
+    getResearchesByUser,
+    updateResearch,
+    deleteResearch,
 } from '../api/pagesApi/researchApi';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -22,7 +24,7 @@ export const useResearchOperations = (
     } = useQuery({
         queryKey: ['researches', userId, page, size],
         queryFn: () => getResearchesByUser(userId!, page, size),
-        enabled: !!userId, 
+        enabled: !!userId,
     });
 
     const createResearchMutation = useMutation({
@@ -32,10 +34,35 @@ export const useResearchOperations = (
             queryClient.invalidateQueries({ queryKey: ['researches'] });
             onSuccess?.();
         },
+        onError: () => {
+            toast.error("Tadqiqot qo'shishda xatolik yuz berdi!");
+        },
+    });
+
+    const updateResearchMutation = useMutation({
+        mutationFn: updateResearch,
+        onSuccess: () => {
+            toast.success('Tadqiqot muvaffaqiyatli yangilandi!');
+            queryClient.invalidateQueries({ queryKey: ['researches'] });
+            onSuccess?.();
+        },
         onError: (error: any) => {
             toast.error(
                 error?.response?.data?.message ||
-                "Tadqiqot qo'shishda xatolik yuz berdi!"
+                'Tadqiqotni yangilashda xatolik yuz berdi!'
+            );
+        },
+    });
+    const deleteResearchMutation = useMutation({
+        mutationFn: deleteResearch,
+        onSuccess: () => {
+            toast.success("Tadqiqot muvaffaqiyatli o'chirildi!");
+            queryClient.invalidateQueries({ queryKey: ['researches'] });
+        },
+        onError: (error: any) => {
+            toast.error(
+                error?.response?.data?.message ||
+                "Tadqiqotni o'chirishda xatolik yuz berdi!"
             );
         },
     });
@@ -43,8 +70,8 @@ export const useResearchOperations = (
     const uploadPDFMutation = useMutation({
         mutationFn: uploadResearchPDF,
         onSuccess: () => {
-            toast.success("PDF muvaffaqiyatli yuklandi!");
         },
+
         onError: (error: any) => {
             toast.error(
                 error?.response?.data?.message ||
@@ -62,8 +89,10 @@ export const useResearchOperations = (
         isResearchLoading,
         researchError,
         refetch,
+
         createResearchMutation,
+        updateResearchMutation,
+        deleteResearchMutation,
         uploadPDFMutation,
     };
 };
-

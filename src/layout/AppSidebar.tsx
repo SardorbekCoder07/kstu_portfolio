@@ -15,33 +15,32 @@ type NavItem = {
 const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
-    name: 'Dashboard',
+    name: 'Dashboard Panel',
     subItems: [
-      { name: 'Admin', path: '/admin', pro: false },
-      { name: 'Teachers', path: '/admins', pro: false },
+      { name: 'Admin Panel', path: '/admin', pro: false },
     ],
   },
   {
-    name: 'Faculties',
+    name: 'Fakultetlar',
     icon: <GraduationCap />,
-    subItems: [{ name: 'Add Faculties', path: '/faculties', pro: false }],
+    subItems: [{ name: 'Fakultetlar Qo\'shish', path: '/faculties', pro: false }],
   },
   {
-    name: 'Departments',
+    name: 'Bo\'limlar',
     icon: <Layers />,
-    subItems: [{ name: 'Departments', path: '/departments', pro: false }],
+    subItems: [{ name: 'Bo\'limlar', path: '/departments', pro: false }],
   },
   {
-    name: 'Teachers',
+    name: 'O\'qituvchilar',
     icon: <Users />,
     subItems: [
-      { name: 'Add Teachers', path: '/add-teachers', pro: false },
+      { name: 'O\'qituvchi qo\'shish', path: '/add-teachers', pro: false },
     ],
   },
   {
-    name: 'Position',
+    name: 'Lavozim',
     icon: <Grid />,
-    subItems: [{ name: 'Add Position', path: '/position', pro: false }],
+    subItems: [{ name: 'Lavozim qo\'shish', path: '/position', pro: false }],
   },
 ];
 
@@ -290,7 +289,7 @@ const AppSidebar: React.FC = () => {
         <Link to="/">
           {isExpanded || isHovered || isMobileOpen ? (
             <span className="text-2xl font-bold leading-1.5 ">
-              Portfolio Teachers
+              Portfolio o'qituvchilari
             </span>
           ) : (
             <img
@@ -314,7 +313,7 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  'Menu'
+                  'Menyu'
                 ) : (
                   <HorizontaLDots className="size-6" />
                 )}
