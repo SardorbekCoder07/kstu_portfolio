@@ -19,6 +19,7 @@ interface FacultyTableProps {
   isDeleting: boolean;
   isKafedra?: boolean;
   emptyText: string;
+  text:string;
 }
 
 export const FacultyTable = ({
@@ -30,6 +31,7 @@ export const FacultyTable = ({
   isDeleting,
   isKafedra,
   emptyText,
+  text,
 }: FacultyTableProps) => {
   const columns = [
     {
@@ -97,11 +99,11 @@ export const FacultyTable = ({
           </Button>
           <Popconfirm
             title={
-              <span className="text-sm sm:text-base">Fakultetni o'chirish</span>
+              <span className="text-sm sm:text-base">{text}ni o'chirish</span>
             }
             description={
               <span className="text-xs sm:text-sm">
-                Haqiqatan ham bu fakultetni o'chirmoqchimisiz?
+                Haqiqatan ham bu {text.toLowerCase()}ni o'chirmoqchimisiz?
               </span>
             }
             onConfirm={() => onDelete(record.id)}

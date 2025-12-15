@@ -232,6 +232,7 @@ const Faculties = () => {
         deletingId={deletingId}
         isDeleting={deleteFacultyMutation.isPending}
         emptyText="Fakultet topilmadi"
+        text='Fakultet'
       />
 
       {/* ✅ Pagination */}

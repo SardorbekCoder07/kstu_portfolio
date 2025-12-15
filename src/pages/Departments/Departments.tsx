@@ -230,6 +230,7 @@ const Departments = () => {
         isDeleting={deleteDepartmentMutation.isPending}
         isKafedra={true}
         emptyText="Kafedra topilmadi"
+        text="Kafedra"
       />
 
       {/* ✅ Pagination */}
