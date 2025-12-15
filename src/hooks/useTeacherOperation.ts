@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import {
   uploadTeacherImage,
@@ -8,7 +8,7 @@ import {
   GetTeachersParams,
   uploadTeacherPDF,
   updateTeacher,
-} from '../api/pagesApi/teacherApi';
+} from "../api/pagesApi/teacherApi";
 
 export const useTeacherOperations = (
   params?: GetTeachersParams,
@@ -24,7 +24,7 @@ export const useTeacherOperations = (
     error: teachersError,
     refetch,
   } = useQuery({
-    queryKey: ['teachers', params],
+    queryKey: ["teachers", params],
     queryFn: () => getTeachers(params),
   });
 
@@ -35,7 +35,7 @@ export const useTeacherOperations = (
       return data;
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Rasm yuklashda xatolik!');
+      toast.error(error?.response?.data?.message || "Rasm yuklashda xatolik!");
       throw error;
     },
   });
@@ -47,7 +47,7 @@ export const useTeacherOperations = (
       return data;
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'PDF yuklashda xatolik!');
+      toast.error(error?.response?.data?.message || "PDF yuklashda xatolik!");
       throw error;
     },
   });
@@ -57,7 +57,7 @@ export const useTeacherOperations = (
     mutationFn: createTeacher,
     onSuccess: () => {
       toast.success("O'qituvchi muvaffaqiyatli qo'shildi!");
-      queryClient.invalidateQueries({ queryKey: ['teachers'] });
+      queryClient.invalidateQueries({ queryKey: ["teachers"] });
       onSuccess?.();
     },
     onError: (error: any) => {
@@ -73,7 +73,7 @@ export const useTeacherOperations = (
     mutationFn: updateTeacher,
     onSuccess: () => {
       toast.success("O'qituvchi muvaffaqiyatli yangilandi!");
-      queryClient.invalidateQueries({ queryKey: ['teachers'] });
+      queryClient.invalidateQueries({ queryKey: ["teachers"] });
       onSuccess?.();
     },
     onError: (error: any) => {

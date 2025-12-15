@@ -24,7 +24,7 @@ interface TeacherFormValues {
   fullName: string;
   phoneNumber: string;
   biography: string;
-  imgUrl: string;
+  imageUrl: string;
   fileUrl: string;
   input: string;
   profession: string;
@@ -97,13 +97,13 @@ export const TeacherSidebar = ({
       });
 
       // Agar oldin rasm boʻlsa, koʻrsatish
-      if (initialValues.imgUrl) {
+      if (initialValues.imageUrl) {
         setFileList([
           {
             uid: "-1",
             name: "Oldingi rasm",
             status: "done",
-            url: initialValues.imgUrl,
+            url: initialValues.imageUrl,
           },
         ]);
       }
@@ -129,8 +129,8 @@ export const TeacherSidebar = ({
 
       if (currentEditMode && initialValues?.id) {
         // EDIT MODE
-        let uploadedImageUrl = initialValues.imgUrl || "";
-        let uploadedPDFUrl = initialValues.fileUrl || initialValues.imgUrl || "";
+        let uploadedImageUrl = initialValues.imageUrl || "";
+        let uploadedPDFUrl = initialValues.fileUrl || initialValues.imageUrl || "";
 
         // Yangi rasm yuklash
         if (fileList.length > 0 && fileList[0].originFileObj) {
@@ -151,7 +151,7 @@ export const TeacherSidebar = ({
           fullName: values.fullName,
           phoneNumber: values.phoneNumber,
           biography: values.biography || "",
-          imgUrl: uploadedImageUrl,
+          imageUrl: uploadedImageUrl,
           input: values.input || "",
           profession: values.profession || "",
           lavozmId: Number(values.lavozmId),
@@ -195,7 +195,7 @@ export const TeacherSidebar = ({
           fullName: values.fullName,
           phoneNumber: values.phoneNumber,
           biography: values.biography || "",
-          imgUrl: imageData,
+          imageUrl: imageData,
           input: values.input || "",
           profession: values.profession || "",
           lavozmId: Number(values.lavozmId),

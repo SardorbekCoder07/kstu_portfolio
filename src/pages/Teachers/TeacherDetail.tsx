@@ -1,5 +1,7 @@
 import { useParams } from "react-router-dom";
-import { Card, Tabs, Spin } from "antd";
+import { Card, Tabs, Spin, Button } from "antd";
+import { FilePdfOutlined } from "@ant-design/icons";
+import image from "../../assets/images/image.png"
 import {
   MailOutlined,
   PhoneOutlined,
@@ -97,7 +99,7 @@ const TeacherDetail = () => {
           cover={
             <img
               alt="teacher"
-              src={teacher.imageUrl || "/public/images/image.png"}
+              src={teacher.imageUrl || image}
               className="w-full h-[300px] object-cover rounded-xl"
             />
           }
@@ -139,6 +141,29 @@ const TeacherDetail = () => {
                 {teacher.lavozimName || "—"}
               </p>
             </div>
+
+            {/* fileUrl tugmasi */}
+            {teacher.fileUrl && (
+              <div className="mt-3">
+                <Button
+                  type="primary"
+                  icon={<FilePdfOutlined />}
+                  size="middle"
+                  block
+                  onClick={() => {
+                    if (teacher.fileUrl) {
+                      window.open(
+                        teacher.fileUrl,
+                        "_blank",
+                        "noopener,noreferrer"
+                      );
+                    }
+                  }}
+                >
+                  PDFni ochish
+                </Button>
+              </div>
+            )}
           </div>
         </Card>
 

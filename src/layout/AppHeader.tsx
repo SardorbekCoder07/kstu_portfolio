@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-
+import image from "../assets/images/kstu-logo.png"
 import { Link } from 'react-router';
 import { useSidebar } from '../context/SidebarContext';
 import UserDropdown from '../components/header/UserDropdown';
@@ -84,12 +84,14 @@ const AppHeader: React.FC = () => {
           <Link to="/" className="lg:hidden">
             <img
               className="dark:hidden"
-              src="./images/logo/logo.svg"
+              src={image}
+              width={60}
               alt="Logo"
             />
             <img
               className="hidden dark:block"
-              src="./images/logo/logo-dark.svg"
+              src={image}
+              width={60}
               alt="Logo"
             />
           </Link>

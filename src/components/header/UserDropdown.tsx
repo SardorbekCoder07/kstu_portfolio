@@ -3,6 +3,7 @@ import { Dropdown } from "../ui/dropdown/Dropdown";
 import { Link } from "react-router";
 import { toast } from "sonner";
 import axiosClient from "../../api/axiosClient";
+import image from "../../assets/images/image.png"
 
 interface UserData {
   id: number;
@@ -69,7 +70,7 @@ export default function UserDropdown() {
       >
         <span className="mr-3 overflow-hidden rounded-full h-8 w-8 border-2 border-black">
           <img
-            src={user?.imageUrl || "/images/image.png"}
+            src={user?.imageUrl || image}
             className="w-full h-full object-cover"
             alt="User"
           />
