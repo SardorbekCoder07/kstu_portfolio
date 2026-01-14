@@ -21,17 +21,37 @@ export default function SignInForm() {
       return;
     }
 
+    // Teacher uchun +998 formatini qo‘shish (agar 9 raqam bo‘lsa)
+    let formattedPhone = phone;
+    const numeric = phone.replace(/\D/g, '');
+    if (numeric.length === 9) {
+      formattedPhone = '+998' + numeric;
+    }
+
     login(
-      { phone, password },
+      { phone: formattedPhone, password },
       {
         onSuccess: data => {
-          if (data?.data) {
+          const role = data?.message; // ROLE_TEACHER yoki ROLE_ADMIN
+
+          if (role === 'ROLE_TEACHER' || role === 'ROLE_ADMIN') {
+            // Avvalgi user ma’lumotlarini tozalash
+            localStorage.clear();
+
+            // Yangi user ma’lumotlarini saqlash
             localStorage.setItem('access_token', data.data);
-            const expiryTime = new Date(Date.now() + 30 * 60 * 1000);
-            localStorage.setItem('token_expiry', expiryTime.toISOString());
-            localStorage.setItem('user_id', phone);
-            toast.success('Siz tizimga muvaffaqqiyatli  kirdingiz');
-            navigate('/admin', { replace: true });
+            localStorage.setItem('token_expiry', new Date(Date.now() + 30 * 60 * 1000).toISOString());
+            localStorage.setItem('user_id', formattedPhone);
+            localStorage.setItem('role', role);
+
+            toast.success(`Siz tizimga muvaffaqqiyatli kirdingiz: ${role}`);
+
+            // Role bo‘yicha yo‘naltirish
+            if (role === 'ROLE_TEACHER') {
+              navigate('/teacher', { replace: true });
+            } else if (role === 'ROLE_ADMIN') {
+              navigate('/admin', { replace: true });
+            }
           } else {
             toast.error('Login yoki parol xato!');
           }
@@ -45,26 +65,27 @@ export default function SignInForm() {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto bg-white  rounded-2xl shadow-2xl transition-all duration-500 hover:shadow-blue-200 dark:hover:shadow-blue-900 p-10 ">
+      <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto bg-white rounded-2xl shadow-2xl transition-all duration-500 hover:shadow-blue-200 dark:hover:shadow-blue-900 p-10">
         <div>
           <div className="mb-5 sm:mb-8">
             <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
               Kirish
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Kirish uchun ID va parolingizni kiriting!
+              Kirish uchun ID yoki telefon va parolingizni kiriting!
             </p>
           </div>
+
           <form onSubmit={handleSubmit}>
             <div className="space-y-6">
-              {/* ID input */}
+              {/* ID / Phone input */}
               <div>
                 <label className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                  ID <span className="text-error-500">*</span>
+                  ID / Phone <span className="text-error-500">*</span>
                 </label>
                 <AntInput
-                  placeholder="Enter your ID"
-                  type="number"
+                  placeholder="Enter your ID or Phone"
+                  type="text"
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
                   size="large"

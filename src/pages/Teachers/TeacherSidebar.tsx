@@ -24,7 +24,7 @@ interface TeacherFormValues {
   fullName: string;
   phoneNumber: string;
   biography: string;
-  imageUrl: string;
+  imgUrl: string;
   fileUrl: string;
   input: string;
   profession: string;
@@ -97,13 +97,13 @@ export const TeacherSidebar = ({
       });
 
       // Agar oldin rasm boʻlsa, koʻrsatish
-      if (initialValues.imageUrl) {
+      if (initialValues.imgUrl) {
         setFileList([
           {
             uid: "-1",
             name: "Oldingi rasm",
             status: "done",
-            url: initialValues.imageUrl,
+            url: initialValues.imgUrl,
           },
         ]);
       }
@@ -129,19 +129,24 @@ export const TeacherSidebar = ({
 
       if (currentEditMode && initialValues?.id) {
         // EDIT MODE
-        let uploadedImageUrl = initialValues.imageUrl || "";
-        let uploadedPDFUrl = initialValues.fileUrl || initialValues.imageUrl || "";
+        let uploadedImageUrl = initialValues.imgUrl || "";
+        let uploadedPDFUrl =
+          initialValues.fileUrl || initialValues.imgUrl || "";
 
         // Yangi rasm yuklash
         if (fileList.length > 0 && fileList[0].originFileObj) {
-          const imageData = await uploadImageMutation.mutateAsync(fileList[0].originFileObj!);
+          const imageData = await uploadImageMutation.mutateAsync(
+            fileList[0].originFileObj!
+          );
           uploadedImageUrl = imageData;
           toast.dismiss();
         }
 
         // Yangi PDF yuklash
         if (PDFfile.length > 0 && PDFfile[0].originFileObj) {
-          const pdfUrl = await uploadPDFMutation.mutateAsync(PDFfile[0].originFileObj!);
+          const pdfUrl = await uploadPDFMutation.mutateAsync(
+            PDFfile[0].originFileObj!
+          );
           uploadedPDFUrl = pdfUrl;
           toast.dismiss();
         }
@@ -151,7 +156,7 @@ export const TeacherSidebar = ({
           fullName: values.fullName,
           phoneNumber: values.phoneNumber,
           biography: values.biography || "",
-          imageUrl: uploadedImageUrl,
+          imgUrl: uploadedImageUrl,
           input: values.input || "",
           profession: values.profession || "",
           lavozmId: Number(values.lavozmId),
@@ -177,14 +182,18 @@ export const TeacherSidebar = ({
           return;
         }
 
-        const imageData = await uploadImageMutation.mutateAsync(fileList[0].originFileObj!);
+        const imageData = await uploadImageMutation.mutateAsync(
+          fileList[0].originFileObj!
+        );
         toast.dismiss();
 
         let uploadedPDFUrls: string[] = [];
         if (PDFfile.length > 0) {
           for (const file of PDFfile) {
             if (file.originFileObj) {
-              const pdfUrl = await uploadPDFMutation.mutateAsync(file.originFileObj);
+              const pdfUrl = await uploadPDFMutation.mutateAsync(
+                file.originFileObj
+              );
               uploadedPDFUrls.push(pdfUrl);
             }
           }
@@ -195,7 +204,7 @@ export const TeacherSidebar = ({
           fullName: values.fullName,
           phoneNumber: values.phoneNumber,
           biography: values.biography || "",
-          imageUrl: imageData,
+          imgUrl: imageData,
           input: values.input || "",
           profession: values.profession || "",
           lavozmId: Number(values.lavozmId),
@@ -217,7 +226,9 @@ export const TeacherSidebar = ({
         handleClose();
       }
     } catch (error: any) {
-      toast.error(error.message || "Ma'lumotlarni saqlashda xatolik yuz berdi!");
+      toast.error(
+        error.message || "Ma'lumotlarni saqlashda xatolik yuz berdi!"
+      );
       console.error("Xatolik:", error);
     }
   };
@@ -261,7 +272,8 @@ export const TeacherSidebar = ({
     beforeUpload: (file) => {
       const isAllowed =
         file.type === "application/pdf" ||
-        file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        file.type ===
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
       if (!isAllowed) {
         toast.error("Faqat PDF yoki DOCX fayllar yuklanadi!");
@@ -321,20 +333,43 @@ export const TeacherSidebar = ({
     >
       <Form form={form} layout="vertical" autoComplete="off">
         {/* Barcha formalar */}
-        <Form.Item label="To'liq ism" name="fullName" rules={[{ required: true, message: "Ism kiriting!" }]}>
+        <Form.Item
+          label="To'liq ism"
+          name="fullName"
+          rules={[{ required: true, message: "Ism kiriting!" }]}
+        >
           <Input placeholder="Ism Familiya" size="large" />
         </Form.Item>
 
-        <Form.Item label="Email" name="email" rules={[{ required: true, type: "email", message: "To'g'ri email kiriting!" }]}>
+        <Form.Item
+          label="Email"
+          name="email"
+          rules={[
+            {
+              required: true,
+              type: "email",
+              message: "To'g'ri email kiriting!",
+            },
+          ]}
+        >
           <Input placeholder="email@example.com" size="large" />
         </Form.Item>
 
-        <Form.Item label="Telefon raqami" name="phoneNumber" rules={[{ required: true }]}>
+        <Form.Item
+          label="Telefon raqami"
+          name="phoneNumber"
+          rules={[{ required: true }]}
+        >
           <Input placeholder="+998 XX XXX XX XX" size="large" />
         </Form.Item>
 
         <Form.Item label="Yosh" name="age" rules={[{ required: true }]}>
-          <InputNumber min={18} max={100} style={{ width: "100%" }} size="large" />
+          <InputNumber
+            min={18}
+            max={100}
+            style={{ width: "100%" }}
+            size="large"
+          />
         </Form.Item>
 
         <Form.Item label="Jins" name="gender" rules={[{ required: true }]}>
@@ -345,44 +380,92 @@ export const TeacherSidebar = ({
         </Form.Item>
 
         {!currentEditMode && (
-          <Form.Item label="Parol" name="password" rules={[{ required: true, min: 6 }]}>
+          <Form.Item
+            label="Parol"
+            name="password"
+            rules={[{ required: true, min: 6 }]}
+          >
             <Input.Password size="large" />
           </Form.Item>
         )}
 
-        <Form.Item label="Kafedra" name="departmentId" rules={[{ required: true }]}>
-          <Select placeholder="Kafedra tanlang" size="large" options={departmentList.map(d => ({ value: d.id, label: d.name }))} />
+        <Form.Item
+          label="Kafedra"
+          name="departmentId"
+          rules={[{ required: true }]}
+        >
+          <Select
+            placeholder="Kafedra tanlang"
+            size="large"
+            options={departmentList.map((d) => ({
+              value: d.id,
+              label: d.name,
+            }))}
+          />
         </Form.Item>
 
         <Form.Item label="Lavozim" name="lavozmId" rules={[{ required: true }]}>
-          <Select placeholder="Lavozim tanlang" size="large" options={positionList.map(p => ({ value: p.id, label: p.name }))} />
+          <Select
+            placeholder="Lavozim tanlang"
+            size="large"
+            options={positionList.map((p) => ({ value: p.id, label: p.name }))}
+          />
         </Form.Item>
 
-        <Form.Item label="Biografiya" name="biography" rules={[{ required: true }]}>
+        <Form.Item
+          label="Biografiya"
+          name="biography"
+          rules={[{ required: true }]}
+        >
           <TextArea rows={4} placeholder="Qisqacha biografiya" showCount />
         </Form.Item>
 
-        <Form.Item label="Qo'shimcha ma'lumot" name="input" rules={[{ required: true }]}>
+        <Form.Item
+          label="Qo'shimcha ma'lumot"
+          name="input"
+          rules={[{ required: true }]}
+        >
           <Input size="large" />
         </Form.Item>
 
-        <Form.Item label="Mutaxassisligi" name="profession" rules={[{ required: true }]}>
+        <Form.Item
+          label="Mutaxassisligi"
+          name="profession"
+          rules={[{ required: true }]}
+        >
           <Input size="large" />
         </Form.Item>
 
-        <Form.Item label="Rasm" rules={[{ required: !currentEditMode, message: "Rasm yuklang!" }]}>
+        <Form.Item
+          label="Rasm"
+          rules={[{ required: !currentEditMode, message: "Rasm yuklang!" }]}
+        >
           <Dragger {...draggerProps}>
-            <p className="ant-upload-drag-icon"><InboxOutlined /></p>
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
             <p className="ant-upload-text">Rasmni bosing yoki sudrab keling</p>
             <p className="ant-upload-hint">JPG, PNG, JPEG • Max 5MB</p>
           </Dragger>
         </Form.Item>
 
-        <Form.Item label="Fayllar (PDF/DOCX)" rules={[{ required: !currentEditMode, message: "Kamida 1 ta fayl yuklang!" }]}>
+        <Form.Item
+          label="Fayllar (PDF/DOCX)"
+          rules={[
+            {
+              required: !currentEditMode,
+              message: "Kamida 1 ta fayl yuklang!",
+            },
+          ]}
+        >
           <Dragger {...draggerPropsPDF}>
-            <p className="ant-upload-drag-icon"><InboxOutlined /></p>
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
             <p className="ant-upload-text">PDF yoki DOCX yuklang</p>
-            <p className="ant-upload-hint">Bir nechta fayl • Har biri max 5MB</p>
+            <p className="ant-upload-hint">
+              Bir nechta fayl • Har biri max 5MB
+            </p>
           </Dragger>
         </Form.Item>
       </Form>

@@ -15,11 +15,17 @@ import Departments from './pages/Departments/Departments';
 import TeacherDetail from './pages/Teachers/TeacherDetail';
 import Postion from './pages/Position/Postion';
 import NetworkListener from './components/NetworkListener';
+import HomeTeacher from './pages/Dashboard/HomeTeacher';
+import Research from './pages/Research/Research';
+import Controls from './pages/Controls/Controls';
+import Publications from './pages/Publications/Publications';
+import Awards from './pages/Awards/Awards';
+import Consultations from './pages/Consultations/Consultations';
 
 export default function App() {
   return (
     <>
-      <NetworkListener /> 
+      <NetworkListener />
       <Router>
         <Toaster position="top-right" duration={2000} richColors />
         <ScrollToTop />
@@ -34,9 +40,15 @@ export default function App() {
               </ProtectedRoute>
             }
           >
+            <Route index path="/teacher" element={<HomeTeacher />} />
             <Route index path="/admin" element={<Home />} />
-            <Route path="/faculties" element={<Faculties />} />
+            <Route path="/research" element={<Research />} />
+            <Route path="/controls" element={<Controls />} />
+            <Route path="/publications" element={<Publications />} />
+            <Route path="/awards" element={<Awards />} />
+            <Route path="/consultations" element={<Consultations />} />
             <Route path="/departments" element={<Departments />} />
+            <Route path="/faculties" element={<Faculties />} />
             <Route path="/add-teachers" element={<AddTeachers />} />
             <Route path="/position" element={<Postion />} />
             <Route path="/teachers/:id" element={<TeacherDetail />} />

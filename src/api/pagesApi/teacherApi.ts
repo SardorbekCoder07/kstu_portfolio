@@ -6,7 +6,7 @@ export interface Teacher {
   name: string;
   lavozim: string;
   email: string;
-  imgUrl: string;
+  imageUrl: string;
   input: string;
   phoneNumber: string;
   departmentName: string;
@@ -37,7 +37,7 @@ export interface TeacherUpdateData {
   age: number;
   gender: boolean;
   input?: string;
-  imageUrl?: string;
+  imgUrl?: string;
   fileUrl?: string;
   profession?: string;
 }
@@ -92,7 +92,7 @@ export interface Teacher {
   email: string;
   biography: string;
   input: string;
-  imageUrl: string;
+  imgUrl: string;
   role: string;
   fileUrl: string | null;
   profession: string | null;

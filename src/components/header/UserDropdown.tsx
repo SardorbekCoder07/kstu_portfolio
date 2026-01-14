@@ -3,7 +3,7 @@ import { Dropdown } from "../ui/dropdown/Dropdown";
 import { Link } from "react-router";
 import { toast } from "sonner";
 import axiosClient from "../../api/axiosClient";
-import image from "../../assets/images/image.png"
+import image from "../../assets/images/image.png";
 
 interface UserData {
   id: number;
@@ -113,18 +113,14 @@ export default function UserDropdown() {
 
         {/* 🔹 Faqat null bo‘lmagan ma’lumotlarni chiqarish */}
         <div className="mt-3 space-y-1 text-sm text-gray-600 dark:text-gray-400">
-          {Object.entries(user || {})
-            .filter(
-              ([_, value]) =>
-                value !== null &&
-                typeof value === "string" &&
-                value.trim() !== ""
-            )
-            .map(([key, value]) => (
+          {["fullName", "email", "phone"].map((key) => {
+            const value = user?.[key as keyof typeof user];
+            return value ? (
               <p key={key}>
-                <strong>{key}:</strong> {value as string}
+                <strong>{key}:</strong> {value}
               </p>
-            ))}
+            ) : null;
+          })}
         </div>
 
         <Link

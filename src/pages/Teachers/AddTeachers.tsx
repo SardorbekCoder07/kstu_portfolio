@@ -300,8 +300,8 @@ const AddTeachers = () => {
                   current={currentPage}
                   total={total}
                   pageSize={pageSize}
-                  onChange={setCurrentPage}
-                  onShowSizeChange={(size) => {
+                  onChange={(page) => setCurrentPage(page)}
+                  onShowSizeChange={(_, size) => {
                     setPageSize(size);
                     setCurrentPage(1);
                   }}
@@ -310,7 +310,7 @@ const AddTeachers = () => {
                   showTotal={(total, range) =>
                     `${range[0]}-${range[1]} / ${total} ta`
                   }
-                  pageSizeOptions={["10", "20", "30", "50"]}
+                  pageSizeOptions={["5","10", "20", "30", "50"]}
                   locale={{
                     items_per_page: "/ sahifa",
                     jump_to: "O'tish",
