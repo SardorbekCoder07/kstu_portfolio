@@ -19,7 +19,6 @@ type NavItem = {
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
-// Admin menyulari
 const adminNavItems: NavItem[] = [
   {
     icon: <GridIcon />,
@@ -52,7 +51,6 @@ const adminNavItems: NavItem[] = [
   },
 ];
 
-// Teacher menyulari
 const teacherNavItems: NavItem[] = [
   {
     name: "Ma'lumotlarim",
@@ -99,16 +97,15 @@ const AppSidebar: React.FC = () => {
   );
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const role = localStorage.getItem("role"); // ROLE_ADMIN yoki ROLE_TEACHER
+  const role = localStorage.getItem("role");
 
-  let title = "Portfolio o'qituvchilari"; // default
+  let title = "Portfolio o'qituvchilari";
 
   if (role === "ROLE_TEACHER") {
     title = "O‘qituvchi Dashboard";
   } else if (role === "ROLE_ADMIN") {
     title = "Admin Dashboard";
   }
-  // Role asosida navItems tanlash
   const navItems = role === "ROLE_TEACHER" ? teacherNavItems : adminNavItems;
 
   const isActive = useCallback(
