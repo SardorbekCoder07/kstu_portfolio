@@ -134,7 +134,15 @@ const Publications: React.FC = () => {
         onCancel={resetForm}
         publicationName={publicationName}
         onPublicationNameChange={setPublicationName}
-        editingPublication={editingPublication}
+        editingPublication={
+          editingPublication
+            ? {
+                id: editingPublication.id,
+                name: editingPublication.title,
+                imgUrl: editingPublication.image,
+              }
+            : null
+        }
         fileList={fileList}
         draggerProps={draggerProps}
         onSave={handleSave}

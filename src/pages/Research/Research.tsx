@@ -135,7 +135,15 @@ const Research: React.FC = () => {
         onCancel={resetForm}
         researchName={researchName}
         onResearchNameChange={setResearchName}
-        editingResearch={editingResearch}
+        editingResearch={
+          editingResearch
+            ? {
+                id: editingResearch.id,
+                name: editingResearch.title,
+                imgUrl: editingResearch.image,
+              }
+            : null
+        }
         fileList={fileList}
         draggerProps={draggerProps}
         onSave={handleSave}

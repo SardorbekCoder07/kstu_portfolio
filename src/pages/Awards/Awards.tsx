@@ -2,6 +2,9 @@ import React, { useState, useMemo } from "react";
 import { PlusOutlined } from "@ant-design/icons";
 import { PageHeader } from "../../components/ui/PageHeader";
 import AwardsTable from "./AwardsTable";
+import AwardsModal from "./AwardsModal";
+import type { UploadFile, UploadProps } from "antd/es/upload/interface";
+
 import award1 from "../../assets/images/image.png";
 import award2 from "../../assets/images/image.png";
 import award3 from "../../assets/images/image.png";
@@ -13,7 +16,7 @@ interface AwardItem {
 }
 
 const Awards: React.FC = () => {
-  // Static awards data
+  /** ===================== DATA ===================== */
   const initialData: AwardItem[] = [
     { id: 1, image: award1, title: "Matematika bo‘yicha mukofot" },
     { id: 2, image: award2, title: "Geometriya tadqiqotlari mukofoti" },
@@ -26,7 +29,14 @@ const Awards: React.FC = () => {
   const [data, setData] = useState<AwardItem[]>(initialData);
   const [searchValue, setSearchValue] = useState("");
 
-  // Search filter
+  /** ===================== MODAL STATES ===================== */
+  const [isOpen, setIsOpen] = useState(false);
+  const [awardName, setAwardName] = useState("");
+  const [editingAward, setEditingAward] = useState<AwardItem | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+
+  /** ===================== SEARCH ===================== */
   const filteredData = useMemo(() => {
     if (!searchValue.trim()) return data;
     return data.filter(item =>
@@ -34,36 +44,73 @@ const Awards: React.FC = () => {
     );
   }, [searchValue, data]);
 
-  // Add new award
-  const handleAdd = () => {
-    const title = prompt("Mukofot nomini kiriting:");
-    if (title && title.trim()) {
-      const newItem: AwardItem = {
-        id: data.length + 1,
-        image: award1, // default rasm
-        title: title.trim(),
-      };
-      setData(prev => [newItem, ...prev]);
-    }
+  /** ===================== MODAL HELPERS ===================== */
+  const openAddModal = () => {
+    setEditingAward(null);
+    setAwardName("");
+    setFileList([]);
+    setIsOpen(true);
   };
 
-  // Edit award
-  const handleEdit = (item: AwardItem) => {
-    const newTitle = prompt("Mukofot nomini tahrirlash:", item.title);
-    if (newTitle && newTitle.trim()) {
-      setData(prev =>
-        prev.map(d => (d.id === item.id ? { ...d, title: newTitle.trim() } : d))
-      );
-    }
+  const openEditModal = (item: AwardItem) => {
+    setEditingAward(item);
+    setAwardName(item.title);
+    setFileList([]);
+    setIsOpen(true);
   };
 
-  // Delete award
+  const resetForm = () => {
+    setIsOpen(false);
+    setAwardName("");
+    setEditingAward(null);
+    setFileList([]);
+  };
+
+  /** ===================== SAVE ===================== */
+  const handleSave = () => {
+    if (!awardName.trim()) return;
+
+    setIsSaving(true);
+
+    setTimeout(() => {
+      if (editingAward) {
+        setData(prev =>
+          prev.map(item =>
+            item.id === editingAward.id
+              ? { ...item, title: awardName.trim() }
+              : item
+          )
+        );
+      } else {
+        const newItem: AwardItem = {
+          id: Date.now(),
+          title: awardName.trim(),
+          image: award1,
+        };
+        setData(prev => [newItem, ...prev]);
+      }
+
+      setIsSaving(false);
+      resetForm();
+    }, 500);
+  };
+
+  /** ===================== DELETE ===================== */
   const handleDelete = (id: number) => {
-    if (confirm("Haqiqatan ham bu mukofotni o'chirmoqchimisiz?")) {
+    if (confirm("Haqiqatan ham bu mukofotni o‘chirmoqchimisiz?")) {
       setData(prev => prev.filter(item => item.id !== id));
     }
   };
 
+  /** ===================== UPLOAD ===================== */
+  const draggerProps: UploadProps = {
+    fileList,
+    maxCount: 1,
+    beforeUpload: () => false,
+    onChange: info => setFileList(info.fileList),
+  };
+
+  /** ===================== RENDER ===================== */
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
@@ -74,18 +121,34 @@ const Awards: React.FC = () => {
         onSearchChange={setSearchValue}
         buttonText="Mukofot qo‘shish"
         buttonIcon={<PlusOutlined />}
-        onButtonClick={handleAdd}
+        onButtonClick={openAddModal}
       />
 
       <AwardsTable
         data={filteredData}
         isLoading={false}
-        onEdit={handleEdit}
+        onEdit={openEditModal}
         onDelete={handleDelete}
         deletingId={null}
         isDeleting={false}
         emptyText="Mukofot topilmadi"
-        onAdd={handleAdd}
+        onAdd={openAddModal}
+      />
+
+      <AwardsModal
+        isOpen={isOpen}
+        onCancel={resetForm}
+        awardName={awardName}
+        onAwardNameChange={setAwardName}
+        editingAward={
+          editingAward
+            ? { id: editingAward.id, name: editingAward.title, imgUrl: editingAward.image }
+            : null
+        }
+        fileList={fileList}
+        draggerProps={draggerProps}
+        onSave={handleSave}
+        isSaving={isSaving}
       />
     </div>
   );
