@@ -5,6 +5,7 @@ import ControlsTable from "./ControlsTable"; // table component
 import research1 from "../../assets/images/image.png";
 import research2 from "../../assets/images/image.png";
 import research3 from "../../assets/images/image.png";
+import ControlsModal from "./ControlsModal";
 
 interface ResearchItem {
   id: number;
@@ -86,6 +87,18 @@ const Controls: React.FC = () => {
         isDeleting={false}
         emptyText="Nazorat topilmadi"
         onAdd={handleAdd}
+      />
+
+      <ControlsModal
+        isOpen={isOpen}
+        onCancel={resetForm}
+        facultyName={facultyName}
+        onFacultyNameChange={setFacultyName}
+        editingFaculty={editingFaculty}
+        fileList={fileList}
+        draggerProps={draggerProps}
+        onSave={handleSave}
+        isSaving={isSaving}
       />
     </div>
   );

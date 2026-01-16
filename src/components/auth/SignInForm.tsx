@@ -44,7 +44,7 @@ export default function SignInForm() {
             localStorage.setItem('user_id', formattedPhone);
             localStorage.setItem('role', role);
 
-            toast.success(`Siz tizimga muvaffaqqiyatli kirdingiz: ${role}`);
+            toast.success(`Siz tizimga muvaffaqqiyatli kirdingiz !`);
 
             // Role bo‘yicha yo‘naltirish
             if (role === 'ROLE_TEACHER') {

@@ -1,69 +1,111 @@
 import React, { useState, useMemo } from "react";
 import { PlusOutlined } from "@ant-design/icons";
+import type { UploadFile } from "antd/es/upload/interface";
 import { PageHeader } from "../../components/ui/PageHeader";
 import ResearchTable from "./ResearchTable";
+import { ResearchModal } from "./ResearchModal";
+
 import research1 from "../../assets/images/image.png";
 import research2 from "../../assets/images/image.png";
 import research3 from "../../assets/images/image.png";
 
 interface ResearchItem {
   id: number;
-  image: string;
   title: string;
+  image: string;
 }
 
 const Research: React.FC = () => {
-  // Static tadqiqotlar ma'lumotlari
+  /* ===================== DATA ===================== */
   const initialData: ResearchItem[] = [
     { id: 1, image: research1, title: "Algebra va analiz tadqiqotlari" },
     { id: 2, image: research2, title: "Geometriya va topologiya tadqiqotlari" },
     { id: 3, image: research3, title: "Matematika ta’lim metodikasi" },
-    { id: 4, image: research1, title: "Differensial tenglamalar tadqiqotlari" },
-    { id: 5, image: research2, title: "Statistika va ehtimollik tadqiqotlari" },
-    { id: 6, image: research3, title: "Kiberxavfsizlik bo‘yicha tadqiqotlar" },
   ];
 
   const [data, setData] = useState<ResearchItem[]>(initialData);
   const [searchValue, setSearchValue] = useState("");
 
-  // Search filter
+  /* ===================== MODAL STATE ===================== */
+  const [isOpen, setIsOpen] = useState(false);
+  const [researchName, setResearchName] = useState("");
+  const [editingResearch, setEditingResearch] = useState<ResearchItem | null>(
+    null
+  );
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+
+  /* ===================== SEARCH ===================== */
   const filteredData = useMemo(() => {
     if (!searchValue.trim()) return data;
-    return data.filter(item =>
+    return data.filter((item) =>
       item.title.toLowerCase().includes(searchValue.toLowerCase())
     );
   }, [searchValue, data]);
 
-  // Tadqiqot qo'shish funksiyasi (oddiy misol uchun prompt)
+  /* ===================== MODAL HELPERS ===================== */
+  const resetForm = () => {
+    setIsOpen(false);
+    setResearchName("");
+    setEditingResearch(null);
+    setFileList([]);
+  };
+
   const handleAdd = () => {
-    const title = prompt("Tadqiqot nomini kiriting:");
-    if (title && title.trim()) {
-      const newItem: ResearchItem = {
-        id: data.length + 1,
-        image: research1, // default rasm
-        title: title.trim(),
-      };
-      setData(prev => [newItem, ...prev]);
-    }
+    setEditingResearch(null);
+    setResearchName("");
+    setIsOpen(true);
   };
 
-  // Edit funksiyasi (prompt orqali)
   const handleEdit = (item: ResearchItem) => {
-    const newTitle = prompt("Tadqiqot nomini tahrirlash:", item.title);
-    if (newTitle && newTitle.trim()) {
-      setData(prev =>
-        prev.map(d => (d.id === item.id ? { ...d, title: newTitle.trim() } : d))
-      );
-    }
+    setEditingResearch(item);
+    setResearchName(item.title);
+    setIsOpen(true);
   };
 
-  // Delete funksiyasi
   const handleDelete = (id: number) => {
-    if (confirm("Haqiqatan ham bu tadqiqotni o'chirmoqchimisiz?")) {
-      setData(prev => prev.filter(item => item.id !== id));
+    if (confirm("Haqiqatan ham o‘chirmoqchimisiz?")) {
+      setData((prev) => prev.filter((item) => item.id !== id));
     }
   };
 
+  /* ===================== SAVE ===================== */
+  const handleSave = () => {
+    setIsSaving(true);
+
+    setTimeout(() => {
+      if (editingResearch) {
+        setData((prev) =>
+          prev.map((item) =>
+            item.id === editingResearch.id
+              ? { ...item, title: researchName }
+              : item
+          )
+        );
+      } else {
+        const newItem: ResearchItem = {
+          id: Date.now(),
+          title: researchName,
+          image: research1,
+        };
+        setData((prev) => [newItem, ...prev]);
+      }
+
+      setIsSaving(false);
+      resetForm();
+    }, 600);
+  };
+
+  /* ===================== UPLOAD ===================== */
+  const draggerProps = {
+    fileList,
+    maxCount: 1,
+    beforeUpload: () => false,
+    onChange: ({ fileList }: { fileList: UploadFile[] }) =>
+      setFileList(fileList),
+  };
+
+  /* ===================== UI ===================== */
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
@@ -86,6 +128,18 @@ const Research: React.FC = () => {
         isDeleting={false}
         emptyText="Tadqiqot topilmadi"
         onAdd={handleAdd}
+      />
+
+      <ResearchModal
+        isOpen={isOpen}
+        onCancel={resetForm}
+        researchName={researchName}
+        onResearchNameChange={setResearchName}
+        editingResearch={editingResearch}
+        fileList={fileList}
+        draggerProps={draggerProps}
+        onSave={handleSave}
+        isSaving={isSaving}
       />
     </div>
   );
