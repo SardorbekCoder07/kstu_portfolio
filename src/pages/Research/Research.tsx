@@ -1,111 +1,113 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { PlusOutlined } from "@ant-design/icons";
-import type { UploadFile } from "antd/es/upload/interface";
 import { PageHeader } from "../../components/ui/PageHeader";
-import ResearchTable from "./ResearchTable";
-import { ResearchModal } from "./ResearchModal";
+import ResearchTable, { ResearchItem } from "./ResearchTable";
+import { ResearchModal, ResearchFormData, INITIAL_FORM } from "./ResearchModal";
+import { useResearchOperations } from "../../hooks/useResearchOperation";
+import type { UploadFile } from "antd/es/upload/interface";
+import { Spin } from "antd";
+import { toast } from "sonner";
 
-import research1 from "../../assets/images/image.png";
-import research2 from "../../assets/images/image.png";
-import research3 from "../../assets/images/image.png";
-
-interface ResearchItem {
-  id: number;
-  title: string;
-  image: string;
-}
+const dataId = JSON.parse(localStorage.getItem("user_cache") || "{}");
+const USER_ID = dataId.id;
 
 const Research: React.FC = () => {
-  /* ===================== DATA ===================== */
-  const initialData: ResearchItem[] = [
-    { id: 1, image: research1, title: "Algebra va analiz tadqiqotlari" },
-    { id: 2, image: research2, title: "Geometriya va topologiya tadqiqotlari" },
-    { id: 3, image: research3, title: "Matematika ta’lim metodikasi" },
-  ];
+  const {
+    researches,
+    isResearchLoading,
+    createResearchMutation,
+    updateResearchMutation,
+    uploadPDFMutation,
+  } = useResearchOperations(USER_ID);
 
-  const [data, setData] = useState<ResearchItem[]>(initialData);
   const [searchValue, setSearchValue] = useState("");
-
-  /* ===================== MODAL STATE ===================== */
   const [isOpen, setIsOpen] = useState(false);
-  const [researchName, setResearchName] = useState("");
-  const [editingResearch, setEditingResearch] = useState<ResearchItem | null>(
-    null
-  );
+  const [editingResearch, setEditingResearch] = useState<ResearchItem | null>(null);
+  const [formData, setFormData] = useState<ResearchFormData>(INITIAL_FORM);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
 
-  /* ===================== SEARCH ===================== */
+  const researchList: ResearchItem[] = useMemo(
+    () =>
+      researches.map((item) => ({
+        id: item.id,
+        title: item.name,
+        description: item.description,
+        year: item.year,
+        univerName: item.univerName,
+        memberEnum: item.memberEnum,
+        finished: item.finished,
+        fileUrl: item.fileUrl,
+      })),
+    [researches]
+  );
+
   const filteredData = useMemo(() => {
-    if (!searchValue.trim()) return data;
-    return data.filter((item) =>
+    if (!searchValue.trim()) return researchList;
+    return researchList.filter((item) =>
       item.title.toLowerCase().includes(searchValue.toLowerCase())
     );
-  }, [searchValue, data]);
+  }, [searchValue, researchList]);
 
-  /* ===================== MODAL HELPERS ===================== */
-  const resetForm = () => {
-    setIsOpen(false);
-    setResearchName("");
+  const openAddModal = () => {
     setEditingResearch(null);
+    setFormData(INITIAL_FORM);
+    setFileList([]);
+    setIsOpen(true);
+  };
+
+  const openEditModal = (item: ResearchItem) => {
+    setEditingResearch(item);
+    setFormData({
+      name: item.title,
+      description: item.description,
+      year: item.year,
+      univerName: item.univerName,
+      memberEnum: item.memberEnum,
+      finished: item.finished,
+    });
+    setFileList([]);
+    setIsOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsOpen(false);
+    setEditingResearch(null);
+    setFormData(INITIAL_FORM);
     setFileList([]);
   };
 
-  const handleAdd = () => {
-    setEditingResearch(null);
-    setResearchName("");
-    setIsOpen(true);
-  };
+  const handleSave = async () => {
+    try {
+      let fileUrl = editingResearch?.fileUrl || "";
 
-  const handleEdit = (item: ResearchItem) => {
-    setEditingResearch(item);
-    setResearchName(item.title);
-    setIsOpen(true);
-  };
+      if (fileList.length && fileList[0].originFileObj) {
+        fileUrl = await uploadPDFMutation.mutateAsync(fileList[0].originFileObj as File);
+      }
 
-  const handleDelete = (id: number) => {
-    if (confirm("Haqiqatan ham o‘chirmoqchimisiz?")) {
-      setData((prev) => prev.filter((item) => item.id !== id));
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        year: formData.year,
+        univerName: formData.univerName,
+        memberEnum: formData.memberEnum,
+        finished: formData.finished,
+        fileUrl,
+        userId: USER_ID,
+        member: true,
+      };
+
+      if (editingResearch) {
+        await updateResearchMutation.mutateAsync({ id: editingResearch.id, ...payload });
+      } else {
+        await createResearchMutation.mutateAsync(payload);
+      }
+
+      closeModal();
+    } catch {
+      toast.error("Saqlashda xatolik yuz berdi!");
     }
   };
 
-  /* ===================== SAVE ===================== */
-  const handleSave = () => {
-    setIsSaving(true);
-
-    setTimeout(() => {
-      if (editingResearch) {
-        setData((prev) =>
-          prev.map((item) =>
-            item.id === editingResearch.id
-              ? { ...item, title: researchName }
-              : item
-          )
-        );
-      } else {
-        const newItem: ResearchItem = {
-          id: Date.now(),
-          title: researchName,
-          image: research1,
-        };
-        setData((prev) => [newItem, ...prev]);
-      }
-
-      setIsSaving(false);
-      resetForm();
-    }, 600);
-  };
-
-  /* ===================== UPLOAD ===================== */
-  const draggerProps = {
-    fileList,
-    maxCount: 1,
-    beforeUpload: () => false,
-    onChange: ({ fileList }: { fileList: UploadFile[] }) =>
-      setFileList(fileList),
-  };
-
-  /* ===================== UI ===================== */
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
@@ -116,38 +118,34 @@ const Research: React.FC = () => {
         onSearchChange={setSearchValue}
         buttonText="Tadqiqot qo‘shish"
         buttonIcon={<PlusOutlined />}
-        onButtonClick={handleAdd}
+        onButtonClick={openAddModal}
       />
 
-      <ResearchTable
-        data={filteredData}
-        isLoading={false}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        deletingId={null}
-        isDeleting={false}
-        emptyText="Tadqiqot topilmadi"
-        onAdd={handleAdd}
-      />
+      {isResearchLoading ? (
+        <div className="flex justify-center py-20">
+          <Spin size="large" />
+        </div>
+      ) : (
+        <ResearchTable
+          data={filteredData}
+          isLoading={false}
+          onEdit={openEditModal}
+          onDelete={() => {}}
+          deletingId={null}
+          isDeleting={false}
+        />
+      )}
 
       <ResearchModal
-        isOpen={isOpen}
-        onCancel={resetForm}
-        researchName={researchName}
-        onResearchNameChange={setResearchName}
-        editingResearch={
-          editingResearch
-            ? {
-                id: editingResearch.id,
-                name: editingResearch.title,
-                imgUrl: editingResearch.image,
-              }
-            : null
-        }
+        open={isOpen}
+        onCancel={closeModal}
+        formData={formData}
+        onChange={(key, value) => setFormData(prev => ({ ...prev, [key]: value }))}
         fileList={fileList}
-        draggerProps={draggerProps}
-        onSave={handleSave}
-        isSaving={isSaving}
+        onFileChange={setFileList}
+        onSubmit={handleSave}
+        loading={createResearchMutation.isPending || updateResearchMutation.isPending}
+        editing={!!editingResearch}
       />
     </div>
   );

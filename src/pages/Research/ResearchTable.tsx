@@ -1,11 +1,20 @@
 import React from "react";
-import { Button, Table, Image, Popconfirm, Space, Empty } from "antd";
-import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, Table, Popconfirm, Space, Empty } from "antd";
+import {
+  EditOutlined,
+  DeleteOutlined,
+  FilePdfOutlined,
+} from "@ant-design/icons";
 
-interface ResearchItem {
+export interface ResearchItem {
   id: number;
-  image: string;
   title: string;
+  description: string;
+  year: number;
+  univerName: string;
+  memberEnum: "MILLIY" | "XALQARO";
+  finished: boolean;
+  fileUrl: string | null;
 }
 
 interface ResearchTableProps {
@@ -27,36 +36,13 @@ const ResearchTable: React.FC<ResearchTableProps> = ({
   deletingId,
   isDeleting,
   emptyText = "Ma'lumot topilmadi",
-  onAdd,
 }) => {
   const columns = [
     {
       title: "№",
-      dataIndex: "id",
-      key: "id",
-      width: 50,
-      render: (_: any, __: any, index: number) => <span>{index + 1}</span>,
-    },
-    {
-      title: "Rasm",
-      dataIndex: "image",
-      key: "image",
-      width: 80,
-      render: (src: string, record: ResearchItem) =>
-        src ? (
-          <Image
-            width={48}
-            height={48}
-            src={src}
-            alt={record.title}
-            preview={{ mask: "Ko'rish" }}
-            className="rounded object-cover"
-          />
-        ) : (
-          <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
-            <span className="text-gray-400 text-xs">Yo'q</span>
-          </div>
-        ),
+      key: "index",
+      width: 60,
+      render: (_: any, __: any, index: number) => index + 1,
     },
     {
       title: "Tadqiqot nomi",
@@ -65,38 +51,69 @@ const ResearchTable: React.FC<ResearchTableProps> = ({
       render: (title: string) => <span className="font-medium">{title}</span>,
     },
     {
+      title: "Tavsif",
+      dataIndex: "description",
+      key: "description",
+      render: (description: string) => {
+        if (!description) return <span className="text-gray-400">Mavjud emas</span>; // agar bo'sh bo'lsa
+        return (
+          <span className="font-medium">
+            {description.length > 30
+              ? description.slice(0, 30) + "..."
+              : description}
+          </span>
+        );
+      },
+    },
+    {
+      title: "Fayl",
+      dataIndex: "fileUrl",
+      key: "fileUrl",
+      width: 140,
+      render: (fileUrl: string | null) =>
+        fileUrl ? (
+          <Button
+            type="link"
+            icon={<FilePdfOutlined />}
+            onClick={() => window.open(fileUrl, "_blank")}
+          >
+            PDF ko‘rish
+          </Button>
+        ) : (
+          <span className="text-gray-400">Mavjud emas</span>
+        ),
+    },
+    {
       title: "Amallar",
       key: "actions",
-      width: 180,
-      fixed: "right" as any,
+      width: 200,
+      fixed: "right" as const,
       render: (_: any, record: ResearchItem) => (
-        <Space size="small" className="flex flex-wrap">
+        <Space>
           <Button
             type="primary"
             icon={<EditOutlined />}
-            onClick={() => onEdit(record)}
             size="small"
-            className="w-full sm:w-auto"
+            onClick={() => onEdit(record)}
           >
-            <span className="hidden sm:inline">Tahrirlash</span>
+            Tahrirlash
           </Button>
+
           <Popconfirm
-            title={<span>Tadqiqotni o'chirish</span>}
-            description={<span>Haqiqatan ham bu tadqiqotni o'chirmoqchimisiz?</span>}
+            title="Tadqiqotni o‘chirish"
+            description="Haqiqatan ham bu tadqiqotni o‘chirmoqchimisiz?"
             onConfirm={() => onDelete(record.id)}
             okText="Ha"
-            cancelText="Yo'q"
+            cancelText="Mavjud emas"
             okButtonProps={{ danger: true }}
-            placement="topRight"
           >
             <Button
               danger
               icon={<DeleteOutlined />}
               size="small"
               loading={deletingId === record.id && isDeleting}
-              className="w-full sm:w-auto"
             >
-              <span className="hidden sm:inline">O'chirish</span>
+              O‘chirish
             </Button>
           </Popconfirm>
         </Space>
@@ -105,22 +122,20 @@ const ResearchTable: React.FC<ResearchTableProps> = ({
   ];
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
       {isLoading || data.length > 0 ? (
         <Table
-          dataSource={data}
+          rowKey="id"
           columns={columns}
+          dataSource={data}
           loading={isLoading}
           pagination={false}
           bordered
-          rowKey="id"
         />
       ) : (
-        <div className="col-span-full">
-          <Empty description={emptyText} />
-        </div>
+        <Empty description={emptyText} />
       )}
-    </div>
+    </>
   );
 };
 

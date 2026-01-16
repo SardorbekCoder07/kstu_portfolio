@@ -1,100 +1,134 @@
 import React, { useState, useMemo } from "react";
 import { PlusOutlined } from "@ant-design/icons";
-import type { UploadFile } from "antd/es/upload/interface";
 import { PageHeader } from "../../components/ui/PageHeader";
-import ControlsTable from "./ControlsTable";
-import ControlsModal from "./ControlsModal";
+import ControlsTable, { ControlItem } from "./ControlsTable";
+import ControlsModal, { ControlsFormData, INITIAL_FORM } from "./ControlsModal";
+import { Spin } from "antd";
+import { toast } from "sonner";
+import { useControlOperations } from "../../hooks/useControlOperation"; // hook yozilgan deb hisoblaymiz
+import type { UploadFile } from "antd/es/upload/interface";
 
-import research1 from "../../assets/images/image.png";
-import research2 from "../../assets/images/image.png";
-import research3 from "../../assets/images/image.png";
+// LocalStorage dan user id olish
+const dataId = JSON.parse(localStorage.getItem("user_cache") || "{}");
+const USER_ID = dataId?.id || 0;
 
-interface ControlItem {
-  id: number;
-  title: string;
-  image: string;
-}
+export const INITIAL_CONTROLS_FORM: ControlsFormData = {
+  name: "",
+  description: "",
+  year: new Date().getFullYear(),
+  univerName: "",
+  level: "",
+  memberEnum: null,
+  finished: false,
+};
 
 const Controls: React.FC = () => {
-  /* ================= DATA ================= */
-  const initialData: ControlItem[] = [
-    { id: 1, image: research1, title: "Algebra va analiz nazoratlari" },
-    { id: 2, image: research2, title: "Geometriya va topologiya nazoratlari" },
-    { id: 3, image: research3, title: "Matematika ta’lim metodikasi" },
-    { id: 4, image: research1, title: "Differensial tenglamalar nazoratlari" },
-  ];
+  const {
+    controles,
+    isControlLoading,
+    createControlMutation,
+    updateControlMutation,
+    uploadPDFMutation,
+    deleteControlMutation,
+  } = useControlOperations(USER_ID);
 
-  const [data, setData] = useState<ControlItem[]>(initialData);
   const [searchValue, setSearchValue] = useState("");
-
-  /* ================= MODAL STATE ================= */
   const [isOpen, setIsOpen] = useState(false);
-  const [controlName, setControlName] = useState("");
   const [editingControl, setEditingControl] = useState<ControlItem | null>(
     null
   );
+  const [formData, setFormData] = useState<ControlsFormData>(
+    INITIAL_CONTROLS_FORM
+  );
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
 
-  /* ================= SEARCH ================= */
+  /* ================= DATA MAPPING ================= */
+  const controlList: ControlItem[] = useMemo(
+    () =>
+      controles.map((item) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        year: item.year,
+        fileUrl: item.fileUrl,
+        univerName: item.univerName,
+        level: item.level,
+        memberEnum: item.name,
+        finished: item.finished,
+      })),
+    [controles]
+  );
+
   const filteredData = useMemo(() => {
-    if (!searchValue.trim()) return data;
-    return data.filter((item) =>
-      item.title.toLowerCase().includes(searchValue.toLowerCase())
+    if (!searchValue.trim()) return controlList;
+    return controlList.filter((item) =>
+      item.name.toLowerCase().includes(searchValue.toLowerCase())
     );
-  }, [searchValue, data]);
+  }, [searchValue, controlList]);
 
-  /* ================= HELPERS ================= */
-  const resetForm = () => {
-    setIsOpen(false);
-    setControlName("");
+  /* ================= MODAL HANDLERS ================= */
+  const openAddModal = () => {
     setEditingControl(null);
+    setFormData(INITIAL_CONTROLS_FORM);
+    setFileList([]);
+    setIsOpen(true);
+  };
+
+  const openEditModal = (item: ControlItem) => {
+    setEditingControl(item);
+    setFormData({
+      name: item.name,
+      description: item.description || "",
+      year: item.year || new Date().getFullYear(),
+      univerName: item.univerName || "",
+      level: item.level || "",
+      memberEnum: item.memberEnum || null,
+      finished: item.finished || false,
+    });
+    setFileList([]);
+    setIsOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsOpen(false);
+    setEditingControl(null);
+    setFormData(INITIAL_CONTROLS_FORM);
     setFileList([]);
   };
 
-  const handleAdd = () => {
-    setEditingControl(null);
-    setControlName("");
-    setIsOpen(true);
-  };
+  /* ================= SAVE ================= */
+  const handleSave = async () => {
+    try {
+      let fileUrl = editingControl?.fileUrl || "";
 
-  const handleEdit = (item: ControlItem) => {
-    setEditingControl(item);
-    setControlName(item.title);
-    setIsOpen(true);
-  };
+      if (fileList.length) {
+        fileUrl = await uploadPDFMutation.mutateAsync(
+          fileList[0].originFileObj as File
+        );
+      }
 
-  const handleDelete = (id: number) => {
-    if (confirm("Haqiqatan ham bu nazoratni o‘chirmoqchimisiz?")) {
-      setData((prev) => prev.filter((item) => item.id !== id));
+      const payload = {
+        ...formData,
+        fileUrl,
+        userId: USER_ID,
+        member: true,
+      };
+
+      if (editingControl) {
+        updateControlMutation.mutate({ id: editingControl.id, ...payload });
+      } else {
+        createControlMutation.mutate(payload);
+      }
+
+      closeModal();
+    } catch (e) {
+      toast.error("Saqlashda xatolik yuz berdi");
     }
   };
 
-  /* ================= SAVE ================= */
-  const handleSave = () => {
-    setIsSaving(true);
-
-    setTimeout(() => {
-      if (editingControl) {
-        setData((prev) =>
-          prev.map((item) =>
-            item.id === editingControl.id
-              ? { ...item, title: controlName }
-              : item
-          )
-        );
-      } else {
-        const newItem: ControlItem = {
-          id: Date.now(),
-          title: controlName,
-          image: research1,
-        };
-        setData((prev) => [newItem, ...prev]);
-      }
-
-      setIsSaving(false);
-      resetForm();
-    }, 600);
+  /* ================= DELETE ================= */
+  const handleDelete = (id: number) => {
+    deleteControlMutation.mutate(id);
   };
 
   /* ================= UPLOAD ================= */
@@ -102,11 +136,9 @@ const Controls: React.FC = () => {
     fileList,
     maxCount: 1,
     beforeUpload: () => false,
-    onChange: ({ fileList }: { fileList: UploadFile[] }) =>
-      setFileList(fileList),
+    onChange: ({ fileList }: { fileList: UploadFile[] }) => setFileList(fileList),
   };
 
-  /* ================= UI ================= */
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
@@ -117,38 +149,38 @@ const Controls: React.FC = () => {
         onSearchChange={setSearchValue}
         buttonText="Nazorat qo‘shish"
         buttonIcon={<PlusOutlined />}
-        onButtonClick={handleAdd}
+        onButtonClick={openAddModal}
       />
 
-      <ControlsTable
-        data={filteredData}
-        isLoading={false}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        deletingId={null}
-        isDeleting={false}
-        emptyText="Nazorat topilmadi"
-        onAdd={handleAdd}
-      />
+      {isControlLoading ? (
+        <div className="flex justify-center py-20">
+          <Spin size="large" />
+        </div>
+      ) : (
+        <ControlsTable
+          data={filteredData}
+          isLoading={false}
+          onEdit={openEditModal}
+          onDelete={handleDelete}
+          deletingId={null}
+          isDeleting={false}
+          emptyText="Nazorat topilmadi"
+        />
+      )}
 
       <ControlsModal
-        isOpen={isOpen}
-        onCancel={resetForm}
-        controlName={controlName}
-        onControlNameChange={setControlName}
-        editingControl={
-          editingControl
-            ? {
-                id: editingControl.id,
-                name: editingControl.title,
-                imgUrl: editingControl.image,
-              }
-            : null
+        open={isOpen}
+        onCancel={closeModal}
+        formData={formData}
+        onChange={(key, value) =>
+          setFormData((prev) => ({ ...prev, [key]: value }))
         }
         fileList={fileList}
+        onFileChange={setFileList}
+        onSubmit={handleSave}
+        loading={createControlMutation.isPending || updateControlMutation.isPending}
+        editing={!!editingControl}
         draggerProps={draggerProps}
-        onSave={handleSave}
-        isSaving={isSaving}
       />
     </div>
   );

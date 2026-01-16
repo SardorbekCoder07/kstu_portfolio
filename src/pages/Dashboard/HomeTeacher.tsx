@@ -1,46 +1,47 @@
-import React, { useState } from "react";
-import { Card, Tabs, Button, Drawer, Form, Input } from "antd";
-import {
-  FilePdfOutlined,
-  MailOutlined,
-  PhoneOutlined,
-  IdcardOutlined,
-  ClockCircleOutlined,
-} from "@ant-design/icons";
-import image from "../../assets/images/image.png";
+import React, { useState, useEffect } from "react";
+import { Card, Tabs, Button, Drawer, Form, Input, Spin } from "antd";
+import { FilePdfOutlined, MailOutlined, PhoneOutlined, IdcardOutlined, ClockCircleOutlined } from "@ant-design/icons";
 import Biography from "../../components/ui/Biography/Biography";
+import { useProfile } from "../../hooks/useProfileOperations";
+import { toast } from "sonner";
 
 const { TabPane } = Tabs;
 
-const HomeTeacherStatic = () => {
+const HomeTeacher = () => {
+  const { data: teacher, isLoading, isError, error } = useProfile();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [teacher, setTeacher] = useState({
-    fullName: "Temurbek Narzullayev",
-    lavozimName: "Oliy matematika o‘qituvchisi",
-    departmentName: "Matematika kafedrasi",
-    biography:
-      "10 yildan ortiq tajribaga ega, asosan algebra va analiz bo‘yicha dars beradi.",
-    input:
-      "O‘qituvchi sifatida zamonaviy metodlarni qo‘llaydi va talabalarni amaliyotga yo‘naltiradi.",
-    phone: "+998 90 123 45 67",
-    email: "temurbek@example.com",
-    imageUrl: image,
-    fileUrl: "https://example.com/sample.pdf",
-  });
-
   const [form] = Form.useForm();
 
+  useEffect(() => {
+    if (isError && error?.message) {
+      toast.error(error.message);
+    }
+  }, [isError, error]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-[400px]">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (!teacher) {
+    return (
+      <p className="text-center text-red-500 mt-10">Ma’lumot topilmadi.</p>
+    );
+  }
+
   const openDrawer = () => {
-    form.setFieldsValue(teacher); // formga hozirgi ma’lumotlarni yuklaymiz
+    form.setFieldsValue(teacher);
     setDrawerOpen(true);
   };
 
-  const closeDrawer = () => {
-    setDrawerOpen(false);
-  };
+  const closeDrawer = () => setDrawerOpen(false);
 
   const onSave = (values: any) => {
-    setTeacher(prev => ({ ...prev, ...values }));
+    // Shu yerda update API qo‘shish mumkin
+    toast.success("Ma’lumotlar frontendda yangilandi (faqat frontend)");
     setDrawerOpen(false);
   };
 
@@ -54,7 +55,7 @@ const HomeTeacherStatic = () => {
           cover={
             <img
               alt="teacher"
-              src={teacher.imageUrl}
+              src={teacher.imageUrl || "/default-avatar.png"}
               className="w-full h-[300px] object-cover rounded-xl"
             />
           }
@@ -77,22 +78,18 @@ const HomeTeacherStatic = () => {
                 <p className="text-gray-700 !m-0 font-medium">{teacher.lavozimName}</p>
               </div>
 
-              {/* 🔹 Edit button */}
-              <Button type="primary" block onClick={openDrawer}>
-                Ma’lumotlarni tahrirlash
-              </Button>
+              <Button type="primary" block onClick={openDrawer}>Ma’lumotlarni tahrirlash</Button>
 
-              <Button
-                type="default"
-                icon={<FilePdfOutlined />}
-                size="middle"
-                block
-                onClick={() =>
-                  window.open(teacher.fileUrl, "_blank", "noopener,noreferrer")
-                }
-              >
-                PDFni ochish
-              </Button>
+              {teacher.fileUrl && (
+                <Button
+                  type="default"
+                  icon={<FilePdfOutlined />}
+                  block
+                  onClick={() => window.open(teacher.fileUrl, "_blank", "noopener,noreferrer")}
+                >
+                  PDFni ochish
+                </Button>
+              )}
             </div>
           </div>
         </Card>
@@ -109,89 +106,65 @@ const HomeTeacherStatic = () => {
 
             <Card className="p-4 bg-gray-50 border rounded-lg">
               <h3 className="font-semibold mb-1">Tadqiqotlar</h3>
-              <Biography text={teacher.biography} fallback="Ma’lumot yo‘q" />
+              <Biography text={teacher.biography || "Ma’lumot yo‘q"} fallback="Ma’lumot yo‘q" />
             </Card>
 
             <Card className="p-4 bg-gray-50 border rounded-lg">
               <h3 className="font-semibold mb-1">O‘qituvchi haqida</h3>
-              <p className="text-gray-500 !m-0">{teacher.input}</p>
+              <p className="text-gray-500 !m-0">{teacher.input || "Ma’lumot yo‘q"}</p>
             </Card>
           </div>
 
           <Tabs defaultActiveKey="1" type="card">
             <TabPane tab="Tadqiqotlar" key="1">
-              <Card className="p-4 mb-4">• Algebra bo‘yicha tadqiqotlar</Card>
-              <Card className="p-4 mb-4">• Analiz bo‘yicha tadqiqotlar</Card>
+              {(teacher.research?.length || 0) > 0
+                ? teacher.research.map((item, i) => <Card key={i} className="p-4 mb-4">• {item}</Card>)
+                : <Card className="p-4 mb-4">Ma’lumot yo‘q</Card>
+              }
             </TabPane>
             <TabPane tab="Nazorat" key="2">
-              <Card className="p-4 mb-4">• Testlar va nazorat ishlari</Card>
-              <Card className="p-4 mb-4">• Nazorat natijalari</Card>
+              {(teacher.nazorat?.length || 0) > 0
+                ? teacher.nazorat.map((item, i) => <Card key={i} className="p-4 mb-4">• {item}</Card>)
+                : <Card className="p-4 mb-4">Ma’lumot yo‘q</Card>
+              }
             </TabPane>
             <TabPane tab="Nashrlar" key="3">
-              <Card className="p-4 mb-4">• Kitoblar</Card>
-              <Card className="p-4 mb-4">• Maqolalar</Card>
+              {(teacher.publication?.length || 0) > 0
+                ? teacher.publication.map((item, i) => <Card key={i} className="p-4 mb-4">• {item}</Card>)
+                : <Card className="p-4 mb-4">Ma’lumot yo‘q</Card>
+              }
             </TabPane>
             <TabPane tab="Mukofot/E'tirof" key="4">
-              <Card className="p-4 mb-4">• Oliy ta'lim mukofoti</Card>
-              <Card className="p-4 mb-4">• Davlat e’tirofi</Card>
+              {(teacher.award?.length || 0) > 0
+                ? teacher.award.map((item, i) => <Card key={i} className="p-4 mb-4">• {item}</Card>)
+                : <Card className="p-4 mb-4">Ma’lumot yo‘q</Card>
+              }
             </TabPane>
             <TabPane tab="Maslahat" key="5">
-              <Card className="p-4 mb-4">• O‘quvchilarga maslahatlar</Card>
-              <Card className="p-4 mb-4">• Metodik qo‘llanmalar</Card>
+              {(teacher.consultation?.length || 0) > 0
+                ? teacher.consultation.map((item, i) => <Card key={i} className="p-4 mb-4">• {item}</Card>)
+                : <Card className="p-4 mb-4">Ma’lumot yo‘q</Card>
+              }
             </TabPane>
           </Tabs>
         </Card>
       </div>
 
       {/* 🔹 Drawer */}
-      <Drawer
-        title="O‘z ma’lumotlarini tahrirlash"
-        placement="right"
-        width={400}
-        onClose={closeDrawer}
-        open={drawerOpen}
-      >
-        <Form
-          layout="vertical"
-          form={form}
-          onFinish={onSave}
-          initialValues={teacher}
-        >
-          <Form.Item label="F.I.O" name="fullName">
-            <Input />
-          </Form.Item>
-
-          <Form.Item label="Lavozim" name="lavozimName">
-            <Input />
-          </Form.Item>
-
-          <Form.Item label="Kafedra" name="departmentName">
-            <Input />
-          </Form.Item>
-
-          <Form.Item label="Telefon" name="phone">
-            <Input />
-          </Form.Item>
-
-          <Form.Item label="Email" name="email">
-            <Input />
-          </Form.Item>
-
-          <Form.Item label="Tavsif (biography)" name="biography">
-            <Input.TextArea rows={4} />
-          </Form.Item>
-
-          <Form.Item label="Qo‘shimcha ma’lumot" name="input">
-            <Input.TextArea rows={4} />
-          </Form.Item>
-
-          <Button type="primary" block htmlType="submit">
-            Saqlash
-          </Button>
+      <Drawer title="O‘z ma’lumotlarini tahrirlash" placement="right" width={400} onClose={closeDrawer} open={drawerOpen}>
+        <Form layout="vertical" form={form} onFinish={onSave} initialValues={teacher}>
+          <Form.Item label="F.I.O" name="fullName"><Input /></Form.Item>
+          <Form.Item label="Lavozim" name="lavozimName"><Input /></Form.Item>
+          <Form.Item label="Kafedra" name="departmentName"><Input /></Form.Item>
+          <Form.Item label="Telefon" name="phone"><Input /></Form.Item>
+          <Form.Item label="Email" name="email"><Input /></Form.Item>
+          <Form.Item label="Tavsif (biography)" name="biography"><Input.TextArea rows={4} /></Form.Item>
+          <Form.Item label="Qo‘shimcha ma’lumot" name="input"><Input.TextArea rows={4} /></Form.Item>
+          <Button type="primary" block htmlType="submit">Saqlash</Button>
         </Form>
       </Drawer>
     </>
   );
 };
 
-export default HomeTeacherStatic;
+export default HomeTeacher;

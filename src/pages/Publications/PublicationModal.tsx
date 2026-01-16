@@ -1,123 +1,172 @@
-import { Button, Input, Modal, Image } from 'antd';
-import { InboxOutlined } from '@ant-design/icons';
-import Dragger from 'antd/es/upload/Dragger';
-import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
+import React from "react";
+import { Button, Input, Modal, Select, Switch, Upload } from "antd";
+import { InboxOutlined } from "@ant-design/icons";
+import type { UploadFile, UploadProps } from "antd/es/upload/interface";
 
-interface Publication {
-  id: number;
+const { TextArea } = Input;
+
+export interface PublicationFormData {
   name: string;
-  imgUrl: string;
   description?: string;
+  year?: number;
+  type?: string;
+  author?: string;
+  degree?: string;
+  volume?: string;
+  institution?: string;
+  popular?: boolean;
 }
 
 interface PublicationModalProps {
-  isOpen: boolean;
+  open: boolean;
   onCancel: () => void;
-  publicationName: string;
-  onPublicationNameChange: (value: string) => void;
-  editingPublication: Publication | null;
+  formData: PublicationFormData;
+  onChange: <K extends keyof PublicationFormData>(
+    key: K,
+    value: PublicationFormData[K]
+  ) => void;
+  editingPublication?: {
+    id: number;
+    fileUrl?: string;
+    imgUrl?: string;
+  } | null;
   fileList: UploadFile[];
-  draggerProps: UploadProps;
-  onSave: () => void;
-  isSaving: boolean;
+  onFileChange: (files: UploadFile[]) => void;
+  onSubmit: () => void;
+  loading: boolean;
+  draggerProps?: UploadProps;
 }
 
-const PublicationModal = ({
-  isOpen,
+const PublicationModal: React.FC<PublicationModalProps> = ({
+  open,
   onCancel,
-  publicationName,
-  onPublicationNameChange,
-  editingPublication,
+  formData,
+  onChange,
+  editingPublication = null,
   fileList,
+  onFileChange,
+  onSubmit,
+  loading,
   draggerProps,
-  onSave,
-  isSaving,
-}: PublicationModalProps) => {
+}) => {
   return (
     <Modal
-      title={
-        <span className="text-base sm:text-lg">
-          {editingPublication
-            ? 'Nashrni tahrirlash'
-            : "Nashr qo‘shish"}
-        </span>
-      }
-      open={isOpen}
+      open={open}
       onCancel={onCancel}
       footer={null}
-      width="90%"
-      style={{ maxWidth: '600px' }}
+      destroyOnClose
       centered
+      title={editingPublication ? "Nashrni tahrirlash" : "Nashr qo‘shish"}
+      width="90%"
+      style={{ maxWidth: 600 }}
     >
-      <div className="flex flex-col gap-4 mt-4">
-        {/* Publication Name */}
-        <div>
-          <label className="font-medium text-gray-700 text-sm sm:text-base mb-2 block">
-            Nashr nomi:
-          </label>
-          <Input
-            placeholder="Masalan: Ilmiy maqola (2025)"
-            value={publicationName}
-            onChange={e => onPublicationNameChange(e.target.value)}
-            size="large"
+      <div className="flex flex-col gap-4 mt-3">
+        {/* Name */}
+        <Input
+          placeholder="Nashr nomi"
+          value={formData.name}
+          onChange={(e) => onChange("name", e.target.value)}
+        />
+
+        {/* Description */}
+        <TextArea
+          placeholder="Tavsif"
+          rows={3}
+          value={formData.description}
+          onChange={(e) => onChange("description", e.target.value)}
+        />
+
+        {/* Year */}
+        <Input
+          type="number"
+          placeholder="Yil"
+          value={formData.year}
+          onChange={(e) => onChange("year", Number(e.target.value))}
+        />
+
+        {/* Type */}
+        <Select
+          placeholder="Type"
+          value={formData.type}
+          onChange={(v) => onChange("type", v)}
+          options={[
+            { label: "ARTICLE", value: "ARTICLE" },
+            { label: "BOOK", value: "BOOK" },
+            { label: "REPORT", value: "REPORT" },
+          ]}
+          allowClear
+        />
+
+        {/* Author */}
+        <Select
+          placeholder="Author"
+          value={formData.author}
+          onChange={(v) => onChange("author", v)}
+          options={[
+            { label: "COAUTHOR", value: "COAUTHOR" },
+            { label: "LEAD", value: "LEAD" },
+          ]}
+          allowClear
+        />
+
+        {/* Degree */}
+        <Select
+          placeholder="Degree"
+          value={formData.degree}
+          onChange={(v) => onChange("degree", v)}
+          options={[
+            { label: "INTERNATIONAL", value: "INTERNATIONAL" },
+            { label: "NATIONAL", value: "NATIONAL" },
+          ]}
+          allowClear
+        />
+
+        {/* Volume */}
+        <Input
+          placeholder="Volume"
+          value={formData.volume}
+          onChange={(e) => onChange("volume", e.target.value)}
+        />
+
+        {/* Institution */}
+        <Input
+          placeholder="Institution"
+          value={formData.institution}
+          onChange={(e) => onChange("institution", e.target.value)}
+        />
+
+        {/* Popular */}
+        <div className="flex items-center gap-3">
+          <span>Popular:</span>
+          <Switch
+            checked={formData.popular}
+            onChange={(v) => onChange("popular", v)}
           />
         </div>
 
-        {/* Image Upload */}
-        <div>
-          <label className="font-medium text-gray-700 text-sm sm:text-base mb-2 block">
-            Rasm yuklash (ixtiyoriy):
-          </label>
+        {/* File Upload */}
+        <Upload.Dragger
+          {...draggerProps}
+          fileList={fileList}
+          beforeUpload={() => false}
+          onChange={(e) => onFileChange(e.fileList)}
+          maxCount={1}
+          accept=".pdf,image/*"
+          className="mt-2"
+        >
+          <InboxOutlined style={{ fontSize: 32 }} />
+          <p className="mt-2">PDF yoki rasm yuklang</p>
+        </Upload.Dragger>
 
-          {/* Current Image */}
-          {editingPublication && !fileList.length && editingPublication.imgUrl && (
-            <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <Image
-                  src={editingPublication.imgUrl}
-                  alt="Current"
-                  className="object-cover rounded"
-                  width={80}
-                  height={80}
-                  preview={{ mask: "Ko‘rish" }}
-                />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-700 mb-1">
-                    Hozirgi rasm
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Yangi rasm yuklash uchun quyida faylni tanlang
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Dragger */}
-          <Dragger {...draggerProps} className="upload-dragger-responsive">
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined style={{ fontSize: '36px' }} />
-            </p>
-            <p className="ant-upload-text text-sm sm:text-base px-4">
-              Rasmni bu yerga torting yoki faylni tanlang
-            </p>
-            <p className="ant-upload-hint text-gray-500 text-xs sm:text-sm px-4">
-              Faqat bitta rasm (max 5MB)
-            </p>
-          </Dragger>
-        </div>
-
-        {/* Save */}
+        {/* Submit */}
         <Button
           type="primary"
           block
-          onClick={onSave}
-          loading={isSaving}
-          disabled={!publicationName.trim()}
-          size="large"
-          className="mt-2"
+          loading={loading}
+          onClick={onSubmit}
+          disabled={!formData.name?.trim()}
         >
-          {editingPublication ? 'Yangilash' : 'Saqlash'}
+          {editingPublication ? "Yangilash" : "Saqlash"}
         </Button>
       </div>
     </Modal>

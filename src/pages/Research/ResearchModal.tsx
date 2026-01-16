@@ -1,123 +1,209 @@
-import { Button, Input, Modal, Image } from 'antd';
-import { InboxOutlined } from '@ant-design/icons';
-import Dragger from 'antd/es/upload/Dragger';
-import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
+import React, { useState } from "react";
+import {
+  Modal,
+  Button,
+  Form,
+  Input,
+  Select,
+  Upload,
+  Typography,
+  Switch,
+} from "antd";
+import { InboxOutlined } from "@ant-design/icons";
+import type { UploadFile, UploadProps } from "antd";
 
-interface Research {
-  id: number;
+const { TextArea } = Input;
+const { Title } = Typography;
+
+export interface ResearchFormData {
   name: string;
-  imgUrl: string;
-  description?: string;
+  description: string;
+  year: number;
+  univerName: string;
+  memberEnum: "MILLIY" | "XALQARO";
+  finished: boolean;
+  member: boolean;
+  fileUrl?: string;
 }
+
+export const INITIAL_FORM: ResearchFormData = {
+  name: "",
+  description: "",
+  year: new Date().getFullYear(),
+  univerName: "",
+  memberEnum: "MILLIY",
+  finished: false,
+  member: true,
+  fileUrl: "",
+};
 
 interface ResearchModalProps {
-  isOpen: boolean;
+  open: boolean;
   onCancel: () => void;
-  researchName: string;
-  onResearchNameChange: (value: string) => void;
-  editingResearch: Research | null;
+  formData: ResearchFormData;
+  onChange: <K extends keyof ResearchFormData>(
+    key: K,
+    value: ResearchFormData[K]
+  ) => void;
   fileList: UploadFile[];
-  draggerProps: UploadProps;
-  onSave: () => void;
-  isSaving: boolean;
+  onFileChange: (files: UploadFile[]) => void;
+  onSubmit: () => void;
+  loading: boolean;
+  editing?: boolean;
 }
 
-export const ResearchModal = ({
-  isOpen,
+export const ResearchModal: React.FC<ResearchModalProps> = ({
+  open,
   onCancel,
-  researchName,
-  onResearchNameChange,
-  editingResearch,
+  formData,
+  onChange,
   fileList,
-  draggerProps,
-  onSave,
-  isSaving,
-}: ResearchModalProps) => {
+  onFileChange,
+  onSubmit,
+  loading,
+  editing = false,
+}) => {
+  const [form] = Form.useForm();
+
+  const uploadProps: UploadProps = {
+    accept: ".pdf",
+    maxCount: 1,
+    fileList,
+    onRemove: () => {
+      onFileChange([]);
+      return true;
+    },
+    beforeUpload: (file) => {
+      const isLt10M = file.size / 1024 / 1024 < 10;
+      if (!isLt10M) {
+        alert("PDF hajmi 10MB dan kichik bo'lishi kerak!");
+        return Upload.LIST_IGNORE;
+      }
+
+      onFileChange([
+        {
+          uid: Date.now().toString(),
+          name: file.name,
+          status: "done",
+          size: file.size,
+          type: file.type,
+          originFileObj: file,
+        },
+      ]);
+      return false;
+    },
+  };
+
   return (
     <Modal
       title={
-        <span className="text-base sm:text-lg">
-          {editingResearch ? 'Research tahrirlash' : "Research qo'shish"}
-        </span>
+        <Title level={3}>
+          {editing ? "Tadqiqotni tahrirlash" : "Yangi tadqiqot qo'shish"}
+        </Title>
       }
-      open={isOpen}
+      open={open}
       onCancel={onCancel}
       footer={null}
-      width="90%"
-      style={{ maxWidth: '600px' }}
+      width={720}
       centered
+      className="rounded-xl"
     >
-      <div className="flex flex-col gap-4 mt-4">
-        {/* Research Name Input */}
-        <div>
-          <label className="font-medium text-gray-700 text-sm sm:text-base mb-2 block">
-            Research nomi:
-          </label>
-          <Input
-            placeholder="Masalan: Sun’iy intellekt tadqiqoti"
-            value={researchName}
-            onChange={e => onResearchNameChange(e.target.value)}
-            size="large"
-          />
-        </div>
-
-        {/* Image Upload Section */}
-        <div>
-          <label className="font-medium text-gray-700 text-sm sm:text-base mb-2 block">
-            Rasm yuklash (ixtiyoriy):
-          </label>
-
-          {/* Current Image Preview */}
-          {editingResearch && !fileList.length && editingResearch.imgUrl && (
-            <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <Image
-                  src={editingResearch.imgUrl}
-                  alt="Current"
-                  className="object-cover rounded"
-                  width={80}
-                  height={80}
-                  preview={{ mask: "Ko'rish" }}
-                />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-700 mb-1">
-                    Hozirgi rasm
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Yangi rasm yuklash uchun quyida faylni tanlang
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Upload Dragger */}
-          <Dragger {...draggerProps} className="upload-dragger-responsive">
-            <p className="ant-upload-drag-icon">
-              <InboxOutlined style={{ fontSize: '36px' }} />
-            </p>
-            <p className="ant-upload-text text-sm sm:text-base px-4">
-              Rasmni bu yerga torting yoki faylni tanlang
-            </p>
-            <p className="ant-upload-hint text-gray-500 text-xs sm:text-sm px-4">
-              Faqat bitta rasmni yuklashingiz mumkin (max 5MB)
-            </p>
-          </Dragger>
-        </div>
-
-        {/* Save Button */}
-        <Button
-          type="primary"
-          block
-          onClick={onSave}
-          loading={isSaving}
-          disabled={!researchName.trim()}
-          size="large"
-          className="mt-2"
+      <Form form={form} layout="vertical" initialValues={formData}>
+        <Form.Item
+          name="name"
+          label="Tadqiqot nomi"
+          rules={[{ required: true, message: "Nomini kiriting!" }]}
         >
-          {editingResearch ? 'Yangilash' : 'Saqlash'}
-        </Button>
-      </div>
+          <Input size="large" placeholder="Tadqiqot nomi..." />
+        </Form.Item>
+
+        <Form.Item name="description" label="Qisqa tavsif">
+          <TextArea rows={3} placeholder="Tadqiqot haqida qisqacha..." />
+        </Form.Item>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Form.Item
+            name="year"
+            label="Yil"
+            rules={[{ required: true, message: "Yilni kiriting!" }]}
+          >
+            <Input type="number" size="large" placeholder="2024" />
+          </Form.Item>
+
+          <Form.Item
+            name="univerName"
+            label="Universitet / Tashkilot"
+            rules={[{ required: true, message: "Universitetni kiriting!" }]}
+          >
+            <Input size="large" placeholder="TATU, INHA..." />
+          </Form.Item>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Form.Item
+            name="memberEnum"
+            label="A'zolik turi"
+            rules={[{ required: true, message: "Turini tanlang!" }]}
+          >
+            <Select size="large">
+              <Select.Option value="MILLIY">Milliy</Select.Option>
+              <Select.Option value="XALQARO">Xalqaro</Select.Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="finished"
+            label="Holati"
+            rules={[{ required: true, message: "Holatini tanlang!" }]}
+          >
+            <Select size="large">
+              <Select.Option value={false}>Jarayonda</Select.Option>
+              <Select.Option value={true}>Tugallangan</Select.Option>
+            </Select>
+          </Form.Item>
+        </div>
+
+        <Form.Item
+          label="PDF yuklash (ixtiyoriy)"
+          extra="Yoki quyida havolani kiriting"
+        >
+          <Upload.Dragger {...uploadProps}>
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
+            <p className="ant-upload-text">
+              PDFni yuklash uchun bosing yoki sudrab keling
+            </p>
+            <p className="ant-upload-hint">
+              Faqat PDF formatdagi fayllar. Maksimal hajm: 10MB
+            </p>
+          </Upload.Dragger>
+        </Form.Item>
+
+        <Form.Item
+          name="fileUrl"
+          label="Yoki PDF havolasini kiriting"
+          extra="Yuqorida fayl yuklagan bo'lsangiz, bu maydonni to'ldirmasangiz ham bo'ladi"
+        >
+          <Input
+            size="large"
+            placeholder="https://example.com/file.pdf"
+            disabled={fileList.length > 0}
+          />
+        </Form.Item>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <Button onClick={onCancel}>Bekor qilish</Button>
+          <Button
+            type="primary"
+            className="bg-blue-600 hover:bg-blue-700"
+            onClick={onSubmit}
+            loading={loading}
+          >
+            {editing ? "Saqlash" : "Qo'shish"}
+          </Button>
+        </div>
+      </Form>
     </Modal>
   );
 };

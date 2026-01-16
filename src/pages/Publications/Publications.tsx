@@ -3,108 +3,134 @@ import { PlusOutlined } from "@ant-design/icons";
 import type { UploadFile } from "antd/es/upload/interface";
 import { PageHeader } from "../../components/ui/PageHeader";
 import PublicationsTable from "./PublicationsTable";
-import PublicationModal from "./PublicationModal";
+import PublicationModal, { PublicationFormData } from "./PublicationModal";
+import { usePublicationOperations } from "../../hooks/usePublicationOperation";
+import { toast } from "sonner";
 
-import pub1 from "../../assets/images/image.png";
-import pub2 from "../../assets/images/image.png";
-import pub3 from "../../assets/images/image.png";
+const USER_ID = Number(
+  JSON.parse(localStorage.getItem("user_cache") || "{}").id
+);
 
-interface PublicationItem {
-  id: number;
-  title: string;
-  image: string;
-}
+const INITIAL_FORM: PublicationFormData = {
+  name: "",
+  description: "",
+  year: new Date().getFullYear(),
+  type: "ARTICLE",
+  author: "COAUTHOR",
+  degree: "INTERNATIONAL",
+  volume: "",
+  institution: "",
+  popular: false,
+};
 
 const Publications: React.FC = () => {
-  /* ================= DATA ================= */
-  const initialData: PublicationItem[] = [
-    { id: 1, image: pub1, title: "Algebra bo‘yicha maqola" },
-    { id: 2, image: pub2, title: "Geometriya va topologiya tadqiqoti" },
-    { id: 3, image: pub3, title: "Statistika va ehtimollik maqolasi" },
-  ];
-
-  const [data, setData] = useState<PublicationItem[]>(initialData);
-  const [searchValue, setSearchValue] = useState("");
-
-  /* ================= MODAL STATE ================= */
   const [isOpen, setIsOpen] = useState(false);
-  const [publicationName, setPublicationName] = useState("");
-  const [editingPublication, setEditingPublication] =
-    useState<PublicationItem | null>(null);
+  const [editingPublication, setEditingPublication] = useState<any>(null);
+  const [formData, setFormData] = useState<PublicationFormData>(INITIAL_FORM);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [searchValue, setSearchValue] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  /* ================= SEARCH ================= */
-  const filteredData = useMemo(() => {
-    if (!searchValue.trim()) return data;
-    return data.filter(item =>
-      item.title.toLowerCase().includes(searchValue.toLowerCase())
-    );
-  }, [searchValue, data]);
+  const {
+    publications,
+    isPublicationLoading,
+    createPublicationMutation,
+    updatePublicationMutation,
+    deletePublicationMutation,
+    uploadPDFMutation,
+    refetch,
+  } = usePublicationOperations(USER_ID);
 
-  /* ================= HELPERS ================= */
-  const resetForm = () => {
-    setIsOpen(false);
-    setPublicationName("");
+  const filteredData = useMemo(() => {
+    if (!searchValue.trim()) return publications;
+    return publications.filter((item) =>
+      item.name.toLowerCase().includes(searchValue.toLowerCase())
+    );
+  }, [searchValue, publications]);
+
+  const openAddModal = () => {
     setEditingPublication(null);
+    setFormData(INITIAL_FORM);
+    setFileList([]);
+    setIsOpen(true);
+  };
+
+  const openEditModal = (item: any) => {
+    setEditingPublication(item);
+    setFormData({
+      name: item.name,
+      description: item.description || "",
+      year: item.year || new Date().getFullYear(),
+      type: item.type || "ARTICLE",
+      author: item.author || "COAUTHOR",
+      degree: item.degree || "INTERNATIONAL",
+      volume: item.volume || "",
+      institution: item.institution || "",
+      popular: item.popular || false,
+    });
+    setFileList([]);
+    setIsOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsOpen(false);
+    setEditingPublication(null);
+    setFormData(INITIAL_FORM);
     setFileList([]);
   };
 
-  const handleAdd = () => {
-    setEditingPublication(null);
-    setPublicationName("");
-    setIsOpen(true);
-  };
+  const handleSave = async () => {
+    if (!formData.name.trim()) return;
+    setIsSaving(true);
 
-  const handleEdit = (item: PublicationItem) => {
-    setEditingPublication(item);
-    setPublicationName(item.title);
-    setIsOpen(true);
-  };
+    try {
+      let fileUrl = editingPublication?.fileUrl || "";
 
-  const handleDelete = (id: number) => {
-    if (confirm("Haqiqatan ham bu publikatsiyani o‘chirmoqchimisiz?")) {
-      setData(prev => prev.filter(item => item.id !== id));
+      if (fileList.length) {
+        fileUrl = await uploadPDFMutation.mutateAsync(
+          fileList[0].originFileObj as File
+        );
+      }
+
+      const payload = {
+        ...formData,
+        fileUrl,
+        userId: USER_ID,
+        ...(editingPublication ? { id: editingPublication.id } : {}),
+      };
+
+      if (editingPublication) {
+        await updatePublicationMutation.mutateAsync(payload);
+      } else {
+        await createPublicationMutation.mutateAsync(payload);
+      }
+
+      closeModal();
+      refetch();
+    } catch (error) {
+      toast.error("Saqlashda xatolik yuz berdi!");
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  /* ================= SAVE ================= */
-  const handleSave = () => {
-    setIsSaving(true);
-
-    setTimeout(() => {
-      if (editingPublication) {
-        setData(prev =>
-          prev.map(item =>
-            item.id === editingPublication.id
-              ? { ...item, title: publicationName }
-              : item
-          )
-        );
-      } else {
-        const newItem: PublicationItem = {
-          id: Date.now(),
-          title: publicationName,
-          image: pub1,
-        };
-        setData(prev => [newItem, ...prev]);
-      }
-
-      setIsSaving(false);
-      resetForm();
-    }, 600);
+  const handleDelete = async (id: number) => {
+    if (!confirm("Haqiqatan ham bu publikatsiyani o‘chirmoqchimisiz?")) return;
+    try {
+      await deletePublicationMutation.mutateAsync(id);
+      refetch();
+    } catch (error) {
+      toast.error("O‘chirishda xatolik yuz berdi!");
+    }
   };
 
-  /* ================= UPLOAD ================= */
   const draggerProps = {
     fileList,
     maxCount: 1,
     beforeUpload: () => false,
-    onChange: ({ fileList }: { fileList: UploadFile[] }) =>
-      setFileList(fileList),
+    onChange: ({ fileList }: { fileList: UploadFile[] }) => setFileList(fileList),
   };
 
-  /* ================= UI ================= */
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
@@ -115,38 +141,30 @@ const Publications: React.FC = () => {
         onSearchChange={setSearchValue}
         buttonText="Publikatsiya qo‘shish"
         buttonIcon={<PlusOutlined />}
-        onButtonClick={handleAdd}
+        onButtonClick={openAddModal}
       />
 
       <PublicationsTable
         data={filteredData}
-        isLoading={false}
-        onEdit={handleEdit}
+        isLoading={isPublicationLoading}
+        onEdit={openEditModal}
         onDelete={handleDelete}
         deletingId={null}
         isDeleting={false}
         emptyText="Publikatsiya topilmadi"
-        onAdd={handleAdd}
       />
 
       <PublicationModal
-        isOpen={isOpen}
-        onCancel={resetForm}
-        publicationName={publicationName}
-        onPublicationNameChange={setPublicationName}
-        editingPublication={
-          editingPublication
-            ? {
-                id: editingPublication.id,
-                name: editingPublication.title,
-                imgUrl: editingPublication.image,
-              }
-            : null
-        }
+        open={isOpen}
+        onCancel={closeModal}
+        formData={formData}
+        onChange={(key, value) => setFormData((prev) => ({ ...prev, [key]: value }))}
+        editingPublication={editingPublication}
         fileList={fileList}
+        onFileChange={setFileList}
+        onSubmit={handleSave}
+        loading={isSaving}
         draggerProps={draggerProps}
-        onSave={handleSave}
-        isSaving={isSaving}
       />
     </div>
   );
