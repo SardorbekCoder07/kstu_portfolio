@@ -1,125 +1,155 @@
-import { Button, Input, Modal, Image } from 'antd';
-import { InboxOutlined } from '@ant-design/icons';
-import Dragger from 'antd/es/upload/Dragger';
-import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
+import React from "react";
+import { Modal, Button, Form, Input, Upload, Typography } from "antd";
+import { InboxOutlined } from "@ant-design/icons";
+import type { UploadFile, UploadProps } from "antd";
 
-interface Consultation {
-  id: number;
-  name: string;
-  imgUrl: string;
+const { TextArea } = Input;
+const { Title } = Typography;
+
+export interface ConsultationFormData {
+  title: string;
   description?: string;
+  year: number;
+  imgUrl?: string;
+  fileUrl?: string;
 }
+
+export const INITIAL_FORM: ConsultationFormData = {
+  title: "",
+  description: "",
+  year: new Date().getFullYear(),
+  imgUrl: "",
+  fileUrl: "",
+};
 
 interface ConsultationsModalProps {
-  isOpen: boolean;
+  open: boolean;
   onCancel: () => void;
-  consultationName: string;
-  onConsultationNameChange: (value: string) => void;
-  editingConsultation: Consultation | null;
+  formData: ConsultationFormData;
+  onChange: <K extends keyof ConsultationFormData>(
+    key: K,
+    value: ConsultationFormData[K]
+  ) => void;
   fileList: UploadFile[];
-  draggerProps: UploadProps;
-  onSave: () => void;
-  isSaving: boolean;
+  onFileChange: (files: UploadFile[]) => void;
+  onSubmit: () => void;
+  loading: boolean;
+  editing?: boolean;
+  draggerProps?: UploadProps;
 }
 
-const ConsultationsModal = ({
-  isOpen,
+const ConsultationsModal: React.FC<ConsultationsModalProps> = ({
+  open,
   onCancel,
-  consultationName,
-  onConsultationNameChange,
-  editingConsultation,
+  formData,
+  onChange,
   fileList,
+  onFileChange,
+  onSubmit,
+  loading,
+  editing = false,
   draggerProps,
-  onSave,
-  isSaving,
-}: ConsultationsModalProps) => {
+}) => {
+  const [form] = Form.useForm();
+
+  const internalDraggerProps: UploadProps = {
+    accept: "image/*,.pdf",
+    maxCount: 1,
+    fileList,
+    onRemove: () => {
+      onFileChange([]);
+      return true;
+    },
+    beforeUpload: (file) => {
+      const isLt10M = file.size / 1024 / 1024 < 10;
+      if (!isLt10M) {
+        alert("Fayl hajmi 10MB dan kichik bo'lishi kerak!");
+        return Upload.LIST_IGNORE;
+      }
+      onFileChange([
+        {
+          uid: Date.now().toString(),
+          name: file.name,
+          status: "done",
+          size: file.size,
+          type: file.type,
+          originFileObj: file,
+        },
+      ]);
+      return false;
+    },
+    ...draggerProps,
+  };
+
   return (
     <Modal
       title={
-        <span className="text-base sm:text-lg">
-          {editingConsultation
-            ? 'Maslahatni tahrirlash'
-            : "Maslahat qo‘shish"}
-        </span>
+        <Title level={4}>
+          {editing ? "Maslahatni tahrirlash" : "Yangi maslahat qo‘shish"}
+        </Title>
       }
-      open={isOpen}
+      open={open}
       onCancel={onCancel}
       footer={null}
-      width="90%"
-      style={{ maxWidth: '600px' }}
+      width={720}
       centered
+      className="rounded-xl"
     >
-      <div className="flex flex-col gap-4 mt-4">
-        {/* Consultation Name */}
-        <div>
-          <label className="font-medium text-gray-700 text-sm sm:text-base mb-2 block">
-            Maslahat nomi:
-          </label>
+      <Form form={form} layout="vertical" initialValues={formData}>
+        <Form.Item
+          name="title"
+          label="Maslahat nomi"
+          rules={[{ required: true, message: "Maslahat nomini kiriting!" }]}
+        >
           <Input
             placeholder="Masalan: Oraliq maslahat (1-semestr)"
-            value={consultationName}
-            onChange={e => onConsultationNameChange(e.target.value)}
             size="large"
+            value={formData.title}
+            onChange={(e) => onChange("title", e.target.value)}
           />
-        </div>
+        </Form.Item>
 
-        {/* Image Upload */}
-        <div>
-          <label className="font-medium text-gray-700 text-sm sm:text-base mb-2 block">
-            Rasm yuklash (ixtiyoriy):
-          </label>
+        <Form.Item name="description" label="Tavsif (ixtiyoriy)">
+          <TextArea
+            rows={3}
+            placeholder="Maslahat tavsifini kiriting..."
+            value={formData.description}
+            onChange={(e) => onChange("description", e.target.value)}
+          />
+        </Form.Item>
 
-          {/* Current Image Preview */}
-          {editingConsultation && !fileList.length && editingConsultation.imgUrl && (
-            <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <Image
-                  src={editingConsultation.imgUrl}
-                  alt="Current"
-                  className="object-cover rounded"
-                  width={80}
-                  height={80}
-                  preview={{ mask: "Ko‘rish" }}
-                />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-700 mb-1">
-                    Hozirgi rasm
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Yangi rasm yuklash uchun quyida faylni tanlang
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Upload Dragger */}
-          <Dragger {...draggerProps} className="upload-dragger-responsive">
+        <Form.Item label="Rasm yoki PDF yuklash (ixtiyoriy)">
+          <Upload.Dragger {...internalDraggerProps}>
             <p className="ant-upload-drag-icon">
-              <InboxOutlined style={{ fontSize: '36px' }} />
+              <InboxOutlined />
             </p>
-            <p className="ant-upload-text text-sm sm:text-base px-4">
-              Rasmni bu yerga torting yoki faylni tanlang
+            <p className="ant-upload-text">
+              Faylni yuklash uchun bosing yoki sudrab keling
             </p>
-            <p className="ant-upload-hint text-gray-500 text-xs sm:text-sm px-4">
-              Faqat bitta rasm (max 5MB)
+            <p className="ant-upload-hint text-gray-500">
+              Faqat PDF yoki rasm format. Maksimal hajm: 10MB
             </p>
-          </Dragger>
-        </div>
+          </Upload.Dragger>
+        </Form.Item>
 
-        {/* Save Button */}
-        <Button
-          type="primary"
-          block
-          onClick={onSave}
-          loading={isSaving}
-          disabled={!consultationName.trim()}
-          size="large"
-          className="mt-2"
-        >
-          {editingConsultation ? 'Yangilash' : 'Saqlash'}
-        </Button>
-      </div>
+        {formData.imgUrl && !fileList.length && (
+          <div className="mb-3 p-3 bg-gray-50 rounded-lg">
+            <p className="text-sm font-medium text-gray-700 mb-2">Hozirgi rasm</p>
+            <img
+              src={formData.imgUrl}
+              alt="Current"
+              className="w-24 h-24 object-cover rounded"
+            />
+          </div>
+        )}
+
+        <div className="flex justify-end gap-3 mt-6">
+          <Button onClick={onCancel}>Bekor qilish</Button>
+          <Button type="primary" onClick={onSubmit} loading={loading}>
+            {editing ? "Yangilash" : "Saqlash"}
+          </Button>
+        </div>
+      </Form>
     </Modal>
   );
 };

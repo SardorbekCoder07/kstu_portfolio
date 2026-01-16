@@ -1,116 +1,127 @@
 import React, { useState, useMemo } from "react";
 import { PlusOutlined } from "@ant-design/icons";
+import type { UploadFile } from "antd/es/upload/interface";
 import { PageHeader } from "../../components/ui/PageHeader";
 import AwardsTable from "./AwardsTable";
-import AwardsModal from "./AwardsModal";
-import type { UploadFile, UploadProps } from "antd/es/upload/interface";
+import AwardModal, { AwardFormData } from "./AwardsModal";
+import { useAwardOperations } from "../../hooks/useAwardOperation";
+import { toast } from "sonner";
 
-import award1 from "../../assets/images/image.png";
-import award2 from "../../assets/images/image.png";
-import award3 from "../../assets/images/image.png";
+const USER_ID = Number(
+  JSON.parse(localStorage.getItem("user_cache") || "{}").id
+);
 
-interface AwardItem {
-  id: number;
-  image: string;
-  title: string;
-}
+const INITIAL_FORM: AwardFormData = {
+  name: "",
+  description: "",
+  year: new Date().getFullYear(),
+  awardEnum: "LOCAL",
+  memberEnum: "INDIVIDUAL",
+  fileUrl: "",
+};
 
 const Awards: React.FC = () => {
-  /** ===================== DATA ===================== */
-  const initialData: AwardItem[] = [
-    { id: 1, image: award1, title: "Matematika bo‘yicha mukofot" },
-    { id: 2, image: award2, title: "Geometriya tadqiqotlari mukofoti" },
-    { id: 3, image: award3, title: "Ta’lim metodikasi mukofoti" },
-    { id: 4, image: award1, title: "Differensial tenglamalar bo‘yicha mukofot" },
-    { id: 5, image: award2, title: "Statistika va ehtimollik mukofoti" },
-    { id: 6, image: award3, title: "Kiberxavfsizlik mukofoti" },
-  ];
-
-  const [data, setData] = useState<AwardItem[]>(initialData);
-  const [searchValue, setSearchValue] = useState("");
-
-  /** ===================== MODAL STATES ===================== */
   const [isOpen, setIsOpen] = useState(false);
-  const [awardName, setAwardName] = useState("");
-  const [editingAward, setEditingAward] = useState<AwardItem | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
+  const [editingAward, setEditingAward] = useState<any>(null);
+  const [formData, setFormData] = useState<AwardFormData>(INITIAL_FORM);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [searchValue, setSearchValue] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
-  /** ===================== SEARCH ===================== */
+  const {
+    awards,
+    isAwardLoading,
+    createAwardMutation,
+    updateAwardMutation,
+    deleteAwardMutation,
+    uploadPDFMutation,
+    refetch,
+  } = useAwardOperations(USER_ID);
+
   const filteredData = useMemo(() => {
-    if (!searchValue.trim()) return data;
-    return data.filter(item =>
-      item.title.toLowerCase().includes(searchValue.toLowerCase())
+    if (!searchValue.trim()) return awards;
+    return awards.filter((item) =>
+      item.name.toLowerCase().includes(searchValue.toLowerCase())
     );
-  }, [searchValue, data]);
+  }, [searchValue, awards]);
 
-  /** ===================== MODAL HELPERS ===================== */
   const openAddModal = () => {
     setEditingAward(null);
-    setAwardName("");
+    setFormData(INITIAL_FORM);
     setFileList([]);
     setIsOpen(true);
   };
 
-  const openEditModal = (item: AwardItem) => {
+  const openEditModal = (item: any) => {
     setEditingAward(item);
-    setAwardName(item.title);
+    setFormData({
+      name: item.name,
+      description: item.description || "",
+      year: item.year || new Date().getFullYear(),
+      awardEnum: item.awardEnum || "LOCAL",
+      memberEnum: item.memberEnum || "INDIVIDUAL",
+      fileUrl: item.fileUrl || "",
+    });
     setFileList([]);
     setIsOpen(true);
   };
 
-  const resetForm = () => {
+  const closeModal = () => {
     setIsOpen(false);
-    setAwardName("");
     setEditingAward(null);
+    setFormData(INITIAL_FORM);
     setFileList([]);
   };
 
-  /** ===================== SAVE ===================== */
-  const handleSave = () => {
-    if (!awardName.trim()) return;
-
+  const handleSave = async () => {
+    if (!formData.name.trim()) return;
     setIsSaving(true);
 
-    setTimeout(() => {
-      if (editingAward) {
-        setData(prev =>
-          prev.map(item =>
-            item.id === editingAward.id
-              ? { ...item, title: awardName.trim() }
-              : item
-          )
-        );
-      } else {
-        const newItem: AwardItem = {
-          id: Date.now(),
-          title: awardName.trim(),
-          image: award1,
-        };
-        setData(prev => [newItem, ...prev]);
+    try {
+      let fileUrl = editingAward?.fileUrl || "";
+      if (fileList.length) {
+        fileUrl = await uploadPDFMutation.mutateAsync(fileList[0].originFileObj as File);
       }
 
-      setIsSaving(false);
-      resetForm();
-    }, 500);
-  };
+      const payload = {
+        ...formData,
+        fileUrl,
+        userId: USER_ID,
+        ...(editingAward ? { id: editingAward.id } : {}),
+      };
 
-  /** ===================== DELETE ===================== */
-  const handleDelete = (id: number) => {
-    if (confirm("Haqiqatan ham bu mukofotni o‘chirmoqchimisiz?")) {
-      setData(prev => prev.filter(item => item.id !== id));
+      if (editingAward) {
+        await updateAwardMutation.mutateAsync(payload);
+      } else {
+        await createAwardMutation.mutateAsync(payload);
+      }
+
+      closeModal();
+      refetch();
+    } catch {
+      toast.error("Saqlashda xatolik yuz berdi!");
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  /** ===================== UPLOAD ===================== */
-  const draggerProps: UploadProps = {
+  const handleDelete = async (id: number) => {
+    if (!confirm("Haqiqatan ham bu mukofotni o‘chirmoqchimisiz?")) return;
+    try {
+      await deleteAwardMutation.mutateAsync(id);
+      refetch();
+    } catch {
+      toast.error("O‘chirishda xatolik yuz berdi!");
+    }
+  };
+
+  const draggerProps = {
     fileList,
     maxCount: 1,
     beforeUpload: () => false,
-    onChange: info => setFileList(info.fileList),
+    onChange: ({ fileList }: { fileList: UploadFile[] }) => setFileList(fileList),
   };
 
-  /** ===================== RENDER ===================== */
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
@@ -126,29 +137,23 @@ const Awards: React.FC = () => {
 
       <AwardsTable
         data={filteredData}
-        isLoading={false}
+        isLoading={isAwardLoading}
         onEdit={openEditModal}
         onDelete={handleDelete}
-        deletingId={null}
-        isDeleting={false}
         emptyText="Mukofot topilmadi"
-        onAdd={openAddModal}
       />
 
-      <AwardsModal
-        isOpen={isOpen}
-        onCancel={resetForm}
-        awardName={awardName}
-        onAwardNameChange={setAwardName}
-        editingAward={
-          editingAward
-            ? { id: editingAward.id, name: editingAward.title, imgUrl: editingAward.image }
-            : null
-        }
+      <AwardModal
+        open={isOpen}
+        onCancel={closeModal}
+        formData={formData}
+        onChange={(key, value) => setFormData((prev) => ({ ...prev, [key]: value }))}
+        editingAward={editingAward}
         fileList={fileList}
+        onFileChange={setFileList}
+        onSubmit={handleSave}
+        loading={isSaving}
         draggerProps={draggerProps}
-        onSave={handleSave}
-        isSaving={isSaving}
       />
     </div>
   );

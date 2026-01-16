@@ -44,27 +44,6 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
       render: (_: any, __: any, index: number) => index + 1,
     },
     {
-      title: "Rasm",
-      dataIndex: "imgUrl",
-      key: "imgUrl",
-      width: 80,
-      render: (src: string | undefined, record: ControlItem) =>
-        src ? (
-          <Image
-            src={src}
-            alt={record.name}
-            width={48}
-            height={48}
-            preview={{ mask: "Ko‘rish" }}
-            className="rounded object-cover"
-          />
-        ) : (
-          <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
-            <span className="text-gray-400 text-xs">Yo'q</span>
-          </div>
-        ),
-    },
-    {
       title: "Nazorat nomi",
       dataIndex: "name",
       key: "name",

@@ -1,113 +1,126 @@
 import React, { useState, useMemo } from "react";
 import { PlusOutlined } from "@ant-design/icons";
 import { PageHeader } from "../../components/ui/PageHeader";
-import ConsultationsTable from "./ConsultationsTable";
-import consult1 from "../../assets/images/image.png";
-import consult2 from "../../assets/images/image.png";
-import consult3 from "../../assets/images/image.png";
-import ConsultationsModal from "./ConsultationsModal";
-import type { UploadFile, UploadProps } from "antd/es/upload/interface";
+import ConsultationsTable, { ConsultationItem } from "./ConsultationsTable";
+import ConsultationsModal, { ConsultationFormData, INITIAL_FORM } from "./ConsultationsModal";
+import { Spin, UploadFile } from "antd";
+import { toast } from "sonner";
+import { useAdviceOperations } from "../../hooks/useAdviceOperation"; // hook mavjud deb hisoblaymiz
 
-export interface ConsultationItem {
-  id: number;
-  image: string;
-  title: string;
-}
+// LocalStorage dan user id olish
+const dataId = JSON.parse(localStorage.getItem("user_cache") || "{}");
+const USER_ID = dataId?.id || 0;
+
+export const INITIAL_CONSULTATION_FORM: ConsultationFormData = {
+  title: "",
+  description: "",
+  year: new Date().getFullYear(),
+  fileUrl: "",
+};
 
 const Consultations: React.FC = () => {
-  const initialData: ConsultationItem[] = [
-    { id: 1, image: consult1, title: "Matematika bo‘yicha maslahat" },
-    { id: 2, image: consult2, title: "Geometriya tadqiqotlari bo‘yicha maslahat" },
-    { id: 3, image: consult3, title: "Ta’lim metodikasi bo‘yicha maslahat" },
-    { id: 4, image: consult1, title: "Differensial tenglamalar bo‘yicha maslahat" },
-    { id: 5, image: consult2, title: "Statistika va ehtimollik bo‘yicha maslahat" },
-    { id: 6, image: consult3, title: "Kiberxavfsizlik bo‘yicha maslahat" },
-  ];
+  const {
+    advices,
+    isAdviceLoading: isConsultationLoading,
+    createAdviceMutation,
+    updateAdviceMutation,
+    deleteAdviceMutation,
+    uploadPDFMutation,
+  } = useAdviceOperations(USER_ID);
 
-  const [data, setData] = useState<ConsultationItem[]>(initialData);
   const [searchValue, setSearchValue] = useState("");
-
-  // Modal va form state’lari
   const [isOpen, setIsOpen] = useState(false);
   const [editingConsultation, setEditingConsultation] = useState<ConsultationItem | null>(null);
-  const [consultationName, setConsultationName] = useState("");
+  const [formData, setFormData] = useState<ConsultationFormData>(INITIAL_CONSULTATION_FORM);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
+  /* ================= DATA MAPPING ================= */
+  const consultationList: ConsultationItem[] = useMemo(
+    () =>
+      advices.map((item) => ({
+        id: item.id,
+        title: item.name,
+        description: item.description,
+        year: item.year,
+        fileUrl: item.fileUrl,
+      })),
+    [advices]
+  );
+
   const filteredData = useMemo(() => {
-    if (!searchValue.trim()) return data;
-    return data.filter(item =>
+    if (!searchValue.trim()) return consultationList;
+    return consultationList.filter((item) =>
       item.title.toLowerCase().includes(searchValue.toLowerCase())
     );
-  }, [searchValue, data]);
+  }, [searchValue, consultationList]);
 
-  // Add new consultation
-  const handleAdd = () => {
+  /* ================= MODAL HANDLERS ================= */
+  const openAddModal = () => {
     setEditingConsultation(null);
-    setConsultationName("");
+    setFormData(INITIAL_CONSULTATION_FORM);
     setFileList([]);
     setIsOpen(true);
   };
 
-  // Edit consultation
-  const handleEdit = (item: ConsultationItem) => {
+  const openEditModal = (item: ConsultationItem) => {
     setEditingConsultation(item);
-    setConsultationName(item.title);
-    setFileList([]); // agar rasm yangilanishi kerak bo‘lsa
+    setFormData({
+      title: item.title,
+      description: item.description || "",
+      year: item.year || new Date().getFullYear(),
+      fileUrl: item.fileUrl || "",
+    });
+    setFileList([]);
     setIsOpen(true);
   };
 
-  // Delete consultation
-  const handleDelete = (id: number) => {
-    if (confirm("Haqiqatan ham bu maslahatni o'chirmoqchimisiz?")) {
-      setData(prev => prev.filter(item => item.id !== id));
-    }
-  };
-
-  // Save consultation (add yoki edit)
-  const handleSave = () => {
-    if (!consultationName.trim()) return;
-
-    if (editingConsultation) {
-      // Edit
-      setData(prev =>
-        prev.map(item =>
-          item.id === editingConsultation.id
-            ? { ...item, title: consultationName.trim() }
-            : item
-        )
-      );
-    } else {
-      // Add
-      const newItem: ConsultationItem = {
-        id: data.length + 1,
-        image: consult1, // default rasm
-        title: consultationName.trim(),
-      };
-      setData(prev => [newItem, ...prev]);
-    }
-
-    // Close modal
-    resetForm();
-  };
-
-  const resetForm = () => {
+  const closeModal = () => {
     setIsOpen(false);
     setEditingConsultation(null);
-    setConsultationName("");
+    setFormData(INITIAL_CONSULTATION_FORM);
     setFileList([]);
   };
 
-  // Dragger props
-  const draggerProps: UploadProps = {
-    multiple: false,
-    beforeUpload: file => {
-      setFileList([file]);
-      return false; // faylni avtomatik upload qilmaslik
-    },
+  /* ================= SAVE ================= */
+  const handleSave = async () => {
+    if (!formData.title.trim()) return;
+
+    try {
+      let fileUrl = editingConsultation?.fileUrl || "";
+
+      if (fileList.length) {
+        fileUrl = await uploadPDFMutation.mutateAsync(fileList[0].originFileObj as File);
+      }
+
+      const payload = { ...formData, fileUrl, userId: USER_ID };
+
+      if (editingConsultation) {
+        await updateAdviceMutation.mutateAsync({ id: editingConsultation.id, ...payload });
+      } else {
+        await createAdviceMutation.mutateAsync(payload);
+      }
+
+      closeModal();
+    } catch {
+      toast.error("Saqlashda xatolik yuz berdi!");
+    }
+  };
+
+  /* ================= DELETE ================= */
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteAdviceMutation.mutateAsync(id);
+    } catch {
+      toast.error("O‘chirishda xatolik yuz berdi!");
+    }
+  };
+
+  /* ================= UPLOAD ================= */
+  const draggerProps = {
     fileList,
-    onRemove: file => {
-      setFileList([]);
-    },
+    maxCount: 1,
+    beforeUpload: () => false,
+    onChange: ({ fileList }: { fileList: UploadFile[] }) => setFileList(fileList),
   };
 
   return (
@@ -120,34 +133,36 @@ const Consultations: React.FC = () => {
         onSearchChange={setSearchValue}
         buttonText="Maslahat qo‘shish"
         buttonIcon={<PlusOutlined />}
-        onButtonClick={handleAdd}
+        onButtonClick={openAddModal}
       />
 
-      <ConsultationsTable
-        data={filteredData}
-        isLoading={false}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        deletingId={null}
-        isDeleting={false}
-        emptyText="Maslahat topilmadi"
-        onAdd={handleAdd}
-      />
+      {isConsultationLoading ? (
+        <div className="flex justify-center py-20">
+          <Spin size="large" />
+        </div>
+      ) : (
+        <ConsultationsTable
+          data={filteredData}
+          isLoading={false}
+          onEdit={openEditModal}
+          onDelete={handleDelete}
+          deletingId={null}
+          isDeleting={false}
+          emptyText="Maslahat topilmadi"
+        />
+      )}
 
       <ConsultationsModal
-        isOpen={isOpen}
-        onCancel={resetForm}
-        consultationName={consultationName}
-        onConsultationNameChange={setConsultationName}
-        editingConsultation={
-          editingConsultation
-            ? { id: editingConsultation.id, name: editingConsultation.title, imgUrl: editingConsultation.image }
-            : null
-        }
+        open={isOpen}
+        onCancel={closeModal}
+        formData={formData}
+        onChange={(key, value) => setFormData((prev) => ({ ...prev, [key]: value }))}
         fileList={fileList}
+        onFileChange={setFileList}
+        onSubmit={handleSave}
+        loading={createAdviceMutation.isPending || updateAdviceMutation.isPending}
+        editing={!!editingConsultation}
         draggerProps={draggerProps}
-        onSave={handleSave}
-        isSaving={false}
       />
     </div>
   );

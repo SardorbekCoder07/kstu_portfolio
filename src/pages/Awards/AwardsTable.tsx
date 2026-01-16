@@ -1,11 +1,15 @@
 import React from "react";
-import { Button, Table, Image, Popconfirm, Space, Empty } from "antd";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Button, Table, Popconfirm, Space, Empty } from "antd";
+import { EditOutlined, DeleteOutlined, FilePdfOutlined } from "@ant-design/icons";
 
-interface AwardItem {
+/* ===================== TYPES ===================== */
+export interface AwardItem {
   id: number;
-  image: string;
-  title: string;
+  name: string;
+  imgUrl?: string | null;
+  description?: string;
+  year?: number;
+  fileUrl?: string | null;
 }
 
 interface AwardsTableProps {
@@ -16,9 +20,9 @@ interface AwardsTableProps {
   deletingId: number | null;
   isDeleting: boolean;
   emptyText?: string;
-  onAdd?: () => void;
 }
 
+/* ===================== COMPONENT ===================== */
 const AwardsTable: React.FC<AwardsTableProps> = ({
   data,
   isLoading,
@@ -31,71 +35,78 @@ const AwardsTable: React.FC<AwardsTableProps> = ({
   const columns = [
     {
       title: "№",
-      dataIndex: "id",
-      key: "id",
-      width: 50,
-      render: (_: any, __: any, index: number) => <span>{index + 1}</span>,
-    },
-    {
-      title: "Rasm",
-      dataIndex: "image",
-      key: "image",
-      width: 80,
-      render: (src: string, record: AwardItem) =>
-        src ? (
-          <Image
-            width={48}
-            height={48}
-            src={src}
-            alt={record.title}
-            preview={{ mask: "Ko'rish" }}
-            className="rounded object-cover"
-          />
-        ) : (
-          <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
-            <span className="text-gray-400 text-xs">Yo'q</span>
-          </div>
-        ),
+      key: "index",
+      width: 60,
+      render: (_: any, __: any, index: number) => index + 1,
     },
     {
       title: "Mukofot nomi",
-      dataIndex: "title",
-      key: "title",
-      render: (title: string) => <span className="font-medium">{title}</span>,
+      dataIndex: "name",
+      key: "name",
+      render: (name: string) => <span className="font-medium">{name}</span>,
+    },
+    {
+      title: "Tavsif",
+      dataIndex: "description",
+      key: "description",
+      render: (description?: string) =>
+        description ? (
+          <span className="font-medium">
+            {description.length > 30 ? description.slice(0, 30) + "..." : description}
+          </span>
+        ) : (
+          <span className="text-gray-400">Mavjud emas</span>
+        ),
+    },
+    {
+      title: "Fayl",
+      dataIndex: "fileUrl",
+      key: "fileUrl",
+      width: 140,
+      render: (fileUrl: string | null) =>
+        fileUrl ? (
+          <Button
+            type="link"
+            icon={<FilePdfOutlined />}
+            onClick={() => window.open(fileUrl, "_blank")}
+          >
+            PDF ko‘rish
+          </Button>
+        ) : (
+          <span className="text-gray-400">Mavjud emas</span>
+        ),
     },
     {
       title: "Amallar",
       key: "actions",
-      width: 180,
-      fixed: "right" as any,
+      width: 200,
+      fixed: "right" as const,
       render: (_: any, record: AwardItem) => (
-        <Space size="small" className="flex flex-wrap">
+        <Space>
           <Button
             type="primary"
             icon={<EditOutlined />}
-            onClick={() => onEdit(record)}
             size="small"
-            className="w-full sm:w-auto"
+            onClick={() => onEdit(record)}
           >
-            <span className="hidden sm:inline">Tahrirlash</span>
+            Tahrirlash
           </Button>
+
           <Popconfirm
-            title="Mukofotni o'chirish"
-            description="Haqiqatan ham bu mukofotni o'chirmoqchimisiz?"
+            title="Mukofotni o‘chirish"
+            description="Haqiqatan ham bu mukofotni o‘chirmoqchimisiz?"
             onConfirm={() => onDelete(record.id)}
             okText="Ha"
             cancelText="Yo'q"
             okButtonProps={{ danger: true }}
-            placement="topRight"
           >
             <Button
               danger
               icon={<DeleteOutlined />}
               size="small"
               loading={deletingId === record.id && isDeleting}
-              className="w-full sm:w-auto"
             >
-              <span className="hidden sm:inline">O'chirish</span>
+              O‘chirish
             </Button>
           </Popconfirm>
         </Space>
@@ -104,20 +115,20 @@ const AwardsTable: React.FC<AwardsTableProps> = ({
   ];
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
       {isLoading || data.length > 0 ? (
         <Table
-          dataSource={data}
+          rowKey="id"
           columns={columns}
+          dataSource={data}
           loading={isLoading}
           pagination={false}
           bordered
-          rowKey="id"
         />
       ) : (
         <Empty description={emptyText} />
       )}
-    </div>
+    </>
   );
 };
 
