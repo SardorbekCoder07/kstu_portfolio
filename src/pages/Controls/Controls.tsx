@@ -1,16 +1,12 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { PlusOutlined } from "@ant-design/icons";
 import { PageHeader } from "../../components/ui/PageHeader";
 import ControlsTable, { ControlItem } from "./ControlsTable";
 import ControlsModal, { ControlsFormData, INITIAL_FORM } from "./ControlsModal";
 import { Spin } from "antd";
 import { toast } from "sonner";
-import { useControlOperations } from "../../hooks/useControlOperation"; // hook yozilgan deb hisoblaymiz
+import { useControlOperations } from "../../hooks/useControlOperation";
 import type { UploadFile } from "antd/es/upload/interface";
-
-// LocalStorage dan user id olish
-const dataId = JSON.parse(localStorage.getItem("user_cache") || "{}");
-const USER_ID = dataId?.id || 0;
 
 export const INITIAL_CONTROLS_FORM: ControlsFormData = {
   name: "",
@@ -23,15 +19,7 @@ export const INITIAL_CONTROLS_FORM: ControlsFormData = {
 };
 
 const Controls: React.FC = () => {
-  const {
-    controles,
-    isControlLoading,
-    createControlMutation,
-    updateControlMutation,
-    uploadPDFMutation,
-    deleteControlMutation,
-  } = useControlOperations(USER_ID);
-
+  const [userId, setUserId] = useState<number | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [editingControl, setEditingControl] = useState<ControlItem | null>(
@@ -41,6 +29,25 @@ const Controls: React.FC = () => {
     INITIAL_CONTROLS_FORM
   );
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+
+  /* ================= GET USER_ID ================= */
+  useEffect(() => {
+    const cache = localStorage.getItem("user_cache");
+    if (cache) {
+      const parsed = JSON.parse(cache);
+      setUserId(parsed.id ?? null);
+    }
+  }, []);
+
+  /* ================= HOOK ================= */
+  const {
+    controles,
+    isControlLoading,
+    createControlMutation,
+    updateControlMutation,
+    uploadPDFMutation,
+    deleteControlMutation,
+  } = useControlOperations(userId, { enabled: !!userId });
 
   /* ================= DATA MAPPING ================= */
   const controlList: ControlItem[] = useMemo(
@@ -53,18 +60,21 @@ const Controls: React.FC = () => {
         fileUrl: item.fileUrl,
         univerName: item.univerName,
         level: item.level,
-        memberEnum: item.name,
+        memberEnum: item.memberEnum,
         finished: item.finished,
+        userId: item.userId,
       })),
     [controles]
   );
 
   const filteredData = useMemo(() => {
-    if (!searchValue.trim()) return controlList;
-    return controlList.filter((item) =>
+    if (!userId) return [];
+    const data = controlList.filter((c) => c.userId === userId);
+    if (!searchValue.trim()) return data;
+    return data.filter((item) =>
       item.name.toLowerCase().includes(searchValue.toLowerCase())
     );
-  }, [searchValue, controlList]);
+  }, [searchValue, controlList, userId]);
 
   /* ================= MODAL HANDLERS ================= */
   const openAddModal = () => {
@@ -98,30 +108,29 @@ const Controls: React.FC = () => {
 
   /* ================= SAVE ================= */
   const handleSave = async () => {
+    if (!userId) return;
+
     try {
       let fileUrl = editingControl?.fileUrl || "";
-
       if (fileList.length) {
         fileUrl = await uploadPDFMutation.mutateAsync(
           fileList[0].originFileObj as File
         );
       }
 
-      const payload = {
-        ...formData,
-        fileUrl,
-        userId: USER_ID,
-        member: true,
-      };
+      const payload = { ...formData, fileUrl, userId, member: true };
 
       if (editingControl) {
-        updateControlMutation.mutate({ id: editingControl.id, ...payload });
+        await updateControlMutation.mutateAsync({
+          id: editingControl.id,
+          ...payload,
+        });
       } else {
-        createControlMutation.mutate(payload);
+        await createControlMutation.mutateAsync(payload);
       }
 
       closeModal();
-    } catch (e) {
+    } catch {
       toast.error("Saqlashda xatolik yuz berdi");
     }
   };
@@ -136,8 +145,17 @@ const Controls: React.FC = () => {
     fileList,
     maxCount: 1,
     beforeUpload: () => false,
-    onChange: ({ fileList }: { fileList: UploadFile[] }) => setFileList(fileList),
+    onChange: ({ fileList }: { fileList: UploadFile[] }) =>
+      setFileList(fileList),
   };
+
+  if (!userId) {
+    return (
+      <div className="flex justify-center py-20">
+        <span>Loading...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -178,7 +196,9 @@ const Controls: React.FC = () => {
         fileList={fileList}
         onFileChange={setFileList}
         onSubmit={handleSave}
-        loading={createControlMutation.isPending || updateControlMutation.isPending}
+        loading={
+          createControlMutation.isPending || updateControlMutation.isPending
+        }
         editing={!!editingControl}
         draggerProps={draggerProps}
       />

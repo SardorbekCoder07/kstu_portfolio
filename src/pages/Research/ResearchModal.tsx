@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import {
   Modal,
   Button,
@@ -7,7 +7,7 @@ import {
   Select,
   Upload,
   Typography,
-  Switch,
+  message,
 } from "antd";
 import { InboxOutlined } from "@ant-design/icons";
 import type { UploadFile, UploadProps } from "antd";
@@ -24,6 +24,7 @@ export interface ResearchFormData {
   finished: boolean;
   member: boolean;
   fileUrl?: string;
+  userId?: number;
 }
 
 export const INITIAL_FORM: ResearchFormData = {
@@ -35,6 +36,7 @@ export const INITIAL_FORM: ResearchFormData = {
   finished: false,
   member: true,
   fileUrl: "",
+  userId: undefined,
 };
 
 interface ResearchModalProps {
@@ -47,7 +49,7 @@ interface ResearchModalProps {
   ) => void;
   fileList: UploadFile[];
   onFileChange: (files: UploadFile[]) => void;
-  onSubmit: () => void;
+  onSubmit: () => Promise<void>;
   loading: boolean;
   editing?: boolean;
 }
@@ -65,6 +67,43 @@ export const ResearchModal: React.FC<ResearchModalProps> = ({
 }) => {
   const [form] = Form.useForm();
 
+  const pdfUrlRegex = /^(https?:\/\/[^\s]+\.pdf)$/i;
+
+  // Edit rejimida eski malumotlarni formga qo‘yish
+  useEffect(() => {
+    if (open) {
+      form.setFieldsValue(formData);
+      // Agar API'dan PDF kelgan bo'lsa, fileList ga qo‘shish
+      if (formData.fileUrl) {
+        onFileChange([
+          {
+            uid: "-1",
+            name: formData.fileUrl.split("/").pop() || "file.pdf",
+            status: "done",
+            url: formData.fileUrl,
+          },
+        ]);
+      } else {
+        onFileChange([]);
+      }
+    }
+  }, [open, formData, form, onFileChange]);
+
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+
+      if (values.fileUrl && !pdfUrlRegex.test(values.fileUrl)) {
+        message.error("Iltimos, to‘g‘ri PDF havolasini kiriting!");
+        return;
+      }
+
+      await onSubmit();
+    } catch (error) {
+      console.log("Form validation error", error);
+    }
+  };
+
   const uploadProps: UploadProps = {
     accept: ".pdf",
     maxCount: 1,
@@ -76,7 +115,7 @@ export const ResearchModal: React.FC<ResearchModalProps> = ({
     beforeUpload: (file) => {
       const isLt10M = file.size / 1024 / 1024 < 10;
       if (!isLt10M) {
-        alert("PDF hajmi 10MB dan kichik bo'lishi kerak!");
+        message.error("PDF hajmi 10MB dan kichik bo'lishi kerak!");
         return Upload.LIST_IGNORE;
       }
 
@@ -97,28 +136,37 @@ export const ResearchModal: React.FC<ResearchModalProps> = ({
   return (
     <Modal
       title={
-        <Title level={3}>
+        <Title level={4}>
           {editing ? "Tadqiqotni tahrirlash" : "Yangi tadqiqot qo'shish"}
         </Title>
       }
       open={open}
       onCancel={onCancel}
       footer={null}
-      width={720}
+      width={600}
       centered
       className="rounded-xl"
+      bodyStyle={{ paddingTop: 24, paddingBottom: 24 }}
     >
-      <Form form={form} layout="vertical" initialValues={formData}>
+      <Form form={form} layout="vertical">
         <Form.Item
           name="name"
           label="Tadqiqot nomi"
           rules={[{ required: true, message: "Nomini kiriting!" }]}
         >
-          <Input size="large" placeholder="Tadqiqot nomi..." />
+          <Input
+            size="large"
+            placeholder="Tadqiqot nomi..."
+            onChange={(e) => onChange("name", e.target.value)}
+          />
         </Form.Item>
 
         <Form.Item name="description" label="Qisqa tavsif">
-          <TextArea rows={3} placeholder="Tadqiqot haqida qisqacha..." />
+          <TextArea
+            rows={3}
+            placeholder="Tadqiqot haqida qisqacha..."
+            onChange={(e) => onChange("description", e.target.value)}
+          />
         </Form.Item>
 
         <div className="grid grid-cols-2 gap-4">
@@ -127,7 +175,12 @@ export const ResearchModal: React.FC<ResearchModalProps> = ({
             label="Yil"
             rules={[{ required: true, message: "Yilni kiriting!" }]}
           >
-            <Input type="number" size="large" placeholder="2024" />
+            <Input
+              type="number"
+              size="large"
+              placeholder="2024"
+              onChange={(e) => onChange("year", Number(e.target.value))}
+            />
           </Form.Item>
 
           <Form.Item
@@ -135,7 +188,11 @@ export const ResearchModal: React.FC<ResearchModalProps> = ({
             label="Universitet / Tashkilot"
             rules={[{ required: true, message: "Universitetni kiriting!" }]}
           >
-            <Input size="large" placeholder="TATU, INHA..." />
+            <Input
+              size="large"
+              placeholder="TATU, INHA..."
+              onChange={(e) => onChange("univerName", e.target.value)}
+            />
           </Form.Item>
         </div>
 
@@ -145,7 +202,11 @@ export const ResearchModal: React.FC<ResearchModalProps> = ({
             label="A'zolik turi"
             rules={[{ required: true, message: "Turini tanlang!" }]}
           >
-            <Select size="large">
+            <Select
+              size="large"
+              value={formData.memberEnum}
+              onChange={(val) => onChange("memberEnum", val)}
+            >
               <Select.Option value="MILLIY">Milliy</Select.Option>
               <Select.Option value="XALQARO">Xalqaro</Select.Option>
             </Select>
@@ -156,7 +217,11 @@ export const ResearchModal: React.FC<ResearchModalProps> = ({
             label="Holati"
             rules={[{ required: true, message: "Holatini tanlang!" }]}
           >
-            <Select size="large">
+            <Select
+              size="large"
+              value={formData.finished}
+              onChange={(val) => onChange("finished", val)}
+            >
               <Select.Option value={false}>Jarayonda</Select.Option>
               <Select.Option value={true}>Tugallangan</Select.Option>
             </Select>
@@ -189,6 +254,7 @@ export const ResearchModal: React.FC<ResearchModalProps> = ({
             size="large"
             placeholder="https://example.com/file.pdf"
             disabled={fileList.length > 0}
+            onChange={(e) => onChange("fileUrl", e.target.value)}
           />
         </Form.Item>
 
@@ -197,8 +263,9 @@ export const ResearchModal: React.FC<ResearchModalProps> = ({
           <Button
             type="primary"
             className="bg-blue-600 hover:bg-blue-700"
-            onClick={onSubmit}
+            onClick={handleSubmit}
             loading={loading}
+            disabled={loading}
           >
             {editing ? "Saqlash" : "Qo'shish"}
           </Button>

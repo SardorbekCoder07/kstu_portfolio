@@ -1,6 +1,10 @@
 import React from "react";
 import { Button, Table, Popconfirm, Space, Empty, Image } from "antd";
-import { EditOutlined, DeleteOutlined, FilePdfOutlined } from "@ant-design/icons";
+import {
+  EditOutlined,
+  DeleteOutlined,
+  FilePdfOutlined,
+} from "@ant-design/icons";
 
 /* ===================== TYPES ===================== */
 export interface ControlItem {
@@ -56,7 +60,9 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
       render: (description?: string) =>
         description ? (
           <span className="font-medium">
-            {description.length > 30 ? description.slice(0, 30) + "..." : description}
+            {description.length > 30
+              ? description.slice(0, 30) + "..."
+              : description}
           </span>
         ) : (
           <span className="text-gray-400">Mavjud emas</span>
@@ -126,7 +132,11 @@ const ControlsTable: React.FC<ControlsTableProps> = ({
           columns={columns}
           dataSource={data}
           loading={isLoading}
-          pagination={false}
+          pagination={{
+            pageSize: 10,
+            position: ["bottomRight"],
+            showSizeChanger: false,
+          }}
           bordered
         />
       ) : (

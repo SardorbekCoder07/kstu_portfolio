@@ -1,4 +1,4 @@
-import axiosClient from "../axiosClient";
+import axiosClient from "../axiosClient";  // yoki "../../api/axiosClient"
 
 export interface Profile {
   id: number;
@@ -16,11 +16,7 @@ export interface Profile {
   lavozimName: string | null;
   departmentName: string | null;
   qualification: string | null;
-  research: string | null;
-  award: string | null;
-  consultation: string | null;
-  nazorat: string | null;
-  publication: string | null;
+  // endi massivlar yo'q — ular alohida API'dan keladi
 }
 
 export const fetchProfile = async (): Promise<Profile> => {

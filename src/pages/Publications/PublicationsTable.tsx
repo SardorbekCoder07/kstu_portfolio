@@ -1,7 +1,11 @@
 // PublicationsTable.tsx
 import React from "react";
 import { Button, Table, Image, Popconfirm, Space, Empty } from "antd";
-import { EditOutlined, DeleteOutlined, FilePdfOutlined } from "@ant-design/icons";
+import {
+  EditOutlined,
+  DeleteOutlined,
+  FilePdfOutlined,
+} from "@ant-design/icons";
 
 /* ===================== TYPES ===================== */
 export interface PublicationItem {
@@ -53,7 +57,9 @@ const PublicationsTable: React.FC<PublicationsTableProps> = ({
       render: (description?: string) =>
         description ? (
           <span className="font-medium">
-            {description.length > 30 ? description.slice(0, 30) + "..." : description}
+            {description.length > 30
+              ? description.slice(0, 30) + "..."
+              : description}
           </span>
         ) : (
           <span className="text-gray-400">Mavjud emas</span>
@@ -123,7 +129,11 @@ const PublicationsTable: React.FC<PublicationsTableProps> = ({
           columns={columns}
           dataSource={data}
           loading={isLoading}
-          pagination={false}
+          pagination={{
+            pageSize: 10,
+            position: ["bottomRight"],
+            showSizeChanger: false,
+          }}
           bordered
         />
       ) : (

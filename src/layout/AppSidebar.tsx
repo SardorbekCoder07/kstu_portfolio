@@ -53,14 +53,14 @@ const adminNavItems: NavItem[] = [
 
 const teacherNavItems: NavItem[] = [
   {
-    name: "Ma'lumotlarim",
+    name: "Profil",
     icon: <GridIcon />,
-    subItems: [{ name: "Tadqiqotlar ro'yxati", path: "/teacher", pro: false }],
+    subItems: [{ name: "Profil", path: "/teacher", pro: false }],
   },
   {
     name: "Tadqiqotlar",
     icon: <GraduationCap />,
-    subItems: [{ name: "Tadqiqotlar ro'yxati", path: "/research", pro: false }],
+    subItems: [{ name: "Tadqiqotlar", path: "/research", pro: false }],
   },
   {
     name: "Nazoratlar",

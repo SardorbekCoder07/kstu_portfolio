@@ -1,32 +1,29 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { PlusOutlined } from "@ant-design/icons";
 import type { UploadFile } from "antd/es/upload/interface";
 import { PageHeader } from "../../components/ui/PageHeader";
 import AwardsTable from "./AwardsTable";
-import AwardModal, { AwardFormData } from "./AwardsModal";
+import {AwardModal, AwardFormData, INITIAL_AWARD_FORM } from "./AwardsModal";
 import { useAwardOperations } from "../../hooks/useAwardOperation";
 import { toast } from "sonner";
 
-const USER_ID = Number(
-  JSON.parse(localStorage.getItem("user_cache") || "{}").id
-);
-
-const INITIAL_FORM: AwardFormData = {
-  name: "",
-  description: "",
-  year: new Date().getFullYear(),
-  awardEnum: "LOCAL",
-  memberEnum: "INDIVIDUAL",
-  fileUrl: "",
-};
-
 const Awards: React.FC = () => {
+  const [userId, setUserId] = useState<number | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [editingAward, setEditingAward] = useState<any>(null);
-  const [formData, setFormData] = useState<AwardFormData>(INITIAL_FORM);
+  const [editingAward, setEditingAward] = useState<AwardFormData | null>(null);
+  const [formData, setFormData] = useState<AwardFormData>(INITIAL_AWARD_FORM);
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [searchValue, setSearchValue] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  // USER_ID olish
+  useEffect(() => {
+    const cache = localStorage.getItem("user_cache");
+    if (cache) {
+      const parsed = JSON.parse(cache);
+      setUserId(parsed.id ?? null);
+    }
+  }, []);
 
   const {
     awards,
@@ -36,40 +33,47 @@ const Awards: React.FC = () => {
     deleteAwardMutation,
     uploadPDFMutation,
     refetch,
-  } = useAwardOperations(USER_ID);
+  } = useAwardOperations(userId, { enabled: !!userId });
 
   const filteredData = useMemo(() => {
-    if (!searchValue.trim()) return awards;
-    return awards.filter((item) =>
+    if (!userId) return [];
+    const data = awards.filter((a) => a.userId === userId);
+    if (!searchValue.trim()) return data;
+    return data.filter((item) =>
       item.name.toLowerCase().includes(searchValue.toLowerCase())
     );
-  }, [searchValue, awards]);
+  }, [searchValue, awards, userId]);
 
   const openAddModal = () => {
     setEditingAward(null);
-    setFormData(INITIAL_FORM);
+    setFormData({ ...INITIAL_AWARD_FORM, userId: userId || 0 });
     setFileList([]);
     setIsOpen(true);
   };
 
-  const openEditModal = (item: any) => {
+  const openEditModal = (item: AwardFormData) => {
     setEditingAward(item);
-    setFormData({
-      name: item.name,
-      description: item.description || "",
-      year: item.year || new Date().getFullYear(),
-      awardEnum: item.awardEnum || "LOCAL",
-      memberEnum: item.memberEnum || "INDIVIDUAL",
-      fileUrl: item.fileUrl || "",
-    });
-    setFileList([]);
+    setFormData({ ...item });
+    setFileList(
+      item.fileUrl
+        ? [
+            {
+              uid: "-1",
+              name: item.fileUrl.split("/").pop() || "file.pdf",
+              status: "done",
+              url: item.fileUrl,
+              originFileObj: undefined,
+            },
+          ]
+        : []
+    );
     setIsOpen(true);
   };
 
   const closeModal = () => {
     setIsOpen(false);
     setEditingAward(null);
-    setFormData(INITIAL_FORM);
+    setFormData(INITIAL_AWARD_FORM);
     setFileList([]);
   };
 
@@ -79,19 +83,20 @@ const Awards: React.FC = () => {
 
     try {
       let fileUrl = editingAward?.fileUrl || "";
-      if (fileList.length) {
-        fileUrl = await uploadPDFMutation.mutateAsync(fileList[0].originFileObj as File);
+      if (fileList.length && fileList[0].originFileObj) {
+        fileUrl = await uploadPDFMutation.mutateAsync(
+          fileList[0].originFileObj as File
+        );
       }
 
-      const payload = {
+      const payload: AwardFormData = {
         ...formData,
         fileUrl,
-        userId: USER_ID,
-        ...(editingAward ? { id: editingAward.id } : {}),
+        userId: userId || 0,
       };
 
       if (editingAward) {
-        await updateAwardMutation.mutateAsync(payload);
+        await updateAwardMutation.mutateAsync({ id: editingAward.id, ...payload });
       } else {
         await createAwardMutation.mutateAsync(payload);
       }
@@ -106,7 +111,6 @@ const Awards: React.FC = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Haqiqatan ham bu mukofotni o‘chirmoqchimisiz?")) return;
     try {
       await deleteAwardMutation.mutateAsync(id);
       refetch();
@@ -121,6 +125,14 @@ const Awards: React.FC = () => {
     beforeUpload: () => false,
     onChange: ({ fileList }: { fileList: UploadFile[] }) => setFileList(fileList),
   };
+
+  if (!userId) {
+    return (
+      <div className="flex justify-center py-20">
+        <span>Loading...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -153,7 +165,6 @@ const Awards: React.FC = () => {
         onFileChange={setFileList}
         onSubmit={handleSave}
         loading={isSaving}
-        draggerProps={draggerProps}
       />
     </div>
   );

@@ -1,24 +1,29 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { PlusOutlined } from "@ant-design/icons";
 import { PageHeader } from "../../components/ui/PageHeader";
 import ConsultationsTable, { ConsultationItem } from "./ConsultationsTable";
-import ConsultationsModal, { ConsultationFormData, INITIAL_FORM } from "./ConsultationsModal";
+import ConsultationsModal, { ConsultationFormData, INITIAL_CONSULTATION_FORM } from "./ConsultationsModal";
 import { Spin, UploadFile } from "antd";
 import { toast } from "sonner";
-import { useAdviceOperations } from "../../hooks/useAdviceOperation"; // hook mavjud deb hisoblaymiz
-
-// LocalStorage dan user id olish
-const dataId = JSON.parse(localStorage.getItem("user_cache") || "{}");
-const USER_ID = dataId?.id || 0;
-
-export const INITIAL_CONSULTATION_FORM: ConsultationFormData = {
-  title: "",
-  description: "",
-  year: new Date().getFullYear(),
-  fileUrl: "",
-};
+import { useAdviceOperations } from "../../hooks/useAdviceOperation";
 
 const Consultations: React.FC = () => {
+  const [userId, setUserId] = useState<number | null>(null);
+  const [searchValue, setSearchValue] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+  const [editingConsultation, setEditingConsultation] = useState<ConsultationItem | null>(null);
+  const [formData, setFormData] = useState<ConsultationFormData>(INITIAL_CONSULTATION_FORM);
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+
+  /* ================= USER_ID ================= */
+  useEffect(() => {
+    const cache = localStorage.getItem("user_cache");
+    if (cache) {
+      const parsed = JSON.parse(cache);
+      setUserId(parsed.id ?? null);
+    }
+  }, []);
+
   const {
     advices,
     isAdviceLoading: isConsultationLoading,
@@ -26,15 +31,9 @@ const Consultations: React.FC = () => {
     updateAdviceMutation,
     deleteAdviceMutation,
     uploadPDFMutation,
-  } = useAdviceOperations(USER_ID);
+  } = useAdviceOperations(userId, { enabled: !!userId });
 
-  const [searchValue, setSearchValue] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
-  const [editingConsultation, setEditingConsultation] = useState<ConsultationItem | null>(null);
-  const [formData, setFormData] = useState<ConsultationFormData>(INITIAL_CONSULTATION_FORM);
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
-
-  /* ================= DATA MAPPING ================= */
+  /* ================= FILTERED DATA ================= */
   const consultationList: ConsultationItem[] = useMemo(
     () =>
       advices.map((item) => ({
@@ -43,16 +42,25 @@ const Consultations: React.FC = () => {
         description: item.description,
         year: item.year,
         fileUrl: item.fileUrl,
+        type: item.type,
+        author: item.author,
+        degree: item.degree,
+        volume: item.volume,
+        institution: item.institution,
+        popular: item.popular,
+        userId: item.userId,
       })),
     [advices]
   );
 
   const filteredData = useMemo(() => {
-    if (!searchValue.trim()) return consultationList;
-    return consultationList.filter((item) =>
+    if (!userId) return [];
+    const data = consultationList.filter((c) => c.userId === userId);
+    if (!searchValue.trim()) return data;
+    return data.filter((item) =>
       item.title.toLowerCase().includes(searchValue.toLowerCase())
     );
-  }, [searchValue, consultationList]);
+  }, [searchValue, consultationList, userId]);
 
   /* ================= MODAL HANDLERS ================= */
   const openAddModal = () => {
@@ -69,6 +77,12 @@ const Consultations: React.FC = () => {
       description: item.description || "",
       year: item.year || new Date().getFullYear(),
       fileUrl: item.fileUrl || "",
+      type: item.type || "ARTICLE",
+      author: item.author || "COAUTHOR",
+      degree: item.degree || "INTERNATIONAL",
+      volume: item.volume || "",
+      institution: item.institution || "",
+      popular: item.popular || false,
     });
     setFileList([]);
     setIsOpen(true);
@@ -83,16 +97,29 @@ const Consultations: React.FC = () => {
 
   /* ================= SAVE ================= */
   const handleSave = async () => {
-    if (!formData.title.trim()) return;
+    if (!formData.title.trim()) return toast.error("Maslahat nomi bo‘sh bo‘lmasligi kerak!");
+    if (!userId) return;
 
     try {
       let fileUrl = editingConsultation?.fileUrl || "";
 
-      if (fileList.length) {
+      if (fileList.length && fileList[0].originFileObj) {
         fileUrl = await uploadPDFMutation.mutateAsync(fileList[0].originFileObj as File);
       }
 
-      const payload = { ...formData, fileUrl, userId: USER_ID };
+      const payload = {
+        name: formData.title,
+        description: formData.description,
+        year: formData.year,
+        fileUrl,
+        type: formData.type,
+        author: formData.author,
+        degree: formData.degree,
+        volume: formData.volume,
+        institution: formData.institution,
+        popular: formData.popular,
+        userId,
+      };
 
       if (editingConsultation) {
         await updateAdviceMutation.mutateAsync({ id: editingConsultation.id, ...payload });
@@ -122,6 +149,14 @@ const Consultations: React.FC = () => {
     beforeUpload: () => false,
     onChange: ({ fileList }: { fileList: UploadFile[] }) => setFileList(fileList),
   };
+
+  if (!userId) {
+    return (
+      <div className="flex justify-center py-20">
+        <span>Loading...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">

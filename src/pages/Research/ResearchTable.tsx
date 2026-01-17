@@ -8,13 +8,14 @@ import {
 
 export interface ResearchItem {
   id: number;
-  title: string;
+  name: string;
   description: string;
   year: number;
   univerName: string;
   memberEnum: "MILLIY" | "XALQARO";
   finished: boolean;
   fileUrl: string | null;
+  userId?: number;
 }
 
 interface ResearchTableProps {
@@ -25,7 +26,6 @@ interface ResearchTableProps {
   deletingId: number | null;
   isDeleting: boolean;
   emptyText?: string;
-  onAdd?: () => void;
 }
 
 const ResearchTable: React.FC<ResearchTableProps> = ({
@@ -46,24 +46,26 @@ const ResearchTable: React.FC<ResearchTableProps> = ({
     },
     {
       title: "Tadqiqot nomi",
-      dataIndex: "title",
-      key: "title",
-      render: (title: string) => <span className="font-medium">{title}</span>,
+      dataIndex: "name",
+      key: "name",
+      render: (name: string) => (
+        <span className="font-medium">{name || "—"}</span>
+      ),
     },
     {
       title: "Tavsif",
       dataIndex: "description",
       key: "description",
-      render: (description: string) => {
-        if (!description) return <span className="text-gray-400">Mavjud emas</span>; // agar bo'sh bo'lsa
-        return (
-          <span className="font-medium">
-            {description.length > 30
-              ? description.slice(0, 30) + "..."
-              : description}
-          </span>
-        );
-      },
+      render: (desc: string) =>
+        desc ? (
+          desc.length > 30 ? (
+            desc.slice(0, 30) + "..."
+          ) : (
+            desc
+          )
+        ) : (
+          <span className="text-gray-400">Mavjud emas</span>
+        ),
     },
     {
       title: "Fayl",
@@ -104,7 +106,7 @@ const ResearchTable: React.FC<ResearchTableProps> = ({
             description="Haqiqatan ham bu tadqiqotni o‘chirmoqchimisiz?"
             onConfirm={() => onDelete(record.id)}
             okText="Ha"
-            cancelText="Mavjud emas"
+            cancelText="Yo‘q"
             okButtonProps={{ danger: true }}
           >
             <Button
@@ -129,8 +131,12 @@ const ResearchTable: React.FC<ResearchTableProps> = ({
           columns={columns}
           dataSource={data}
           loading={isLoading}
-          pagination={false}
           bordered
+          pagination={{
+            pageSize: 10,
+            position: ["bottomRight"],
+            showSizeChanger: false,
+          }}
         />
       ) : (
         <Empty description={emptyText} />

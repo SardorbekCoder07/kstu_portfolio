@@ -1,9 +1,29 @@
-import React from "react";
-import { Button, Input, Modal, Select, Switch, Upload } from "antd";
+import React, { useEffect } from "react";
+import { Modal, Button, Input, Select, Form, Upload, message, Typography } from "antd";
 import { InboxOutlined } from "@ant-design/icons";
 import type { UploadFile, UploadProps } from "antd/es/upload/interface";
 
 const { TextArea } = Input;
+const { Title } = Typography;
+
+// ✅ API enum tiplari va o‘zbekcha label
+const PublicationTypeOptions = [
+  { value: "ARTICLE", label: "Maqola" },
+  { value: "BOOK", label: "Kitob" },
+  { value: "PROCEEDING", label: "Konferensiya maqolasi" },
+  { value: "OTHERS", label: "Boshqa" },
+];
+
+const AuthorOptions = [
+  { value: "COAUTHOR", label: "Ham muallif" },
+  { value: "FIRST_AUTHOR", label: "Birinchi muallif" },
+  { value: "BOTH_AUTHOR", label: "Ikkala muallif" },
+];
+
+const DegreeOptions = [
+  { value: "INTERNATIONAL", label: "Xalqaro" },
+  { value: "NATIONAL", label: "Milliy" },
+];
 
 export interface PublicationFormData {
   name: string;
@@ -14,25 +34,18 @@ export interface PublicationFormData {
   degree?: string;
   volume?: string;
   institution?: string;
-  popular?: boolean;
+  fileUrl?: string;
 }
 
 interface PublicationModalProps {
   open: boolean;
   onCancel: () => void;
   formData: PublicationFormData;
-  onChange: <K extends keyof PublicationFormData>(
-    key: K,
-    value: PublicationFormData[K]
-  ) => void;
-  editingPublication?: {
-    id: number;
-    fileUrl?: string;
-    imgUrl?: string;
-  } | null;
+  onChange: <K extends keyof PublicationFormData>(key: K, value: PublicationFormData[K]) => void;
+  editingPublication?: { id: number; fileUrl?: string } | null;
   fileList: UploadFile[];
   onFileChange: (files: UploadFile[]) => void;
-  onSubmit: () => void;
+  onSubmit: () => Promise<void>;
   loading: boolean;
   draggerProps?: UploadProps;
 }
@@ -49,126 +62,252 @@ const PublicationModal: React.FC<PublicationModalProps> = ({
   loading,
   draggerProps,
 }) => {
+  const [form] = Form.useForm();
+
+  const pdfUrlRegex = /^(https?:\/\/[^\s]+\.pdf)$/i;
+
+  useEffect(() => {
+    if (open) {
+      form.setFieldsValue(formData);
+      if (formData.fileUrl) {
+        onFileChange([
+          {
+            uid: "-1",
+            name: formData.fileUrl.split("/").pop() || "file.pdf",
+            status: "done",
+            url: formData.fileUrl,
+          },
+        ]);
+      } else {
+        onFileChange([]);
+      }
+    }
+  }, [open, formData, form, onFileChange]);
+
+  const handleSubmit = async () => {
+    try {
+      await form.validateFields();
+      const values = form.getFieldsValue();
+
+      if (values.fileUrl && !pdfUrlRegex.test(values.fileUrl)) {
+        message.error("Iltimos, to‘g‘ri PDF havolasini kiriting!");
+        return;
+      }
+
+      await onSubmit();
+    } catch (err) {
+      console.error("Form validation error:", err);
+    }
+  };
+
+  const uploadProps: UploadProps = {
+    accept: ".pdf,image/*",
+    maxCount: 1,
+    fileList,
+    onRemove: () => {
+      onFileChange([]);
+      return true;
+    },
+    beforeUpload: (file) => {
+      const isLt10M = file.size / 1024 / 1024 < 10;
+      const validType = /(pdf|jpg|jpeg|png)$/i.test(file.name);
+      if (!isLt10M) {
+        message.error("Fayl hajmi 10MB dan kichik bo'lishi kerak!");
+        return Upload.LIST_IGNORE;
+      }
+      if (!validType) {
+        message.error("Faqat PDF yoki rasm formatdagi fayllar ruxsat etilgan!");
+        return Upload.LIST_IGNORE;
+      }
+
+      onFileChange([
+        {
+          uid: Date.now().toString(),
+          name: file.name,
+          status: "done",
+          size: file.size,
+          type: file.type,
+          originFileObj: file,
+        },
+      ]);
+      return false;
+    },
+    ...draggerProps,
+  };
+
   return (
     <Modal
+      title={<Title level={4}>{editingPublication ? "Nashrni tahrirlash" : "Yangi nashr qo‘shish"}</Title>}
       open={open}
       onCancel={onCancel}
       footer={null}
-      destroyOnClose
+      width={600}
       centered
-      title={editingPublication ? "Nashrni tahrirlash" : "Nashr qo‘shish"}
-      width="90%"
-      style={{ maxWidth: 600 }}
+      destroyOnClose
     >
-      <div className="flex flex-col gap-4 mt-3">
+      <Form form={form} layout="vertical">
         {/* Name */}
-        <Input
-          placeholder="Nashr nomi"
-          value={formData.name}
-          onChange={(e) => onChange("name", e.target.value)}
-        />
+        <Form.Item
+          name="name"
+          label="Nashr nomi"
+          rules={[{ required: true, message: "Iltimos, nomini kiriting!" }]}
+        >
+          <Input
+            size="large"
+            placeholder="Nashr nomi..."
+            onChange={(e) => onChange("name", e.target.value)}
+          />
+        </Form.Item>
 
         {/* Description */}
-        <TextArea
-          placeholder="Tavsif"
-          rows={3}
-          value={formData.description}
-          onChange={(e) => onChange("description", e.target.value)}
-        />
+        <Form.Item
+          name="description"
+          label="Tavsif"
+          rules={[{ required: true, message: "Iltimos, tavsif kiriting!" }]}
+        >
+          <TextArea
+            rows={3}
+            placeholder="Tavsif kiriting..."
+            onChange={(e) => onChange("description", e.target.value)}
+          />
+        </Form.Item>
 
         {/* Year */}
-        <Input
-          type="number"
-          placeholder="Yil"
-          value={formData.year}
-          onChange={(e) => onChange("year", Number(e.target.value))}
-        />
+        <Form.Item
+          name="year"
+          label="Yil"
+          rules={[{ required: true, message: "Iltimos, yilni kiriting!" }]}
+        >
+          <Input
+            type="number"
+            placeholder="2024"
+            size="large"
+            onChange={(e) => onChange("year", Number(e.target.value))}
+          />
+        </Form.Item>
 
         {/* Type */}
-        <Select
-          placeholder="Type"
-          value={formData.type}
-          onChange={(v) => onChange("type", v)}
-          options={[
-            { label: "ARTICLE", value: "ARTICLE" },
-            { label: "BOOK", value: "BOOK" },
-            { label: "REPORT", value: "REPORT" },
-          ]}
-          allowClear
-        />
+        <Form.Item
+          name="type"
+          label="Turi"
+          rules={[{ required: true, message: "Iltimos, turini tanlang!" }]}
+        >
+          <Select
+            placeholder="Turi"
+            size="large"
+            value={formData.type}
+            onChange={(v) => onChange("type", v)}
+            allowClear
+          >
+            {PublicationTypeOptions.map((opt) => (
+              <Select.Option key={opt.value} value={opt.value}>
+                {opt.label}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
 
         {/* Author */}
-        <Select
-          placeholder="Author"
-          value={formData.author}
-          onChange={(v) => onChange("author", v)}
-          options={[
-            { label: "COAUTHOR", value: "COAUTHOR" },
-            { label: "LEAD", value: "LEAD" },
-          ]}
-          allowClear
-        />
+        <Form.Item
+          name="author"
+          label="Muallif"
+          rules={[{ required: true, message: "Iltimos, muallifni tanlang!" }]}
+        >
+          <Select
+            placeholder="Muallif"
+            size="large"
+            value={formData.author}
+            onChange={(v) => onChange("author", v)}
+            allowClear
+          >
+            {AuthorOptions.map((opt) => (
+              <Select.Option key={opt.value} value={opt.value}>
+                {opt.label}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
 
         {/* Degree */}
-        <Select
-          placeholder="Degree"
-          value={formData.degree}
-          onChange={(v) => onChange("degree", v)}
-          options={[
-            { label: "INTERNATIONAL", value: "INTERNATIONAL" },
-            { label: "NATIONAL", value: "NATIONAL" },
-          ]}
-          allowClear
-        />
+        <Form.Item
+          name="degree"
+          label="Daraja"
+          rules={[{ required: true, message: "Iltimos, darajani tanlang!" }]}
+        >
+          <Select
+            placeholder="Daraja"
+            size="large"
+            value={formData.degree}
+            onChange={(v) => onChange("degree", v)}
+            allowClear
+          >
+            {DegreeOptions.map((opt) => (
+              <Select.Option key={opt.value} value={opt.value}>
+                {opt.label}
+              </Select.Option>
+            ))}
+          </Select>
+        </Form.Item>
 
         {/* Volume */}
-        <Input
-          placeholder="Volume"
-          value={formData.volume}
-          onChange={(e) => onChange("volume", e.target.value)}
-        />
+        <Form.Item
+          name="volume"
+          label="Jild / Hajmi"
+          rules={[{ required: true, message: "Iltimos, jild/hajmni kiriting!" }]}
+        >
+          <Input
+            placeholder="Volume"
+            value={formData.volume}
+            onChange={(e) => onChange("volume", e.target.value)}
+          />
+        </Form.Item>
 
         {/* Institution */}
-        <Input
-          placeholder="Institution"
-          value={formData.institution}
-          onChange={(e) => onChange("institution", e.target.value)}
-        />
-
-        {/* Popular */}
-        <div className="flex items-center gap-3">
-          <span>Popular:</span>
-          <Switch
-            checked={formData.popular}
-            onChange={(v) => onChange("popular", v)}
+        <Form.Item
+          name="institution"
+          label="Tashkilot / Universitet"
+          rules={[{ required: true, message: "Iltimos, tashkilot/universitetni kiriting!" }]}
+        >
+          <Input
+            placeholder="Tashkilot yoki universitet"
+            value={formData.institution}
+            onChange={(e) => onChange("institution", e.target.value)}
           />
-        </div>
+        </Form.Item>
 
         {/* File Upload */}
-        <Upload.Dragger
-          {...draggerProps}
-          fileList={fileList}
-          beforeUpload={() => false}
-          onChange={(e) => onFileChange(e.fileList)}
-          maxCount={1}
-          accept=".pdf,image/*"
-          className="mt-2"
-        >
-          <InboxOutlined style={{ fontSize: 32 }} />
-          <p className="mt-2">PDF yoki rasm yuklang</p>
-        </Upload.Dragger>
+        <Form.Item label="PDF yoki rasm yuklash (ixtiyoriy)">
+          <Upload.Dragger {...uploadProps}>
+            <p className="ant-upload-drag-icon">
+              <InboxOutlined />
+            </p>
+            <p className="ant-upload-text">Faylni yuklash uchun bosing yoki sudrab keling</p>
+            <p className="ant-upload-hint">Faqat PDF yoki rasm format. Maksimal hajm: 10MB</p>
+          </Upload.Dragger>
+        </Form.Item>
 
-        {/* Submit */}
-        <Button
-          type="primary"
-          block
-          loading={loading}
-          onClick={onSubmit}
-          disabled={!formData.name?.trim()}
-        >
-          {editingPublication ? "Yangilash" : "Saqlash"}
-        </Button>
-      </div>
+        {/* Fayl URL */}
+        <Form.Item name="fileUrl" label="Yoki fayl havolasi">
+          <Input
+            placeholder="https://example.com/file.pdf"
+            size="large"
+            disabled={fileList.length > 0}
+            onChange={(e) => onChange("fileUrl", e.target.value)}
+          />
+        </Form.Item>
+
+        {/* Buttons */}
+        <div className="flex justify-end gap-3 mt-6">
+          <Button onClick={onCancel}>Bekor qilish</Button>
+          <Button
+            type="primary"
+            onClick={handleSubmit}
+            loading={loading}
+          >
+            {editingPublication ? "Yangilash" : "Saqlash"}
+          </Button>
+        </div>
+      </Form>
     </Modal>
   );
 };

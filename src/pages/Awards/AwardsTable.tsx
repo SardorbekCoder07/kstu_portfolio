@@ -122,7 +122,11 @@ const AwardsTable: React.FC<AwardsTableProps> = ({
           columns={columns}
           dataSource={data}
           loading={isLoading}
-          pagination={false}
+          pagination={{
+            pageSize: 10,
+            position: ["bottomRight"],
+            showSizeChanger: false,
+          }}
           bordered
         />
       ) : (

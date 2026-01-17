@@ -14,6 +14,7 @@ export interface ControlItem {
   finished: boolean;
   createdAt?: string;
   updatedAt?: string;
+  memberEnum: "MILLIY" | "XALQARO"
 }
 
 export interface ControlData {

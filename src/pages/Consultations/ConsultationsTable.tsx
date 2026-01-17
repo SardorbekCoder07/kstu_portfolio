@@ -39,27 +39,6 @@ const ConsultationsTable: React.FC<ConsultationsTableProps> = ({
         render: (_: any, __: any, index: number) => index + 1,
       },
       {
-        title: "Rasm",
-        dataIndex: "imgUrl",
-        key: "imgUrl",
-        width: 80,
-        render: (src: string | undefined, record: ConsultationItem) =>
-          src ? (
-            <Image
-              src={src}
-              alt={record.title}
-              width={48}
-              height={48}
-              preview={{ mask: "Ko‘rish" }}
-              className="rounded object-cover"
-            />
-          ) : (
-            <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
-              <span className="text-gray-400 text-xs">Yo'q</span>
-            </div>
-          ),
-      },
-      {
         title: "Maslahat nomi",
         dataIndex: "title",
         key: "title",
@@ -85,10 +64,7 @@ const ConsultationsTable: React.FC<ConsultationsTableProps> = ({
         width: 140,
         render: (fileUrl?: string | null) =>
           fileUrl ? (
-            <Button
-              type="link"
-              onClick={() => window.open(fileUrl, "_blank")}
-            >
+            <Button type="link" onClick={() => window.open(fileUrl, "_blank")}>
               Fayl ko‘rish
             </Button>
           ) : (
@@ -132,7 +108,7 @@ const ConsultationsTable: React.FC<ConsultationsTableProps> = ({
         ),
       },
     ],
-    [deletingId, isDeleting]
+    [deletingId, isDeleting],
   );
 
   return (
@@ -143,7 +119,11 @@ const ConsultationsTable: React.FC<ConsultationsTableProps> = ({
           columns={columns}
           dataSource={data}
           loading={isLoading}
-          pagination={false}
+          pagination={{
+            pageSize: 10,
+            position: ["bottomRight"],
+            showSizeChanger: false,
+          }}
           bordered
         />
       ) : (
