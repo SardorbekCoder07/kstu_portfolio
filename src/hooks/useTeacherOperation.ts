@@ -16,7 +16,6 @@ export const useTeacherOperations = (
 ) => {
   const queryClient = useQueryClient();
 
-  // ✅ GET - O'qituvchilarni olish (pagination bilan)
   const {
     data: teachersData,
     isLoading: isTeachersLoading,

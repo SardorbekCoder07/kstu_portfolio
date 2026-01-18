@@ -137,7 +137,6 @@ const Research: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await deleteResearchMutation.mutateAsync(id);
-      toast.success("O‘chirildi");
     } catch {
       toast.error("O‘chirishda xatolik");
     }

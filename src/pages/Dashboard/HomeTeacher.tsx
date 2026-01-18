@@ -1,16 +1,14 @@
 import React, { useState } from "react";
-import { Card, Tabs, Button, Spin, Pagination, Tag, Empty } from "antd";
+import { Card, Tabs, Button, Spin, Tag } from "antd";
 import {
   FilePdfOutlined,
   MailOutlined,
   PhoneOutlined,
   IdcardOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 
-import axiosClient from "../../api/axiosClient";
-import { useProfile } from "../../hooks/useProfileOperations";
+import { useProfileOperations } from "../../hooks/useProfileOperations";
 import { useDrawerStore } from "../../stores/useDrawerStore";
 
 // Hooks
@@ -22,12 +20,17 @@ import { useAdviceOperations } from "../../hooks/useAdviceOperation";
 
 // Sidebar
 import { TeacherSidebar } from "../Teachers/TeacherSidebar";
+import { usePositionOperations } from "../../hooks/usePositionOperation";
+import { useDepartmentOperations } from "../../hooks/useDepartmentOperation";
+import { TabContent } from "../../components/common/TabContent";
+import { FinishedEnum } from "../../api/pagesApi/adviceApi";
 
 const { TabPane } = Tabs;
 
 const HomeTeacher: React.FC = () => {
-  const queryClient = useQueryClient();
   const { openDrawer } = useDrawerStore();
+  const { positions } = usePositionOperations();
+  const { allDepartments } = useDepartmentOperations();
 
   const pageSize = 5;
 
@@ -37,9 +40,16 @@ const HomeTeacher: React.FC = () => {
   const [nazoratPage, setNazoratPage] = useState(1);
   const [advicePage, setAdvicePage] = useState(1);
 
-  const { data: teacher, isLoading: profileLoading } = useProfile();
+  // ================= PROFILE =================
+  const {
+    profile: teacher,
+    isProfileLoading,
+    updateProfileMutation,
+    uploadImageMutation,
+    uploadPDFMutation,
+  } = useProfileOperations();
 
-  // ================== DATA ==================
+  // ================= DATA =================
   const {
     researches,
     total: researchTotal,
@@ -70,42 +80,8 @@ const HomeTeacher: React.FC = () => {
     isAdviceLoading,
   } = useAdviceOperations(teacher?.id, advicePage - 1, pageSize);
 
-  // ================== UPDATE ==================
-  const updateMutation = useMutation({
-    mutationFn: async (payload: any) => {
-      const res = await axiosClient.put("/user", payload);
-      return res.data;
-    },
-    onSuccess: () => {
-      toast.success("Ma’lumotlar muvaffaqiyatli yangilandi");
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
-    },
-    onError: () => {
-      toast.error("Saqlashda xatolik yuz berdi");
-    },
-  });
-
-  // ================== UPLOAD ==================
-  const uploadImageMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await axiosClient.post("/upload/image", formData);
-      return res.data.url;
-    },
-  });
-
-  const uploadPDFMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await axiosClient.post("/upload/file", formData);
-      return res.data.url;
-    },
-  });
-
-  // ================== LOADING ==================
-  if (profileLoading) {
+  // ================= LOADING =================
+  if (isProfileLoading) {
     return (
       <div className="flex justify-center items-center h-[400px]">
         <Spin size="large" />
@@ -114,13 +90,17 @@ const HomeTeacher: React.FC = () => {
   }
 
   if (!teacher) {
-    return <p className="text-center text-red-500 mt-10">Ma’lumot topilmadi</p>;
+    return (
+      <p className="text-center text-red-500 mt-10">
+        Profil ma’lumotlari topilmadi
+      </p>
+    );
   }
 
   return (
     <>
-       <div className="mx-auto p-6 grid gap-6 grid-cols-1 md:grid-cols-[1fr_2fr] items-start">
-        {/* Chap taraf – Profil kartasi */}
+      <div className="mx-auto p-6 grid gap-6 grid-cols-1 md:grid-cols-[1fr_2fr]">
+        {/* ================= LEFT ================= */}
         <Card
           hoverable
           className="text-center rounded-xl shadow-lg"
@@ -180,137 +160,62 @@ const HomeTeacher: React.FC = () => {
           </div>
         </Card>
 
-        {/* O'ng taraf – Tabs va ma'lumotlar */}
+        {/* ================= RIGHT ================= */}
         <Card className="rounded-xl shadow-lg">
-          <Tabs type="card" className="mt-6">
+          <Tabs type="card">
             <TabPane tab="Tadqiqotlar" key="1">
-              {isResearchLoading ? (
-                <div className="flex justify-center py-20">
-                  <Spin size="large" tip="Yuklanmoqda..." />
-                </div>
-              ) : researches?.length ? (
-                <ResearchList items={researches} />
-              ) : (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description="Hozircha tadqiqot ma'lumotlari mavjud emas"
-                  className="py-16 text-gray-600"
-                />
-              )}
-              <div className="flex justify-center mt-8">
-                <Pagination
-                  current={researchPage}
-                  pageSize={pageSize}
-                  total={researchTotal}
-                  onChange={setResearchPage}
-                  showSizeChanger={false}
-                  className="bg-white rounded-lg shadow-sm px-6 py-3"
-                />
-              </div>
+              <TabContent
+                loading={isResearchLoading}
+                data={researches}
+                total={researchTotal}
+                page={researchPage}
+                setPage={setResearchPage}
+                render={(items) => <ResearchList items={items} />}
+              />
             </TabPane>
 
             <TabPane tab="Nazorat" key="2">
-              {isControlLoading ? (
-                <div className="flex justify-center py-20">
-                  <Spin size="large" tip="Yuklanmoqda..." />
-                </div>
-              ) : controles?.length ? (
-                <NazoratList items={controles} />
-              ) : (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description="Hozircha nazorat ma'lumotlari mavjud emas"
-                  className="py-16 text-gray-600"
-                />
-              )}
-              <div className="flex justify-center mt-8">
-                <Pagination
-                  current={nazoratPage}
-                  pageSize={pageSize}
-                  total={nazoratTotal}
-                  onChange={setNazoratPage}
-                  showSizeChanger={false}
-                  className="bg-white rounded-lg shadow-sm px-6 py-3"
-                />
-              </div>
+              <TabContent
+                loading={isControlLoading}
+                data={controles}
+                total={nazoratTotal}
+                page={nazoratPage}
+                setPage={setNazoratPage}
+                render={(items) => <NazoratList items={items} />}
+              />
             </TabPane>
 
             <TabPane tab="Nashrlar" key="3">
-              {isPublicationLoading ? (
-                <div className="flex justify-center py-20">
-                  <Spin size="large" tip="Yuklanmoqda..." />
-                </div>
-              ) : publications?.length ? (
-                <PublicationList items={publications} />
-              ) : (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description="Hozircha nashrlar mavjud emas"
-                  className="py-16 text-gray-600"
-                />
-              )}
-              <div className="flex justify-center mt-8">
-                <Pagination
-                  current={publicationPage}
-                  pageSize={pageSize}
-                  total={publicationTotal}
-                  onChange={setPublicationPage}
-                  showSizeChanger={false}
-                  className="bg-white rounded-lg shadow-sm px-6 py-3"
-                />
-              </div>
+              <TabContent
+                loading={isPublicationLoading}
+                data={publications}
+                total={publicationTotal}
+                page={publicationPage}
+                setPage={setPublicationPage}
+                render={(items) => <PublicationList items={items} />}
+              />
             </TabPane>
 
-            <TabPane tab="Mukofot" key="4">
-              {isAwardLoading ? (
-                <div className="flex justify-center py-20">
-                  <Spin size="large" tip="Yuklanmoqda..." />
-                </div>
-              ) : awards?.length ? (
-                <AwardList items={awards} />
-              ) : (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description="Hozircha mukofotlar mavjud emas"
-                  className="py-16 text-gray-600"
-                />
-              )}
-              <div className="flex justify-center mt-8">
-                <Pagination
-                  current={awardPage}
-                  pageSize={pageSize}
-                  total={awardTotal}
-                  onChange={setAwardPage}
-                  showSizeChanger={false}
-                  className="bg-white rounded-lg shadow-sm px-6 py-3"
-                />
-              </div>
+            <TabPane tab="Mukofotlar" key="4">
+              <TabContent
+                loading={isAwardLoading}
+                data={awards}
+                total={awardTotal}
+                page={awardPage}
+                setPage={setAwardPage}
+                render={(items) => <AwardList items={items} />}
+              />
             </TabPane>
 
-            <TabPane tab="Maslahat" key="5">
-              {isAdviceLoading ? (
-                <div className="flex justify-center py-20">
-                  <Spin size="large" tip="Yuklanmoqda..." />
-                </div>
-              ) : advices?.length ? (
-                <AdviceList items={advices} />
-              ) : (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description="Hozircha maslahatlar mavjud emas"
-                  className="py-16 text-gray-600"
-                />
-              )}
-              <div className="flex justify-center mt-8">
-                <Pagination
-                  current={advicePage}
-                  pageSize={pageSize}
-                  total={adviceTotal}
-                  onChange={setAdvicePage}
-                  showSizeChanger={false}
-                  className="bg-white rounded-lg shadow-sm px-6 py-3"
-                />
-              </div>
+            <TabPane tab="Maslahatlar" key="5">
+              <TabContent
+                loading={isAdviceLoading}
+                data={advices}
+                total={adviceTotal}
+                page={advicePage}
+                setPage={setAdvicePage}
+                render={(items) => <AdviceList items={items} />}
+              />
             </TabPane>
           </Tabs>
         </Card>
@@ -324,20 +229,20 @@ const HomeTeacher: React.FC = () => {
           fullName: teacher.fullName,
           phoneNumber: teacher.phone,
           email: teacher.email,
-          biography: teacher.biography,
-          input: teacher.input,
+          biography: teacher.biography ?? undefined,
+          input: teacher.input ?? undefined,
           age: teacher.age,
           gender: teacher.gender,
-          imgUrl: teacher.imageUrl,
-          fileUrl: teacher.fileUrl,
-          profession: teacher.profession,
+          imgUrl: teacher.imageUrl ?? undefined,
+          fileUrl: teacher.fileUrl ?? undefined,
+          profession: teacher.profession ?? undefined,
           lavozmId: teacher.lavozmId,
           departmentId: teacher.departmentId,
         }}
-        departmentList={[]}
-        positionList={[]}
-        createMutation={updateMutation}
-        updateMutation={updateMutation}
+        departmentList={allDepartments}
+        positionList={positions}
+        createMutation={updateProfileMutation}
+        updateMutation={updateProfileMutation}
         uploadImageMutation={uploadImageMutation}
         uploadPDFMutation={uploadPDFMutation}
       />
@@ -347,99 +252,80 @@ const HomeTeacher: React.FC = () => {
 
 export default HomeTeacher;
 
-/* ================= Reusable Components ================= */
-const Info = ({
-  icon,
-  text,
-  value,
-}: {
-  icon: React.ReactNode;
-  text: React.ReactNode;
-  value?: string;
-}) => (
-  <div className="flex items-center gap-4 p-4 bg-gray-50 border rounded-xl mb-4 shadow-sm">
-    <div className="text-xl text-blue-600">{icon}</div>
-    <div>
-      <p className="text-gray-700 font-medium">
-        {text} <span className="font-semibold">{value || ""}</span>
-      </p>
-    </div>
-  </div>
-);
-
-const Section = ({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) => (
-  <Card className="mb-6 bg-white border border-gray-200 rounded-xl shadow-sm">
-    <h3 className="font-bold text-lg mb-3 text-gray-800">{title}</h3>
-    <div className="text-gray-700">{children}</div>
-  </Card>
-);
-
-/* ================= Chiroyli Tab ichidagi List komponentlari ================= */
 const ResearchList = ({ items = [] }: { items: any[] }) => (
   <div className="grid gap-6 md:grid-cols-1">
     {items.map((item) => (
       <Card
         key={item.id}
         hoverable
-        className="group border border-gray-200 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-blue-50/20"
+        className="group border border-gray-200 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-indigo-50/20"
       >
         <div className="p-1">
-          <div className="flex justify-between items-start">
-            <h4 className="text-xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors line-clamp-2">
-              {item.name}
-            </h4>
-            <Tag
-              color={item.finished ? "success" : "processing"}
-              className="text-sm px-4 py-1 rounded-full font-medium"
-            >
-              {item.finished ? "Tugatilgan" : "Jarayonda"}
-            </Tag>
-          </div>
-
-          <p className="text-gray-600 mb-5 line-clamp-3">
-            {item.description || "Tavsif kiritilmagan"}
-          </p>
-
-          <div className="grid grid-cols-6 gap-4 text-sm mb-6">
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">Yil</div>
-              <div className="font-semibold text-gray-800">{item.year}</div>
+          <div className="flex items-start gap-4 flex-1 pr-4">
+            <div className="flex items-center justify-center w-10 h-10 text-white text-sm font-bold bg-gradient-to-br from-green-500 to-teal-600 rounded-xl shadow">
+              {1}
             </div>
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">Oliygoh</div>
-              <div className="font-semibold text-gray-800">
-                {item.univerName || "—"}
+
+            <div className="flex flex-col gap-2 flex-1">
+              <p className="text-gray-900 font-semibold text-sm leading-tight !m-0">
+                {item.name}
+              </p>
+              <div>
+                <p className="text-gray-600 text-xs !m-0">
+                  {item.description || "Tavsif kiritilmagan"}
+                </p>
+                {/* {shouldShowToggle && (
+                  <button
+                    onClick={() => toggleExpand(item.id)}
+                    className="text-blue-600 hover:text-blue-700 font-medium text-xs mt-1 transition-colors"
+                  >
+                    {isExpanded ? "Kamroq ko'rish" : "Ko'proq ko'rish"}
+                  </button>
+                )} */}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full font-medium">
+                  {item.year}
+                </span>
+                <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">
+                  {item.member ? "A'zo" : "A'zo emas"}
+                </span>
+                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
+                  {item.memberEnum}
+                </span>
+                <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium">
+                  {item.univerName}
+                </span>
+                <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium">
+                  {item.univerName}
+                </span>
+                <span
+                  className={`px-3 py-1 rounded-full font-medium ${
+                    item.finished
+                      ? "bg-green-100 text-green-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
+                >
+                  {item.finished ? "Tugallangan" : "Jarayonda"}
+                </span>
               </div>
             </div>
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">Daraja</div>
-              <div className="font-semibold text-gray-800">
-                {item.memberEnum || "—"}
-              </div>
-            </div>
+
+            {item.fileUrl && (
+              <a
+                href={item.fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg cursor-pointer transition border border-blue-200 shadow-sm hover:shadow select-none flex-shrink-0"
+              >
+                <DownloadOutlined className="text-lg" />
+                <span className="text-[13px] font-medium">PDF Fayli</span>
+              </a>
+            )}
           </div>
-          {item.fileUrl && (
-            <Button
-              type="primary"
-              icon={<FilePdfOutlined />}
-              href={item.fileUrl}
-              target="_blank"
-              block
-              size="large"
-              className="h-11 rounded-xl bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 transition-all shadow-md"
-            >
-              PDF faylni ochish
-            </Button>
-          )}
         </div>
       </Card>
-
     ))}
   </div>
 );
@@ -453,65 +339,69 @@ const NazoratList = ({ items = [] }: { items: any[] }) => (
         className="group border border-gray-200 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-indigo-50/20"
       >
         <div className="p-1">
-          <div className="flex justify-between items-start">
-            <h4 className="text-xl font-bold text-gray-900 group-hover:text-indigo-700 transition-colors line-clamp-2">
-              {item.name}
-            </h4>
-            <Tag
-              color={item.finished ? "success" : "processing"}
-              className="text-sm px-4 py-1 rounded-full font-medium"
-            >
-              {item.finished ? "Tugatilgan" : "Jarayonda"}
-            </Tag>
+          <div className="flex items-start gap-4 flex-1 pr-4">
+            <div className="flex items-center justify-center w-10 h-10 text-white text-sm font-bold bg-gradient-to-br from-green-500 to-teal-600 rounded-xl shadow">
+              {1}
+            </div>
+
+            <div className="flex flex-col gap-2 flex-1">
+              <p className="text-gray-900 font-semibold text-sm leading-tight !m-0">
+                {item.name}
+              </p>
+              <div>
+                <p className="text-gray-600 text-xs !m-0">
+                  {item.description || "Tavsif kiritilmagan"}
+                </p>
+                {/* {shouldShowToggle && (
+                  <button
+                    onClick={() => toggleExpand(item.id)}
+                    className="text-blue-600 hover:text-blue-700 font-medium text-xs mt-1 transition-colors"
+                  >
+                    {isExpanded ? "Kamroq ko'rish" : "Ko'proq ko'rish"}
+                  </button>
+                )} */}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full font-medium">
+                  {item.year}
+                </span>
+                <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">
+                  {item.member ? "A'zo" : "A'zo emas"}
+                </span>
+                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
+                  {item.memberEnum}
+                </span>
+                <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium">
+                  {item.univerName}
+                </span>
+                <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium">
+                  {item.univerName}
+                </span>
+                <span
+                  className={`px-3 py-1 rounded-full font-medium ${
+                    item.finished
+                      ? "bg-green-100 text-green-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
+                >
+                  {item.finished ? "Tugallangan" : "Jarayonda"}
+                </span>
+              </div>
+            </div>
+
+            {item.fileUrl && (
+              <a
+                href={item.fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg cursor-pointer transition border border-blue-200 shadow-sm hover:shadow select-none flex-shrink-0"
+              >
+                <DownloadOutlined className="text-lg" />
+                <span className="text-[13px] font-medium">PDF Fayli</span>
+              </a>
+            )}
           </div>
-
-          <p className="text-gray-600 mb-5 line-clamp-3">
-            {item.description || "Tavsif kiritilmagan"}
-          </p>
-
-          <div className="grid grid-cols-6 gap-4 text-sm mb-6">
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">Yil</div>
-              <div className="font-semibold text-gray-800">{item.year}</div>
-            </div>
-
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">Oliygoh</div>
-              <div className="font-semibold text-gray-800">
-                {item.univerName || "—"}
-              </div>
-            </div>
-
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">
-                Tadqiqotchi
-              </div>
-              <div className="font-semibold text-gray-800">
-                {item.researcherName || "—"}
-              </div>
-            </div>
-
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">Daraja</div>
-              <div className="font-semibold text-gray-800">
-                {item.memberEnum || "—"}
-              </div>
-            </div>
-          </div>
-
-          {item.fileUrl && (
-            <Button
-              type="primary"
-              icon={<FilePdfOutlined />}
-              href={item.fileUrl}
-              target="_blank"
-              block
-              size="large"
-              className="h-11 rounded-xl bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 transition-all shadow-md"
-            >
-              PDF faylni ochish
-            </Button>
-          )}
         </div>
       </Card>
     ))}
@@ -524,68 +414,72 @@ const PublicationList = ({ items = [] }: { items: any[] }) => (
       <Card
         key={item.id}
         hoverable
-        className="group border border-gray-200 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-purple-50/20"
+        className="group border border-gray-200 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-indigo-50/20"
       >
         <div className="p-1">
-          <div className="flex justify-between items-start">
-            <h4 className="text-xl font-bold text-gray-900 group-hover:text-purple-700 transition-colors line-clamp-2">
-              {item.name}
-            </h4>
-            <Tag
-              color="blue"
-              className="text-sm px-4 py-1 rounded-full font-medium"
-            >
-              {item.type || "Nashr"}
-            </Tag>
+          <div className="flex items-start gap-4 flex-1 pr-4">
+            <div className="flex items-center justify-center w-10 h-10 text-white text-sm font-bold bg-gradient-to-br from-green-500 to-teal-600 rounded-xl shadow">
+              {1}
+            </div>
+
+            <div className="flex flex-col gap-2 flex-1">
+              <p className="text-gray-900 font-semibold text-sm leading-tight !m-0">
+                {item.name}
+              </p>
+              <div>
+                <p className="text-gray-600 text-xs !m-0">
+                  {item.description || "Tavsif kiritilmagan"}
+                </p>
+                {/* {shouldShowToggle && (
+                  <button
+                    onClick={() => toggleExpand(item.id)}
+                    className="text-blue-600 hover:text-blue-700 font-medium text-xs mt-1 transition-colors"
+                  >
+                    {isExpanded ? "Kamroq ko'rish" : "Ko'proq ko'rish"}
+                  </button>
+                )} */}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full font-medium">
+                  {item.year}
+                </span>
+                <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
+                  {item.type}
+                </span>
+                <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">
+                  {item.author}
+                </span>
+                <span className="px-3 py-1 bg-teal-100 text-teal-700 rounded-full font-medium">
+                  {item.degree}
+                </span>
+                <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium">
+                  {item.institution}
+                </span>
+                <span
+                  className={`px-3 py-1 rounded-full font-medium ${
+                    item.popular
+                      ? "bg-green-100 text-green-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
+                >
+                  {item.popular ? "Popular" : "Oddiy"}
+                </span>
+              </div>
+            </div>
+
+            {item.fileUrl && (
+              <a
+                href={item.fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg cursor-pointer transition border border-blue-200 shadow-sm hover:shadow select-none flex-shrink-0"
+              >
+                <DownloadOutlined className="text-lg" />
+                <span className="text-[13px] font-medium">PDF Fayli</span>
+              </a>
+            )}
           </div>
-
-          <p className="text-gray-600 mb-5 line-clamp-3">
-            {item.description || "Tavsif kiritilmagan"}
-          </p>
-
-          <div className="grid grid-cols-4 gap-4 text-sm mb-6">
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">Yil</div>
-              <div className="font-semibold text-gray-800">{item.year}</div>
-            </div>
-
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">
-                Mualliflik
-              </div>
-              <div className="font-semibold text-gray-800">
-                {item.author || "—"}
-              </div>
-            </div>
-
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">Daraja</div>
-              <div className="font-semibold text-gray-800">
-                {item.degree || "—"}
-              </div>
-            </div>
-
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">Mashhur</div>
-              <div className="font-semibold text-gray-800">
-                {item.popular ? "Ha" : "Yo‘q"}
-              </div>
-            </div>
-          </div>
-
-          {item.fileUrl && (
-            <Button
-              type="primary"
-              icon={<FilePdfOutlined />}
-              href={item.fileUrl}
-              target="_blank"
-              block
-              size="large"
-              className="h-11 rounded-xl bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 transition-all shadow-md"
-            >
-              PDF faylni ochish
-            </Button>
-          )}
         </div>
       </Card>
     ))}
@@ -598,57 +492,61 @@ const AwardList = ({ items = [] }: { items: any[] }) => (
       <Card
         key={item.id}
         hoverable
-        className="group border border-gray-200 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-amber-50/30"
+        className="group border border-gray-200 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-indigo-50/20"
       >
         <div className="p-1">
-          <div className="flex justify-between items-start">
-            <h4 className="text-xl font-bold text-gray-900 group-hover:text-amber-700 transition-colors line-clamp-2">
-              {item.name}
-            </h4>
-            <Tag
-              color="gold"
-              className="text-sm px-4 py-1 rounded-full font-medium"
-            >
-              {item.awardEnum || "—"}
-            </Tag>
-          </div>
-
-          <p className="text-gray-600 mb-5 line-clamp-3">
-            {item.description || "Tavsif kiritilmagan"}
-          </p>
-
-          <div className="grid grid-cols-3 gap-4 text-sm mb-6">
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">Yil</div>
-              <div className="font-semibold text-gray-800">{item.year}</div>
+          <div className="flex items-start gap-4 flex-1 pr-4">
+            <div className="flex items-center justify-center w-10 h-10 text-white text-sm font-bold bg-gradient-to-br from-green-500 to-teal-600 rounded-xl shadow">
+              {1}
             </div>
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">Turi</div>
-              <div className="font-semibold text-gray-800">
-                {item.awardEnum || "—"}
+
+            <div className="flex flex-col gap-2 flex-1">
+              <p className="text-gray-900 font-semibold text-sm leading-tight !m-0">
+                {item.name}
+              </p>
+              <div>
+                <p className="text-gray-600 text-xs !m-0">
+                  {item.description || "Tavsif kiritilmagan"}
+                </p>
+                {/* {shouldShowToggle && (
+                  <button
+                    onClick={() => toggleExpand(item.id)}
+                    className="text-blue-600 hover:text-blue-700 font-medium text-xs mt-1 transition-colors"
+                  >
+                    {isExpanded ? "Kamroq ko'rish" : "Ko'proq ko'rish"}
+                  </button>
+                )} */}
+              </div>
+
+              <div className="flex flex-col gap-2 flex-1">
+                <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                  <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full font-medium">
+                    {item.year}
+                  </span>
+                  <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">
+                    {item.awardEnum === "Trening_Va_Amaliyot"
+                      ? "Traning va amaliyot"
+                      : item.awardEnum}
+                  </span>
+                  <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
+                    {item.memberEnum}
+                  </span>
+                </div>
               </div>
             </div>
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">Daraja</div>
-              <div className="font-semibold text-gray-800">
-                {item.memberEnum || "—"}
-              </div>
-            </div>
-          </div>
 
-          {item.fileUrl && (
-            <Button
-              type="primary"
-              icon={<FilePdfOutlined />}
-              href={item.fileUrl}
-              target="_blank"
-              block
-              size="large"
-              className="h-11 rounded-xl bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 transition-all shadow-md"
-            >
-              PDF faylni ochish
-            </Button>
-          )}
+            {item.fileUrl && (
+              <a
+                href={item.fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg cursor-pointer transition border border-blue-200 shadow-sm hover:shadow select-none flex-shrink-0"
+              >
+                <DownloadOutlined className="text-lg" />
+                <span className="text-[13px] font-medium">PDF Fayli</span>
+              </a>
+            )}
+          </div>
         </div>
       </Card>
     ))}
@@ -661,65 +559,73 @@ const AdviceList = ({ items = [] }: { items: any[] }) => (
       <Card
         key={item.id}
         hoverable
-        className="group border border-gray-200 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-green-50/30"
+        className="group border border-gray-200 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-indigo-50/20"
       >
         <div className="p-1">
-          <div className="flex justify-between items-start">
-            <h4 className="text-xl font-bold text-gray-900 group-hover:text-green-700 transition-colors line-clamp-2">
-              {item.name}
-            </h4>
-            <Tag
-              color={
-                item.finishedEnum === "Tugatilgan" ? "success" : "processing"
-              }
-              className="text-sm px-4 py-1 rounded-full font-medium"
-            >
-              {item.finishedEnum || "—"}
-            </Tag>
+          <div className="flex items-start gap-4 flex-1 pr-4">
+            <div className="flex items-center justify-center w-10 h-10 text-white text-sm font-bold bg-gradient-to-br from-green-500 to-teal-600 rounded-xl shadow">
+              {1}
+            </div>
+
+            <div className="flex flex-col gap-2 flex-1">
+              <p className="text-gray-900 font-semibold text-sm leading-tight !m-0">
+                {item.name}
+              </p>
+              <div>
+                <p className="text-gray-600 text-xs !m-0">
+                  {item.description || "Tavsif kiritilmagan"}
+                </p>
+                {/* {shouldShowToggle && (
+                  <button
+                    onClick={() => toggleExpand(item.id)}
+                    className="text-blue-600 hover:text-blue-700 font-medium text-xs mt-1 transition-colors"
+                  >
+                    {isExpanded ? "Kamroq ko'rish" : "Ko'proq ko'rish"}
+                  </button>
+                )} */}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full font-medium">
+                  {item.year}
+                </span>
+                <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full font-medium">
+                  {item.member ? "A'zo" : "A'zo emas"}
+                </span>
+                <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium">
+                  {item.leader}
+                </span>
+
+                {/* Holat — to‘g‘ri enum qiymatlari bilan */}
+                <span
+                  className={`px-3 py-1 rounded-full font-medium text-xs ${
+                    item.finishedEnum === FinishedEnum.COMPLETED ||
+                    item.finishedEnum === FinishedEnum.FINISHED
+                      ? "bg-green-100 text-green-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
+                >
+                  {item.finishedEnum === FinishedEnum.COMPLETED &&
+                    "Tugallangan"}
+                  {item.finishedEnum === FinishedEnum.FINISHED && "Yakunlangan"}
+                  {item.finishedEnum === FinishedEnum.IN_PROGRESS &&
+                    "Jarayonda"}
+                </span>
+              </div>
+            </div>
+
+            {item.fileUrl && (
+              <a
+                href={item.fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg cursor-pointer transition border border-blue-200 shadow-sm hover:shadow select-none flex-shrink-0"
+              >
+                <DownloadOutlined className="text-lg" />
+                <span className="text-[13px] font-medium">PDF Fayli</span>
+              </a>
+            )}
           </div>
-
-          <p className="text-gray-600 mb-5 line-clamp-3">
-            {item.description || "Tavsif kiritilmagan"}
-          </p>
-
-          <div className="grid grid-cols-4 gap-4 text-sm mb-6">
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">Yil</div>
-              <div className="font-semibold text-gray-800">{item.year}</div>
-            </div>
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">Rahbar</div>
-              <div className="font-semibold text-gray-800">
-                {item.leader || "—"}
-              </div>
-            </div>
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">Holati</div>
-              <div className="font-semibold text-gray-800">
-                {item.finishedEnum || "—"}
-              </div>
-            </div>
-            <div className="bg-white/80 p-3 rounded-lg shadow-sm">
-              <div className="text-gray-500 text-xs font-medium">A'zolik</div>
-              <div className="font-semibold text-gray-800">
-                {item.member ? "Ha" : "Yo‘q"}
-              </div>
-            </div>
-          </div>
-
-          {item.fileUrl && (
-            <Button
-              type="primary"
-              icon={<FilePdfOutlined />}
-              href={item.fileUrl}
-              target="_blank"
-              block
-              size="large"
-              className="h-11 rounded-xl bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 transition-all shadow-md"
-            >
-              PDF faylni ochish
-            </Button>
-          )}
         </div>
       </Card>
     ))}
