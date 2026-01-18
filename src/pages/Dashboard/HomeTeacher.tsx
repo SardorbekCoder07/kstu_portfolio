@@ -1,43 +1,33 @@
-import React, { useState, useEffect } from "react";
-import {
-  Card,
-  Tabs,
-  Button,
-  Drawer,
-  Form,
-  Input,
-  Spin,
-  Pagination,
-  Tag,
-  Empty,
-} from "antd";
+import React, { useState } from "react";
+import { Card, Tabs, Button, Spin, Pagination, Tag, Empty } from "antd";
 import {
   FilePdfOutlined,
   MailOutlined,
   PhoneOutlined,
   IdcardOutlined,
-  ClockCircleOutlined,
 } from "@ant-design/icons";
-import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+
 import axiosClient from "../../api/axiosClient";
 import { useProfile } from "../../hooks/useProfileOperations";
+import { useDrawerStore } from "../../stores/useDrawerStore";
 
-// Hook'lar
+// Hooks
 import { useResearchOperations } from "../../hooks/useResearchOperation";
 import { usePublicationOperations } from "../../hooks/usePublicationOperation";
 import { useAwardOperations } from "../../hooks/useAwardOperation";
 import { useControlOperations } from "../../hooks/useControlOperation";
 import { useAdviceOperations } from "../../hooks/useAdviceOperation";
 
-import Biography from "../../components/ui/Biography/Biography";
+// Sidebar
+import { TeacherSidebar } from "../Teachers/TeacherSidebar";
 
 const { TabPane } = Tabs;
 
 const HomeTeacher: React.FC = () => {
   const queryClient = useQueryClient();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [form] = Form.useForm();
+  const { openDrawer } = useDrawerStore();
 
   const pageSize = 5;
 
@@ -49,6 +39,7 @@ const HomeTeacher: React.FC = () => {
 
   const { data: teacher, isLoading: profileLoading } = useProfile();
 
+  // ================== DATA ==================
   const {
     researches,
     total: researchTotal,
@@ -79,32 +70,41 @@ const HomeTeacher: React.FC = () => {
     isAdviceLoading,
   } = useAdviceOperations(teacher?.id, advicePage - 1, pageSize);
 
+  // ================== UPDATE ==================
   const updateMutation = useMutation({
-    mutationFn: async (payload: Partial<any>) => {
+    mutationFn: async (payload: any) => {
       const res = await axiosClient.put("/user", payload);
-      if (!res.data?.success) throw new Error("Ma’lumotlarni yangilashda xato");
-      return res.data.data;
+      return res.data;
     },
-    onSuccess: (updatedData) => {
-      toast.success("Ma’lumotlar muvaffaqiyatli saqlandi!");
-      queryClient.setQueryData(["profile"], updatedData);
-      setDrawerOpen(false);
+    onSuccess: () => {
+      toast.success("Ma’lumotlar muvaffaqiyatli yangilandi");
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
-    onError: (err: any) => {
-      toast.error(err?.message || "Xatolik yuz berdi!");
+    onError: () => {
+      toast.error("Saqlashda xatolik yuz berdi");
     },
   });
 
-  useEffect(() => {
-    if (drawerOpen && teacher) {
-      form.setFieldsValue(teacher);
-    }
-  }, [drawerOpen, teacher, form]);
+  // ================== UPLOAD ==================
+  const uploadImageMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await axiosClient.post("/upload/image", formData);
+      return res.data.url;
+    },
+  });
 
-  const onSave = (values: any) => {
-    updateMutation.mutate(values);
-  };
+  const uploadPDFMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await axiosClient.post("/upload/file", formData);
+      return res.data.url;
+    },
+  });
 
+  // ================== LOADING ==================
   if (profileLoading) {
     return (
       <div className="flex justify-center items-center h-[400px]">
@@ -114,14 +114,12 @@ const HomeTeacher: React.FC = () => {
   }
 
   if (!teacher) {
-    return (
-      <p className="text-center text-red-500 mt-10">Ma’lumot topilmadi.</p>
-    );
+    return <p className="text-center text-red-500 mt-10">Ma’lumot topilmadi</p>;
   }
 
   return (
     <>
-      <div className="mx-auto p-6 grid gap-6 grid-cols-1 md:grid-cols-[1fr_2fr] items-start">
+       <div className="mx-auto p-6 grid gap-6 grid-cols-1 md:grid-cols-[1fr_2fr] items-start">
         {/* Chap taraf – Profil kartasi */}
         <Card
           hoverable
@@ -158,7 +156,7 @@ const HomeTeacher: React.FC = () => {
               {teacher.lavozimName}
             </div>
 
-            <Button type="primary" block onClick={() => setDrawerOpen(true)}>
+            <Button type="primary" block onClick={openDrawer}>
               Ma’lumotlarni tahrirlash
             </Button>
 
@@ -318,72 +316,31 @@ const HomeTeacher: React.FC = () => {
         </Card>
       </div>
 
-      {/* Tahrirlash Drawer */}
-      <Drawer
-        title="O‘z ma’lumotlarini tahrirlash"
-        width={420}
-        open={drawerOpen}
-        onClose={() => {
-          setDrawerOpen(false);
-          form.resetFields();
+      {/* ================= SIDEBAR ================= */}
+      <TeacherSidebar
+        editMode
+        initialValues={{
+          id: teacher.id,
+          fullName: teacher.fullName,
+          phoneNumber: teacher.phone,
+          email: teacher.email,
+          biography: teacher.biography,
+          input: teacher.input,
+          age: teacher.age,
+          gender: teacher.gender,
+          imgUrl: teacher.imageUrl,
+          fileUrl: teacher.fileUrl,
+          profession: teacher.profession,
+          lavozmId: teacher.lavozmId,
+          departmentId: teacher.departmentId,
         }}
-        destroyOnClose
-      >
-        <Form layout="vertical" form={form} onFinish={onSave}>
-          <Form.Item
-            name="fullName"
-            label="F.I.O"
-            rules={[{ required: true, message: "F.I.O kiriting" }]}
-          >
-            <Input size="large" />
-          </Form.Item>
-          <Form.Item
-            name="lavozimName"
-            label="Lavozim"
-            rules={[{ required: true }]}
-          >
-            <Input size="large" />
-          </Form.Item>
-          <Form.Item
-            name="departmentName"
-            label="Kafedra"
-            rules={[{ required: true }]}
-          >
-            <Input size="large" />
-          </Form.Item>
-          <Form.Item name="phone" label="Telefon" rules={[{ required: true }]}>
-            <Input size="large" />
-          </Form.Item>
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[{ required: true, type: "email" }]}
-          >
-            <Input size="large" />
-          </Form.Item>
-          <Form.Item
-            name="biography"
-            label="Tavsif"
-            rules={[{ required: true }]}
-          >
-            <Input.TextArea rows={5} />
-          </Form.Item>
-          <Form.Item name="input" label="Qo‘shimcha ma'lumot">
-            <Input.TextArea rows={4} />
-          </Form.Item>
-
-          <Button
-            type="primary"
-            block
-            size="large"
-            htmlType="submit"
-            loading={updateMutation.isPending}
-            className="mt-6"
-          >
-            Saqlash
-          </Button>
-        </Form>
-      </Drawer>
+        departmentList={[]}
+        positionList={[]}
+        createMutation={updateMutation}
+        updateMutation={updateMutation}
+        uploadImageMutation={uploadImageMutation}
+        uploadPDFMutation={uploadPDFMutation}
+      />
     </>
   );
 };
@@ -482,6 +439,7 @@ const ResearchList = ({ items = [] }: { items: any[] }) => (
           )}
         </div>
       </Card>
+
     ))}
   </div>
 );
